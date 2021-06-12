@@ -66,12 +66,37 @@
  system, though this will obviously need to change if we ever emulate the SPU with better precision than per-sample(pair).
 */
 
-#include "psx.h"
-#include "cdc.h"
+//#include "psx.h"
+//#include "cdc.h"
 #include "spu.h"
-#include <libretro.h>
+#include <assert.h>
+#include <string.h>
 
-#include "../state_helpers.h"
+#define INLINE inline
+#define NO_INLINE
+#define MDFN_UNLIKELY
+
+enum
+{
+    IRQ_SPU
+};
+
+void IRQ_Assert(int /*which*/, bool /*asserted*/)
+{
+
+}
+
+static INLINE void clamp(int32_t *val, int32_t min, int32_t max)
+{
+    if (*val < min)
+        *val = min;
+    if (*val > max)
+        *val = max;
+}
+
+//#include <libretro.h>
+
+//#include "../state_helpers.h"
 
 uint32_t IntermediateBufferPos;
 int16_t IntermediateBuffer[4096][2];
@@ -993,6 +1018,7 @@ int32 PS_SPU::UpdateFromCDC(int32 clocks)
       }
 
       // Get CD-DA
+      /*
       {
          int32 cda_raw[2];
          int32 cdav[2];
@@ -1022,6 +1048,7 @@ int32 PS_SPU::UpdateFromCDC(int32 clocks)
             }
          }
       }
+      */
 
       CWA = (CWA + 1) & 0x1FF;
 
@@ -1354,6 +1381,7 @@ uint16 PS_SPU::Read(int32_t timestamp, uint32 A)
    return(Regs[(A & 0x1FF) >> 1]);
 }
 
+/* Save state of SPU disabled
 int PS_SPU::StateAction(StateMem *sm, int load, int data_only)
 {
    SFORMAT StateRegs[] =
@@ -1507,6 +1535,7 @@ int PS_SPU::StateAction(StateMem *sm, int load, int data_only)
 
    return(ret);
 }
+*/
 
 uint16 PS_SPU::PeekSPURAM(uint32 address)
 {
