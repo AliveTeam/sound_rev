@@ -1,0 +1,25 @@
+system_area {
+  file "iso.sys"
+}
+
+volume {
+  system_id [PLAYSTATION]
+  volume_id []
+  volume_set_id []
+  publisher_id []
+  preparer_id []
+  application_id [PLAYSTATION]
+  copyright_file_id []
+  abstract_file_id []
+  bibliographic_file_id []
+  creation_date 1999-09-23 17:17:17.00 36
+  modification_date 0000-00-00 00:00:00.00 0
+  expiration_date 0000-00-00 00:00:00.00 0
+  effective_date 0000-00-00 00:00:00.00 0
+}
+
+dir {
+  file MAIN.EXE
+  file PM.LVL
+  file SYSTEM.CNF
+}
