@@ -659,7 +659,9 @@ enum eMainStates
     eErrorLoadingLvl,
     eLoadedLvl,
     eErrorLoadingTracks,
-    eTrackSelection,
+    eSfxOrTrackSelection,
+    eSfxSelection,
+    eTrackSelection
 };
 
 static Lvl gLvl;
@@ -912,6 +914,12 @@ public:
             mOpenSeqId = -1;
         }
     }
+
+    short VabId() const
+    {
+        return mOpenVabId;
+    }
+
 private:
     void CloseVab()
     {
@@ -1127,7 +1135,7 @@ static void HandleLvlLoaded()
                     return;
                 }
 
-                gMainState = eTrackSelection;
+                gMainState = eSfxOrTrackSelection;
                 return;
             }
         }
@@ -1271,6 +1279,82 @@ static void InitSprite(GsSPRITE& sprite, const TimImage& tim)
     sprite.h = tim.Height();
 }
 
+struct SfxDefinition
+{
+    char field_0_block_idx;
+    char field_1_program;
+    char field_2_note;
+    char field_3_default_volume;
+    short field_4_pitch_min;
+    short field_6_pitch_max;
+};
+
+const SfxDefinition sSligGameSpeakEntries_560868[15] = {
+    {0u, 25u, 60u, 127u, 0, 0},
+    {0u, 25u, 62u, 127u, 0, 0},
+    {0u, 25u, 61u, 115u, 0, 0},
+    {0u, 25u, 38u, 120u, 0, 0},
+    {0u, 25u, 63u, 127u, 0, 0},
+    {0u, 25u, 66u, 127u, 0, 0},
+    {0u, 25u, 37u, 127u, 0, 0},
+    {0u, 25u, 67u, 127u, 0, 0},
+    {0u, 25u, 57u, 127u, 0, 0},
+    {0u, 25u, 58u, 127u, 0, 0},
+    {0u, 25u, 59u, 127u, 0, 0},
+    {0u, 25u, 39u, 127u, 0, 0},
+    {0u, 25u, 64u, 127u, 0, 0},
+    {0u, 25u, 65u, 127u, 0, 0},
+    {0u, 25u, 68u, 127u, 0, 0},
+};
+
+const static char* kSligSfx[] = 
+{
+    "Hi",
+    "HereBoy",
+    "Gethim",
+    "Laugh",
+    "Stay",
+    "BullShit",
+    "Lookout",
+    "Bullshit2",
+    "Freeze",
+    "What",
+    "Help",
+    "Blurgh",
+    "GotYa",
+    "Ouch1",
+    "Ouch2"
+};
+
+class SfxPlayer
+{
+public:
+    SfxPlayer()
+    {
+        mMenu.Init(kSligSfx, 15);
+    }
+
+    int DisplayMenu()
+    {
+        mMenu.Update();
+        mMenu.Render();
+        return mMenu.SelectedIndex();
+    }
+
+    void Play(short vabId, int idx)
+    {
+        char volLeft = 127;
+        char volRight = 127;
+
+        const SfxDefinition& def = sSligGameSpeakEntries_560868[idx];
+        ::SsVoKeyOn(def.field_1_program | vabId, def.field_2_note << 8, volLeft, volRight);
+    }
+
+private:
+    TextMenu mMenu;
+};
+static SfxPlayer gSfxPlayer;
+
 int main()
 {
     ::ResetCallback();
@@ -1398,6 +1482,43 @@ int main()
             }
             break;
 
+        case eSfxOrTrackSelection:
+            ::FntPrint("SFX or track selection");
+            ::FntPrint("\n\nPress Triangle for SFX, X for tracks");
+            ::FntPrint("\nOr O to go back\n\n");
+            if (gInput.Cross())
+            {
+                gMainState = eTrackSelection;
+            }
+            else if (gInput.Triangle())
+            {
+                gMainState = eSfxSelection;
+            }
+            else if (gInput.Circle())
+            {
+                gSound.CloseSeq();
+                gMainState = eLvlSelection;
+            }
+        break;
+
+        case eSfxSelection:
+        {
+            ::FntPrint("SFX selection");
+            ::FntPrint("\nPress X to play and O to go back\n\n");
+            
+            const int sfxNum = gSfxPlayer.DisplayMenu();
+            if (gInput.Cross() && sfxNum != -1)
+            {
+                gSfxPlayer.Play(gSound.VabId(), sfxNum);
+            }
+            else if (gInput.Circle())
+            {
+                gSound.CloseSeq();
+                gMainState = eSfxOrTrackSelection;
+            }
+        }
+        break;
+
         case eTrackSelection:
             ::FntPrint("Track selection");
             ::FntPrint("\nPress X to play and O to go back\n\n");
@@ -1417,7 +1538,7 @@ int main()
             else if (gInput.Circle())
             {
                 gSound.CloseSeq();
-                gMainState = eLvlSelection;
+                gMainState = eSfxOrTrackSelection;
             }
             break;
         }

@@ -58,8 +58,8 @@ del main.cpe -ea silentlycontinue
 ccpsx -g0 -O3 -Xo$80010000 seqplayer.cpp -omain -I $Env:C_INCLUDE_PATH -l $Env:LIBRARY_PATH\libds.lib -l $Env:LIBRARY_PATH\libc.lib -l $Env:LIBRARY_PATH\libsn.lib -l $Env:LIBRARY_PATH\libgs.lib -l $Env:LIBRARY_PATH\libsnd.lib -l $Env:LIBRARY_PATH\libspu.lib -l $Env:LIBRARY_PATH\libcd.lib -l $Env:LIBRARY_PATH\libapi.lib -l $Env:LIBRARY_PATH\libgpu.lib -l $Env:LIBRARY_PATH\libgte.lib -l $Env:LIBRARY_PATH\libetc.lib
 cpe2exe main
 del iso\main.exe -ea silentlycontinue
-del iso.cue
-del iso.bin
+del iso.cue -ea silentlycontinue
+del iso.bin -ea silentlycontinue
 copy main.exe iso\main.exe
 psxbuild -c iso.cat
 Start-Process "C:\Users\paul\Downloads\pcsxr\pcsxr.exe" -WorkingDirectory "C:\Users\paul\Downloads\pcsxr" -ArgumentList "-nogui", "-cdfile E:\Data\alive\reversing\sound_rev\psx_seq_player\iso.cue"
