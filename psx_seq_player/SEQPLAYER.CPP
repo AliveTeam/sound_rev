@@ -1289,7 +1289,7 @@ struct SfxDefinition
     short field_6_pitch_max;
 };
 
-const SfxDefinition sSligGameSpeakEntries_560868[15] = {
+const SfxDefinition sSligGameSpeakEntries_560868[16] = {
     {0u, 25u, 60u, 127u, 0, 0},
     {0u, 25u, 62u, 127u, 0, 0},
     {0u, 25u, 61u, 115u, 0, 0},
@@ -1305,6 +1305,7 @@ const SfxDefinition sSligGameSpeakEntries_560868[15] = {
     {0u, 25u, 64u, 127u, 0, 0},
     {0u, 25u, 65u, 127u, 0, 0},
     {0u, 25u, 68u, 127u, 0, 0},
+    {0u, 0u, 36u, 70u, 0, 0},
 };
 
 const static char* kSligSfx[] = 
@@ -1323,15 +1324,29 @@ const static char* kSligSfx[] =
     "Blurgh",
     "GotYa",
     "Ouch1",
-    "Ouch2"
+    "Ouch2",
+    "LoadingSfx"
 };
 
+static void SND_Stop_Channels_Mask_4CA810(int bitMask)
+{
+    for (int i = 0; i < 24; i++) // TODO: Constant
+    {
+        // Does the index match a bit in the bitmask?
+        if ((1 << i) & bitMask)
+        {
+            // Turn it off
+            SsUtKeyOffV(i);
+        }
+    }
+}
 class SfxPlayer
 {
 public:
     SfxPlayer()
     {
-        mMenu.Init(kSligSfx, 15);
+        mMenu.Init(kSligSfx, 16);
+        mOnVoices = 0;
     }
 
     int DisplayMenu()
@@ -1343,14 +1358,23 @@ public:
 
     void Play(short vabId, int idx)
     {
+        Stop();
+
         char volLeft = 127;
         char volRight = 127;
 
         const SfxDefinition& def = sSligGameSpeakEntries_560868[idx];
-        ::SsVoKeyOn(def.field_1_program | vabId, def.field_2_note << 8, volLeft, volRight);
+        mOnVoices = ::SsVoKeyOn(def.field_1_program | vabId, def.field_2_note << 8, volLeft, volRight);
+    }
+
+    void Stop()
+    {
+        SND_Stop_Channels_Mask_4CA810(mOnVoices);
+        mOnVoices = 0;
     }
 
 private:
+    int mOnVoices;
     TextMenu mMenu;
 };
 static SfxPlayer gSfxPlayer;
@@ -1504,12 +1528,17 @@ int main()
         case eSfxSelection:
         {
             ::FntPrint("SFX selection");
-            ::FntPrint("\nPress X to play and O to go back\n\n");
+            ::FntPrint("\nPress X to play");
+            ::FntPrint("\n start to stop and O to go back\n\n");
             
             const int sfxNum = gSfxPlayer.DisplayMenu();
             if (gInput.Cross() && sfxNum != -1)
             {
                 gSfxPlayer.Play(gSound.VabId(), sfxNum);
+            }
+            else if (gInput.Start())
+            {
+                gSfxPlayer.Stop();
             }
             else if (gInput.Circle())
             {
