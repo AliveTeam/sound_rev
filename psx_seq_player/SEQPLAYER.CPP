@@ -89,6 +89,11 @@ long Sound_SsVoKeyOn(long vab_pro, long pitch, u_short volL, u_short volR)
     return ::SsVoKeyOn(vab_pro, pitch, volL, volR);
 }
 
+void Sound_SsSeqCalledTbyT()
+{
+    ::SsSeqCalledTbyT();
+}
+
 #else
 void Sound_SsInit()
 {
@@ -160,6 +165,11 @@ long Sound_SsVoKeyOn(long vab_pro, long pitch, u_short volL, u_short volR)
     return 0;
 }
 
+void Sound_SsSeqCalledTbyT()
+{
+
+}
+
 #endif
 
 #define OT_LENGTH 40 // the ordertable length
@@ -179,7 +189,10 @@ public:
 
     void Init()
     {
-        ::SetVideoMode(IsPalBios() ? MODE_PAL : MODE_NTSC);
+        //::SetVideoMode(IsPalBios() ? MODE_PAL : MODE_NTSC);
+
+        // NTSC force for correct SEQ timings
+        ::SetVideoMode(MODE_NTSC);
 
         ::GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0); // set the graphics mode resolutions. You may also try using 'GsNONINTER' (read LIBOVR46.PDF in PSYQ/DOCS for detailed information)
         ::GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT); // set the top left coordinates of the two buffers in video memory
@@ -975,6 +988,11 @@ int DisplayLevelSelection()
 #define MVOL		127
 #define SVOL		64
 
+static void TickSeq()
+{
+    Sound_SsSeqCalledTbyT();
+}
+
 class Sound
 {
 public:
@@ -988,10 +1006,10 @@ public:
     {
         Sound_SsInit();
         Sound_SsSetTableSize(mSeqTable, 4, 5);
-        // Every 1/240th of a second is the highest res possible
-        Sound_SsSetTickMode(SS_TICK60);
+        Sound_SsSetTickMode(SS_NOTICK);
         Sound_SsStart();
         Sound_SsSetMVol(MVOL, MVOL);
+        VSyncCallback(TickSeq);
     }
 
     bool LoadVab(unsigned char* vhBuffer, unsigned char* vbBuffer)
