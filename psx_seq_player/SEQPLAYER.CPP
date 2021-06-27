@@ -14,8 +14,9 @@
 #include "tims/FONT.h"
 #include "tims/P1.h"
 #include "tims/P2.h"
+#include "spulib.c"
 
-#define PSX_SOUND_LIB
+//#define PSX_SOUND_LIB
 
 #ifdef PSX_SOUND_LIB
 
@@ -95,9 +96,10 @@ void Sound_SsSeqCalledTbyT()
 }
 
 #else
+// !
 void Sound_SsInit()
 {
-
+    SPU_Reset();
 }
 
 void Sound_SsSetTableSize(char* table, short s_max, short t_max)
@@ -110,21 +112,26 @@ void Sound_SsSetTickMode(long tick_mode)
 
 }
 
+// !
 void Sound_SsStart()
 {
-
+    SPU_Enable();
 }
 
+// !
 void Sound_SsSetMVol(short voll, short volr)
 {
 
 }
 
+// !
 int Sound_SsVabTransfer(u_char* vh_addr, u_char* vb_addr, short vabid, short i_flag)
 {
+    //SPU_LoadVAB();
     return 0;
 }
 
+// !
 short Sound_SsVabTransCompleted(short immediateFlag)
 {
     return 0;
@@ -150,18 +157,23 @@ void Sound_SsSeqClose(short seq_access_num)
 
 }
 
+// !
 void Sound_SsVabClose(short vab_id)
 {
 
 }
 
+// !
 short Sound_SsUtKeyOffV(short voice)
 {
+    SPU_VoiceOff(voice);
     return 0;
 }
 
+// !
 long Sound_SsVoKeyOn(long vab_pro, long pitch, u_short volL, u_short volR)
 {
+
     return 0;
 }
 
