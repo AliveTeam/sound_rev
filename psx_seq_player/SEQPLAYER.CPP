@@ -436,7 +436,7 @@ extern "C"
         _snd_ev_flag = 1;
 
         short result = -1;
-        if (voice < 24u)
+        if (voice < 24)
         {
             note2pitch2 = voice;
             _SsVmKeyOffNow();
@@ -446,6 +446,20 @@ extern "C"
         _snd_ev_flag = 0;
         return result;
     }
+
+    long _SsVmSeKeyOn(u_char vab, u_char program, u_char note, u_char pitch, u_short volL, u_short volR);
+
+    long SsVoKeyOn(long vab_pro, long pitch, u_short volL, u_short volR)
+    {
+        return _SsVmSeKeyOn(
+           (vab_pro >> 8),
+           vab_pro & 0xFF,
+           (unsigned short)(pitch >> 8),
+           pitch & 0xFF,
+           volL,
+           volR);
+    }
+
 
 } // extern "C"
 
@@ -517,12 +531,13 @@ void Sound_SsSeqClose(short seq_access_num)
     ::SsSeqClose(seq_access_num);
 }
 
-// ??
+// TODO: but isn't in test binary
 void Sound_SsVabClose(short vab_id)
 {
     ::SsVabClose(vab_id);
 }
 
+// ok
 short Sound_SsUtKeyOffV(short voice)
 {
     return ::SsUtKeyOffV(voice);
