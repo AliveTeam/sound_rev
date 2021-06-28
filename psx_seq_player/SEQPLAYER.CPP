@@ -44,7 +44,7 @@ extern "C"
     {
         ResetCallback();
         SpuInit();
-        SpuClearReverbWorkArea(7); // RVB_ECHO
+        SpuClearReverbWorkArea(SPU_REV_MODE_ECHO); // 7
         _SsInit();
     }
 
@@ -226,6 +226,17 @@ extern "C"
         }
     }
 
+    // TODO: SpuSetCommonAttr
+
+    void SsSetMVol(short voll, short volr)
+    {
+        SpuCommonAttr attr;
+        attr.mask = SPU_COMMON_MVOLL | SPU_COMMON_MVOLR; // 3
+        attr.mvol.left = 129 * voll;
+        attr.mvol.right = 129 * volr;
+        SpuSetCommonAttr(&attr);
+    }
+
 } // extern "C"
 
 // ===============================
@@ -236,21 +247,25 @@ void Sound_SsInit()
     ::SsInit();
 }
 
+// ok
 void Sound_SsSetTableSize(char *table, short s_max, short t_max)
 {
     ::SsSetTableSize(table, s_max, t_max);
 }
 
+// ok ?
 void Sound_SsSetTickMode(long tick_mode)
 {
     ::SsSetTickMode(tick_mode);
 }
 
+// ok ?
 void Sound_SsStart()
 {
     ::SsStart();
 }
 
+// ok
 void Sound_SsSetMVol(short voll, short volr)
 {
     ::SsSetMVol(voll, volr);
