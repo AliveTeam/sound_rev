@@ -50,9 +50,183 @@ extern "C"
 
     void SsStart(void)
     {
-        
+        // Works as a stub, not sure why
     }
-}
+
+    void SsSetTickMode(long tick_mode)
+    {
+        // Seems fine to do nothing, probably because we call
+        // SsSeqCalledTbyT manually.
+    }
+
+    
+    struct SeqStruct
+    {
+        unsigned char *field_0_seq_ptr;
+        int field_4;
+        unsigned char *field_8;
+        int field_C;
+        int field_10;
+        char field_14;
+        char field_15;
+        char field_16;
+        unsigned char field_17_array_60_idx;
+        char field_18;
+        char field_19;
+        char field_1A;
+        char field_1B;
+        char field_1C;
+        char field_1D;
+        char field_1E;
+        char field_1F;
+        short field_20;
+        signed char field_22;
+        char field_23;
+        char field_24;
+        char field_25;
+        char field_26_vab_id;
+        char field_27;
+        char field_28;
+        char field_29;
+        char field_2A;
+        char field_2B;
+        char field_2C;
+        char field_2D;
+        char field_2E;
+        char field_2F;
+        char field_30;
+        char field_31;
+        char field_32;
+        char field_33;
+        char field_34;
+        char field_35;
+        char field_36;
+        char field_37;
+        char field_38;
+        char field_39;
+        char field_3A;
+        char field_3B;
+        char field_3C;
+        char field_3D;
+        char field_3E;
+        char field_3F;
+        char field_40;
+        char field_41;
+        char field_42;
+        char field_43;
+        char field_44;
+        char field_45;
+        char field_46;
+        char field_47;
+        short field_48;
+        short field_4A;
+        short field_4C;
+        short field_4E;
+        short field_50;
+        short field_52;
+        short field_54;
+        short field_56;
+        short field_58;
+        short field_5A;
+        short field_5C;
+        short field_5E;
+        short field_60_array;
+        char field_62;
+        char field_63;
+        char field_64;
+        char field_65;
+        char field_66;
+        char field_67;
+        char field_68;
+        char field_69;
+        char field_6A;
+        char field_6B;
+        char field_6C;
+        char field_6D;
+        char field_6E;
+        char field_6F;
+        char field_70;
+        char field_71;
+        char field_72;
+        char field_73;
+        char field_74;
+        char field_75;
+        char field_76;
+        char field_77;
+        char field_78;
+        char field_79;
+        char field_7A;
+        char field_7B;
+        char field_7C;
+        char field_7D;
+        char field_7E;
+        char field_7F;
+        short field_80;
+        char field_82;
+        char field_83;
+        int field_84;
+        int field_88;
+        int field_8C;
+        int field_90_delta_value;
+        int field_94;
+        int field_98_flags;
+        int field_9C;
+        int field_A0;
+        int field_A4;
+        int field_A8;
+        int field_AC;
+    };
+
+    extern short _snd_seq_s_max;
+    extern short _snd_seq_t_max;
+    extern SeqStruct* _ss_score[32];
+    extern u_long _snd_openflag;
+
+    void SsSetTableSize(char* table, short s_max, short t_max)
+    {
+        _snd_seq_s_max = s_max; // max 32
+        _snd_seq_t_max = t_max; // max 16
+
+        SeqStruct* pTypedTable = (SeqStruct*)table;
+
+        // Point each item to the users supplied buffer
+        for (int i = 0; i < _snd_seq_s_max; i++)
+        {
+            _ss_score[i] = &pTypedTable[i];
+        }
+
+        // Set each bit to mark an index that can't be used (cause its between s_max and the upper limit of 32bits)
+        for (int i = _snd_seq_s_max; i < 32; i++)
+        {
+            _snd_openflag |= (1 << i);
+        }
+
+        for (int i = 0; i < _snd_seq_s_max; i++)
+        {
+            for (int j = 0; j < _snd_seq_t_max; j++)
+            {
+                // Init each structure
+                SeqStruct* pItem = &_ss_score[i][j];
+                pItem->field_98_flags = 0;
+                pItem->field_22 = -1;
+                pItem->field_23 = 0;
+                pItem->field_48 = 0;
+                pItem->field_4A = 0;
+                pItem->field_9C = 0;
+                pItem->field_A0 = 0;
+                pItem->field_4C = 0;
+                pItem->field_AC = 0;
+                pItem->field_A8 = 0;
+                pItem->field_A4 = 0;
+                pItem->field_4E = 0;
+                pItem->field_58 = 127;
+                pItem->field_5A = 127;
+                pItem->field_5E = 127;
+            }
+        }
+    }
+
+} // extern "C"
 
 // ===============================
 
@@ -62,7 +236,7 @@ void Sound_SsInit()
     ::SsInit();
 }
 
-void Sound_SsSetTableSize(char* table, short s_max, short t_max)
+void Sound_SsSetTableSize(char *table, short s_max, short t_max)
 {
     ::SsSetTableSize(table, s_max, t_max);
 }
@@ -82,7 +256,7 @@ void Sound_SsSetMVol(short voll, short volr)
     ::SsSetMVol(voll, volr);
 }
 
-int Sound_SsVabTransfer(u_char* vh_addr, u_char* vb_addr, short vabid, short i_flag)
+int Sound_SsVabTransfer(u_char *vh_addr, u_char *vb_addr, short vabid, short i_flag)
 {
     return ::SsVabTransfer(vh_addr, vb_addr, vabid, i_flag);
 }
@@ -92,7 +266,7 @@ short Sound_SsVabTransCompleted(short immediateFlag)
     return ::SsVabTransCompleted(immediateFlag);
 }
 
-short Sound_SsSeqOpen(u_long* addr, short vab_id)
+short Sound_SsSeqOpen(u_long *addr, short vab_id)
 {
     return ::SsSeqOpen(addr, vab_id);
 }
@@ -131,7 +305,6 @@ void Sound_SsSeqCalledTbyT()
 {
     ::SsSeqCalledTbyT();
 }
-
 #else
 // !
 void Sound_SsInit()
@@ -139,14 +312,12 @@ void Sound_SsInit()
     SPU_Reset();
 }
 
-void Sound_SsSetTableSize(char* table, short s_max, short t_max)
+void Sound_SsSetTableSize(char *table, short s_max, short t_max)
 {
-
 }
 
 void Sound_SsSetTickMode(long tick_mode)
 {
-
 }
 
 // !
@@ -158,11 +329,10 @@ void Sound_SsStart()
 // !
 void Sound_SsSetMVol(short voll, short volr)
 {
-
 }
 
 // !
-int Sound_SsVabTransfer(u_char* vh_addr, u_char* vb_addr, short vabid, short i_flag)
+int Sound_SsVabTransfer(u_char *vh_addr, u_char *vb_addr, short vabid, short i_flag)
 {
     //SPU_LoadVAB();
     return 0;
@@ -174,30 +344,26 @@ short Sound_SsVabTransCompleted(short immediateFlag)
     return 0;
 }
 
-short Sound_SsSeqOpen(u_long* addr, short vab_id)
+short Sound_SsSeqOpen(u_long *addr, short vab_id)
 {
     return 0;
 }
 
 void Sound_SsSeqSetVol(short seq_access_num, short voll, short volr)
 {
-
 }
 
 void Sound_SsSeqPlay(short seq_access_num, char play_mode, short l_count)
 {
-
 }
 
 void Sound_SsSeqClose(short seq_access_num)
 {
-
 }
 
 // !
 void Sound_SsVabClose(short vab_id)
 {
-
 }
 
 // !
@@ -216,17 +382,16 @@ long Sound_SsVoKeyOn(long vab_pro, long pitch, u_short volL, u_short volR)
 
 void Sound_SsSeqCalledTbyT()
 {
-
 }
 
 #endif
 
-#define OT_LENGTH 40 // the ordertable length
-#define PACKETMAX 4000 // the maximum number of objects on the screen
-#define SCREEN_WIDTH  368 // screen width
-#define	SCREEN_HEIGHT 240 // screen height
+#define OT_LENGTH 40      // the ordertable length
+#define PACKETMAX 4000    // the maximum number of objects on the screen
+#define SCREEN_WIDTH 368  // screen width
+#define SCREEN_HEIGHT 240 // screen height
 
-#define countof(x) sizeof(x)/sizeof(x[0])
+#define countof(x) sizeof(x) / sizeof(x[0])
 class Graphics
 {
 public:
@@ -235,7 +400,6 @@ public:
         mActiveBuffer = 0;
     }
 
-
     void Init()
     {
         //::SetVideoMode(IsPalBios() ? MODE_PAL : MODE_NTSC);
@@ -243,8 +407,8 @@ public:
         // NTSC force for correct SEQ timings
         ::SetVideoMode(MODE_NTSC);
 
-        ::GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER|GsOFSGPU, 1, 0); // set the graphics mode resolutions. You may also try using 'GsNONINTER' (read LIBOVR46.PDF in PSYQ/DOCS for detailed information)
-        ::GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT); // set the top left coordinates of the two buffers in video memory
+        ::GsInitGraph(SCREEN_WIDTH, SCREEN_HEIGHT, GsINTER | GsOFSGPU, 1, 0); // set the graphics mode resolutions. You may also try using 'GsNONINTER' (read LIBOVR46.PDF in PSYQ/DOCS for detailed information)
+        ::GsDefDispBuff(0, 0, 0, SCREEN_HEIGHT);                              // set the top left coordinates of the two buffers in video memory
 
         // init the ordering tables
         mOrderingTable[0].length = OT_LENGTH;
@@ -252,40 +416,38 @@ public:
         mOrderingTable[0].org = mOrderingTableTag[0];
         mOrderingTable[1].org = mOrderingTableTag[1];
 
-        ::GsClearOt(0,0,&mOrderingTable[0]);
-        ::GsClearOt(0,0,&mOrderingTable[1]);
+        ::GsClearOt(0, 0, &mOrderingTable[0]);
+        ::GsClearOt(0, 0, &mOrderingTable[1]);
 
         clearVRAM();
 
         ::FntLoad(960, 0); // load the font from the BIOS into VRAM/SGRAM
 
-
-        ::SetDumpFnt(FntOpen(10, 10, SCREEN_WIDTH-20, SCREEN_HEIGHT-20, 0, 1024*4)); // screen X,Y | max text length X,Y | automatic background clear 0,1 | max characters
+        ::SetDumpFnt(FntOpen(10, 10, SCREEN_WIDTH - 20, SCREEN_HEIGHT - 20, 0, 1024 * 4)); // screen X,Y | max text length X,Y | automatic background clear 0,1 | max characters
 
         // Overwrite the debug font with something less ugly
-        ::LoadImage(&DbgFnt_ImageRect, reinterpret_cast<u_long*>(DbgFnt_ImageData));
-        ::LoadImage(&DbgFnt_ClutRect,  reinterpret_cast<u_long*>(DbgFnt_ClutData));
-
+        ::LoadImage(&DbgFnt_ImageRect, reinterpret_cast<u_long *>(DbgFnt_ImageData));
+        ::LoadImage(&DbgFnt_ClutRect, reinterpret_cast<u_long *>(DbgFnt_ClutData));
     }
 
     void PreRender()
     {
-        mActiveBuffer = GsGetActiveBuff(); // get the current buffer
-        ::GsSetWorkBase((PACKET*)mGpuPacketBuffer[mActiveBuffer]); // setup the packet workbase
-        ::GsClearOt(0, 0, &mOrderingTable[mActiveBuffer]); // clear the ordering table
+        mActiveBuffer = GsGetActiveBuff();                          // get the current buffer
+        ::GsSetWorkBase((PACKET *)mGpuPacketBuffer[mActiveBuffer]); // setup the packet workbase
+        ::GsClearOt(0, 0, &mOrderingTable[mActiveBuffer]);          // clear the ordering table
     }
 
     void Render()
     {
-        ::DrawSync(0); // wait for all drawing to finish
-        ::VSync(0); // wait for v_blank interrupt
-        ::GsSwapDispBuff(); // flip the double buffers
+        ::DrawSync(0);                                          // wait for all drawing to finish
+        ::VSync(0);                                             // wait for v_blank interrupt
+        ::GsSwapDispBuff();                                     // flip the double buffers
         ::GsSortClear(0, 0, 0, &mOrderingTable[mActiveBuffer]); // clear the ordering table with a background color.
-        ::GsDrawOt(&mOrderingTable[mActiveBuffer]); // Draw the ordering table for the CurrentBuffer
-        ::FntFlush(-1); // refresh the font
+        ::GsDrawOt(&mOrderingTable[mActiveBuffer]);             // Draw the ordering table for the CurrentBuffer
+        ::FntFlush(-1);                                         // refresh the font
     }
 
-    GsOT* OtPtr()
+    GsOT *OtPtr()
     {
         return &mOrderingTable[mActiveBuffer];
     }
@@ -294,7 +456,7 @@ private:
     bool IsPalBios()
     {
         // within the BIOS, if the address 0xBFC7FF52 equals 'E' (SCEE string), set it as PAL otherwise, set it as NTSC
-        return *(const char *)0xbfc7ff52=='E';
+        return *(const char *)0xbfc7ff52 == 'E';
     }
 
     void clearVRAM()
@@ -317,52 +479,51 @@ private:
 //u_long __ramsize   = 0x00200000; // force 2 megabytes of RAM
 //u_long __stacksize = 0x00004000; // force 16 kilobytes of stack
 
-
 #define kNumLvls 33
-const char* kLvlFiles[kNumLvls] =
-{
-    "\\PM.LVL",
-    "\\P2\\C1.LVL",
-    "\\P2\\D1.LVL",
-    "\\P2\\D2.LVL",
-    "\\P2\\D7.LVL",
-    "\\P2\\E2.LVL",
-    "\\P2\\R2.LVL",
-    "\\P2\\R6.LVL",
-    "\\E1.LVL",
-    "\\F1.LVL",
-    "\\F2.LVL",
-    "\\F4.LVL",
-    "\\L1.LVL",
-    "\\R1.LVL",
-    "\\S1.LVL",
-    "\\BA\\BA.LVL",
-    "\\BM\\BM.LVL",
-    "\\BR\\BR.LVL",
-    "\\BW\\BW.LVL",
-    "\\CR\\CR.LVL",
-    "\\FD\\FD.LVL",
-    "\\MI\\MI.LVL",
-    "\\NE\\NE.LVL",
-    "\\PV\\PV.LVL",
-    "\\ST\\ST.LVL",
-    "\\SV\\SV.LVL",
+const char *kLvlFiles[kNumLvls] =
+    {
+        "\\PM.LVL",
+        "\\P2\\C1.LVL",
+        "\\P2\\D1.LVL",
+        "\\P2\\D2.LVL",
+        "\\P2\\D7.LVL",
+        "\\P2\\E2.LVL",
+        "\\P2\\R2.LVL",
+        "\\P2\\R6.LVL",
+        "\\E1.LVL",
+        "\\F1.LVL",
+        "\\F2.LVL",
+        "\\F4.LVL",
+        "\\L1.LVL",
+        "\\R1.LVL",
+        "\\S1.LVL",
+        "\\BA\\BA.LVL",
+        "\\BM\\BM.LVL",
+        "\\BR\\BR.LVL",
+        "\\BW\\BW.LVL",
+        "\\CR\\CR.LVL",
+        "\\FD\\FD.LVL",
+        "\\MI\\MI.LVL",
+        "\\NE\\NE.LVL",
+        "\\PV\\PV.LVL",
+        "\\ST\\ST.LVL",
+        "\\SV\\SV.LVL",
 
-    "\\ABESODSE\\C1.LVL",
-    "\\ABESODSE\\E1.LVL",
-    "\\ABESODSE\\R1.LVL",
-    "\\ABESODSE\\S1.LVL",
+        "\\ABESODSE\\C1.LVL",
+        "\\ABESODSE\\E1.LVL",
+        "\\ABESODSE\\R1.LVL",
+        "\\ABESODSE\\S1.LVL",
 
-    "\\ABE2\\MI.LVL",
-    "\\ABE2\\CR.LVL",
-    "\\ABE2\\ST.LVL",
+        "\\ABE2\\MI.LVL",
+        "\\ABE2\\CR.LVL",
+        "\\ABE2\\ST.LVL",
 };
 
-void my_memcpy(void* dst, void* src, int size)
+void my_memcpy(void *dst, void *src, int size)
 {
-    unsigned char* d = reinterpret_cast<unsigned char*>(dst);
-    unsigned char* s = reinterpret_cast<unsigned char*>(src);
-    for (int i=0; i<size; i++)
+    unsigned char *d = reinterpret_cast<unsigned char *>(dst);
+    unsigned char *s = reinterpret_cast<unsigned char *>(src);
+    for (int i = 0; i < size; i++)
     {
         d[i] = s[i];
     }
@@ -391,13 +552,13 @@ public:
     void StopCdRotation()
     {
         DslLOC pos;
-        ::DsControl(DslStop, reinterpret_cast<u_char*>(&pos), mStatusBuffer);
+        ::DsControl(DslStop, reinterpret_cast<u_char *>(&pos), mStatusBuffer);
     }
 
     // Check if file exists, if yes returns true and populates fileInfo, else returns false and fileInfo is undefined
-    bool Find(const char* fileName, DslFILE& fileInfo)
+    bool Find(const char *fileName, DslFILE &fileInfo)
     {
-        if (!::DsSearchFile(&fileInfo, const_cast<char*>(fileName)))
+        if (!::DsSearchFile(&fileInfo, const_cast<char *>(fileName)))
         {
             printf("File %s not found\n", fileName);
             return false;
@@ -409,13 +570,13 @@ public:
         }
     }
 
-    bool ReadSectors(int sector, int numSectors, void* buffer)
+    bool ReadSectors(int sector, int numSectors, void *buffer)
     {
         DslLOC pos;
         ::DsIntToPos(sector, &pos);
 
         printf("Start read of [%d] sectors from sector [%d]\n", numSectors, sector);
-        if (::DsRead(&pos, numSectors, reinterpret_cast<u_long*>(buffer), DslModeSpeed | DslModeSize1) == 0)
+        if (::DsRead(&pos, numSectors, reinterpret_cast<u_long *>(buffer), DslModeSpeed | DslModeSize1) == 0)
         {
             printf("Read failure\n");
             return false;
@@ -425,8 +586,7 @@ public:
         do
         {
             ret = ::DsReadSync(mStatusBuffer);
-        }
-        while (ret > 0);
+        } while (ret > 0);
         printf("ReadSync [%d]\n", ret);
         return ret == 0;
     }
@@ -445,7 +605,6 @@ const static Uint32 KMaxLvlArchiveFileNameLength = 12;
 const static Uint32 kSectorSize = 2048;
 const static Uint32 kMaxFiles = 500;
 
-
 enum ePads
 {
     ePad1 = 1,
@@ -459,7 +618,7 @@ class Controller
 private:
     u_long GetButtonMask(ePads pad, u_long button)
     {
-        switch(pad)
+        switch (pad)
         {
         case ePad1:
             return _PAD(0, button);
@@ -477,14 +636,13 @@ private:
 
     bool ButtonPressed(ePads pad, u_long button)
     {
-         return (mPadState & GetButtonMask(pad, button)) && !(mPrevPadState & GetButtonMask(pad, button));
+        return (mPadState & GetButtonMask(pad, button)) && !(mPrevPadState & GetButtonMask(pad, button));
     }
 
 public:
     Controller()
-     :  mPrevPadState(0), mPadState(0)
+        : mPrevPadState(0), mPadState(0)
     {
-
     }
 
     void Init()
@@ -548,6 +706,7 @@ public:
         mPrevPadState = mPadState;
         mPadState = ::PadRead(0);
     }
+
 private:
     u_long mPrevPadState;
     u_long mPadState;
@@ -562,7 +721,6 @@ public:
     CdStream()
         : mPos(0), mStartSector(0), mSector(0)
     {
-
     }
 
     void Reset(int startSector)
@@ -572,32 +730,32 @@ public:
         mSector = startSector;
     }
 
-    void ReadUInt8(Uint8& output)
+    void ReadUInt8(Uint8 &output)
     {
-        ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Uint8));
+        ReadBytes(reinterpret_cast<Uint8 *>(&output), sizeof(Uint8));
     }
 
-    void ReadUInt32(Uint32& output)
+    void ReadUInt32(Uint32 &output)
     {
-        ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Uint32));
+        ReadBytes(reinterpret_cast<Uint8 *>(&output), sizeof(Uint32));
     }
 
-    void ReadUInt16(Uint16& output)
+    void ReadUInt16(Uint16 &output)
     {
-        ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Uint16));
+        ReadBytes(reinterpret_cast<Uint8 *>(&output), sizeof(Uint16));
     }
 
-    void ReadSInt16(Sint16& output)
+    void ReadSInt16(Sint16 &output)
     {
-        ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Sint16));
+        ReadBytes(reinterpret_cast<Uint8 *>(&output), sizeof(Sint16));
     }
 
-    void ReadBytes(Sint8* pDest, size_t destSize)
+    void ReadBytes(Sint8 *pDest, size_t destSize)
     {
-        ReadBytes(reinterpret_cast<Uint8*>(pDest), destSize);
+        ReadBytes(reinterpret_cast<Uint8 *>(pDest), destSize);
     }
 
-    bool ReadBytes(Uint8* pDest, size_t destSize)
+    bool ReadBytes(Uint8 *pDest, size_t destSize)
     {
         for (;;)
         {
@@ -621,20 +779,24 @@ public:
                 //printf("Partial fit\n");
 
                 const int spaceLeft = 2048 - static_cast<int>(posWithinSector);
-                if (spaceLeft < 0 )
+                if (spaceLeft < 0)
                 {
                     printf("Error: Space left [%d]\n", spaceLeft);
-                    for (;;) { }
+                    for (;;)
+                    {
+                    }
                 }
 
                 const int dataLeftAfterRead = static_cast<int>(destSize) - spaceLeft;
-                if (dataLeftAfterRead < 0 )
+                if (dataLeftAfterRead < 0)
                 {
                     printf("Error: dataLeftAfterRead [%d]\n", dataLeftAfterRead);
-                    for (;;) { }
+                    for (;;)
+                    {
+                    }
                 }
 
-                my_memcpy(pDest, mSectorBuffer+posWithinSector, spaceLeft);
+                my_memcpy(pDest, mSectorBuffer + posWithinSector, spaceLeft);
                 mPos += spaceLeft;
 
                 pDest += spaceLeft;
@@ -644,7 +806,7 @@ public:
             else if (destSize)
             {
                 //printf("Fully fits\n");
-                my_memcpy(pDest, mSectorBuffer+posWithinSector, destSize);
+                my_memcpy(pDest, mSectorBuffer + posWithinSector, destSize);
                 mPos += destSize;
             }
 
@@ -661,7 +823,7 @@ public:
         // Add on the start sector position
         mSector = (pos / kSectorSize) + mStartSector;
         mPos = (mStartSector * kSectorSize) + pos;
-        if ((mPos % kSectorSize) !=0 )
+        if ((mPos % kSectorSize) != 0)
         {
             printf("Seek must fetch sector [%d]\n", mSector);
             // Fetch the buffer now else mSectorBuffer will have stale data
@@ -677,6 +839,7 @@ public:
     {
         return mStartSector;
     }
+
 private:
     Uint32 mPos;
     int mStartSector;
@@ -684,24 +847,24 @@ private:
     char mSectorBuffer[2048];
 };
 
-static Uint8 gVbBuffer[2048*400];
-static Uint8 gVhBuffer[2048*100];
-static Uint8 gSeqBuffer[2048*100];
+static Uint8 gVbBuffer[2048 * 400];
+static Uint8 gVhBuffer[2048 * 100];
+static Uint8 gSeqBuffer[2048 * 100];
 
 class Lvl
 {
 public:
     static Uint32 MakeType(Uint8 b4, Uint8 b3, Uint8 b2, Uint8 b1)
     {
-        return (static_cast<Uint32> (b1) << 24) +
-                (static_cast<Uint32> (b2) << 16) +
-                (static_cast<Uint32> (b3) << 8) +
-                static_cast<Uint32> (b4);
+        return (static_cast<Uint32>(b1) << 24) +
+               (static_cast<Uint32>(b2) << 16) +
+               (static_cast<Uint32>(b3) << 8) +
+               static_cast<Uint32>(b4);
     }
 
     struct ChunkHeader
     {
-        Uint32 iSize; // Size inc header
+        Uint32 iSize;     // Size inc header
         Uint32 iRefCount; // Ref count, should be zero when loaded
         Uint32 iType;
         Uint32 iId; // Id
@@ -731,13 +894,14 @@ public:
 
     LvlHeader mHeader;
     FileRecord mFiles[kMaxFiles];
+
 public:
     int NumFiles() const
     {
         return mHeader.mNumFiles;
     }
 
-    const FileRecord& FileAt(int index)
+    const FileRecord &FileAt(int index)
     {
         return mFiles[index];
     }
@@ -752,7 +916,7 @@ public:
         printf("Lvl dtor\n");
     }
 
-    bool Load(const char* fileName)
+    bool Load(const char *fileName)
     {
         char buffer[256] = {};
         sprintf(buffer, "%s;1", fileName);
@@ -764,7 +928,7 @@ public:
             const int sector = ::DsPosToInt(&mFileInfo.pos);
             mStream.Reset(sector);
 
-            if (!mStream.ReadBytes(reinterpret_cast<Uint8*>(&mHeader), sizeof(LvlHeader)))
+            if (!mStream.ReadBytes(reinterpret_cast<Uint8 *>(&mHeader), sizeof(LvlHeader)))
             {
                 return false;
             }
@@ -777,10 +941,10 @@ public:
                 return false;
             }
 
-            for (Uint32 i=0; i<mHeader.mNumFiles; i++)
+            for (Uint32 i = 0; i < mHeader.mNumFiles; i++)
             {
                 //printf("Reading record [%d] of [%d]\n", i+1, mHeader.mNumFiles);
-                if (!mStream.ReadBytes(reinterpret_cast<Uint8*>(&mFiles[i]), sizeof(FileRecord)))
+                if (!mStream.ReadBytes(reinterpret_cast<Uint8 *>(&mFiles[i]), sizeof(FileRecord)))
                 {
                     printf("Failed to read file record\n");
                     return false;
@@ -797,9 +961,9 @@ public:
         }
     }
 
-    bool LoadFile(const char* name, unsigned char* buffer, unsigned int bufferLen, unsigned int& fileSize)
+    bool LoadFile(const char *name, unsigned char *buffer, unsigned int bufferLen, unsigned int &fileSize)
     {
-        for (unsigned int i=0; i<mHeader.mNumFiles; i++)
+        for (unsigned int i = 0; i < mHeader.mNumFiles; i++)
         {
             if (strncmp(name, mFiles[i].mFileNameBytes, KMaxLvlArchiveFileNameLength) == 0)
             {
@@ -812,7 +976,7 @@ public:
         return false;
     }
 
-    bool LoadFile(const FileRecord& rec, unsigned char* buffer, unsigned int bufferLen)
+    bool LoadFile(const FileRecord &rec, unsigned char *buffer, unsigned int bufferLen)
     {
         if (rec.mFileSize > bufferLen)
         {
@@ -830,7 +994,7 @@ public:
         return true;
     }
 
-    static void Print(const LvlHeader& h)
+    static void Print(const LvlHeader &h)
     {
         printf("mFirstFileOffset=%d\n", h.mFirstFileOffset);
         printf("mNull1=%d\n", h.mNull1);
@@ -842,12 +1006,12 @@ public:
         printf("mUnknown3=%d\n", h.mUnknown3);
     }
 
-    static void Print(const FileRecord& f)
+    static void Print(const FileRecord &f)
     {
         printf("mStartSector=%d\n", f.mStartSector);
         printf("mNumSectors=%d\n", f.mNumSectors);
         printf("mFileSize=%d\n", f.mFileSize);
-        char tmpBuffer[KMaxLvlArchiveFileNameLength+1] = {};
+        char tmpBuffer[KMaxLvlArchiveFileNameLength + 1] = {};
         strncpy(tmpBuffer, f.mFileNameBytes, KMaxLvlArchiveFileNameLength);
         printf("mFileNameBytes=%s\n", tmpBuffer);
     }
@@ -879,10 +1043,9 @@ class TextMenu
 public:
     TextMenu()
     {
-
     }
 
-    void Init(const char** strings, int numStrings, const char* title = NULL)
+    void Init(const char **strings, int numStrings, const char *title = NULL)
     {
         mMenuTitle = title;
 
@@ -957,7 +1120,7 @@ public:
             ::FntPrint("%s\n\n", mMenuTitle);
         }
 
-        for (int i = 0; i <mNumStrings; i++)
+        for (int i = 0; i < mNumStrings; i++)
         {
             if (i == mNumStrings - 1 && mLastRowOdd)
             {
@@ -992,7 +1155,7 @@ public:
     }
 
 private:
-    const char* SelectedString(int pos)
+    const char *SelectedString(int pos)
     {
         const int y = pos / kXSize;
         const int x = pos % kXSize;
@@ -1004,8 +1167,8 @@ private:
     }
 
 private:
-    const char* mMenuTitle;
-    const char** mStrings;
+    const char *mMenuTitle;
+    const char **mStrings;
     int mNumStrings;
     const static int kXSize;
     int mYSize;
@@ -1034,8 +1197,8 @@ int DisplayLevelSelection()
     return -1;
 }
 
-#define MVOL		127
-#define SVOL		64
+#define MVOL 127
+#define SVOL 64
 
 static void TickSeq()
 {
@@ -1061,7 +1224,7 @@ public:
         VSyncCallback(TickSeq);
     }
 
-    bool LoadVab(unsigned char* vhBuffer, unsigned char* vbBuffer)
+    bool LoadVab(unsigned char *vhBuffer, unsigned char *vbBuffer)
     {
         CloseVab();
 
@@ -1093,9 +1256,9 @@ public:
         return true;
     }
 
-    bool PlaySEQ(unsigned char* seqBuffer)
+    bool PlaySEQ(unsigned char *seqBuffer)
     {
-        if (mOpenVabId==-1)
+        if (mOpenVabId == -1)
         {
             printf("ERROR: No vab loaded\n");
             return false;
@@ -1103,7 +1266,7 @@ public:
 
         CloseSeq();
 
-        mOpenSeqId = Sound_SsSeqOpen(reinterpret_cast<unsigned long*>(seqBuffer), mOpenVabId);
+        mOpenSeqId = Sound_SsSeqOpen(reinterpret_cast<unsigned long *>(seqBuffer), mOpenVabId);
         if (mOpenSeqId == -1)
         {
             printf("Open SEQ failed\n");
@@ -1157,20 +1320,20 @@ public:
     {
         for (int i = 0; i < 200; i++)
         {
-            sprintf(mNumbers[i], "SEQ %d", i+1);
+            sprintf(mNumbers[i], "SEQ %d", i + 1);
             mNumbersPtrs[i] = &mNumbers[i][0];
         }
     }
 
-    bool Parse(unsigned char* seqChunk)
+    bool Parse(unsigned char *seqChunk)
     {
         mData = seqChunk;
         bool ok = true;
         mNumSeqs = 0;
-        unsigned char* ptr = mData;
+        unsigned char *ptr = mData;
         for (;;)
         {
-            Lvl::ChunkHeader* chunk = reinterpret_cast<Lvl::ChunkHeader*>(ptr);
+            Lvl::ChunkHeader *chunk = reinterpret_cast<Lvl::ChunkHeader *>(ptr);
             if (chunk->iType == Lvl::MakeType('E', 'n', 'd', '!'))
             {
                 printf("At end\n");
@@ -1193,18 +1356,18 @@ public:
         return ok;
     }
 
-    unsigned char* SeqPtr(unsigned int index)
+    unsigned char *SeqPtr(unsigned int index)
     {
         if (index > mNumSeqs)
         {
             return NULL;
         }
 
-        unsigned char* ptr = gSeqBuffer;
+        unsigned char *ptr = gSeqBuffer;
         unsigned int count = 0;
         for (;;)
         {
-            Lvl::ChunkHeader* chunk = reinterpret_cast<Lvl::ChunkHeader*>(ptr);
+            Lvl::ChunkHeader *chunk = reinterpret_cast<Lvl::ChunkHeader *>(ptr);
             if (chunk->iType == Lvl::MakeType('E', 'n', 'd', '!'))
             {
                 return NULL;
@@ -1214,7 +1377,7 @@ public:
                 if (count == index)
                 {
                     printf("Found SEQ at index %d\n", index);
-                    return reinterpret_cast<unsigned char*>(chunk);
+                    return reinterpret_cast<unsigned char *>(chunk);
                 }
                 count++;
             }
@@ -1229,11 +1392,12 @@ public:
         mMenu.Render();
         return mMenu.SelectedIndex();
     }
+
 private:
-    unsigned char* mData;
+    unsigned char *mData;
     unsigned int mNumSeqs;
     char mNumbers[200][10];
-    const char* mNumbersPtrs[200];
+    const char *mNumbersPtrs[200];
     TextMenu mMenu;
 };
 static SeqChunk gSeqChunk;
@@ -1252,12 +1416,12 @@ public:
         }
     }
 
-    void Init(Lvl& lvl)
+    void Init(Lvl &lvl)
     {
         mNumVhs = 0;
         for (int i = 0; i < lvl.NumFiles(); i++)
         {
-            const Lvl::FileRecord& rec = lvl.FileAt(i);
+            const Lvl::FileRecord &rec = lvl.FileAt(i);
             char tmp[13] = {};
             strncpy(tmp, rec.mFileNameBytes, 12);
             if (strstr(tmp, ".VH"))
@@ -1268,7 +1432,7 @@ public:
             }
         }
 
-        mMenu.Init((const char**)mStrsPtrs, mNumVhs, "Press X to load soundbank\nPress O to go back\n\n");
+        mMenu.Init((const char **)mStrsPtrs, mNumVhs, "Press X to load soundbank\nPress O to go back\n\n");
     }
 
     int DisplayMenu()
@@ -1278,7 +1442,7 @@ public:
         return mMenu.SelectedIndex();
     }
 
-    char* SelectedName()
+    char *SelectedName()
     {
         if (mMenu.SelectedIndex() == -1)
         {
@@ -1290,7 +1454,7 @@ public:
 private:
     unsigned int mNumVhs;
     char mStrs[MAX_VH_FILES][13];
-    char* mStrsPtrs[MAX_VH_FILES];
+    char *mStrsPtrs[MAX_VH_FILES];
     TextMenu mMenu;
 };
 static VhMenu gVhMenu;
@@ -1300,7 +1464,7 @@ static void HandleLvlLoaded()
     const int selected = gVhMenu.DisplayMenu();
     if (gInput.Cross() && selected != -1)
     {
-        char* vhName = gVhMenu.SelectedName();
+        char *vhName = gVhMenu.SelectedName();
 
         unsigned int vhSize = 0;
         if (!gLvl.LoadFile(vhName, gVhBuffer, sizeof(gVhBuffer), vhSize))
@@ -1310,14 +1474,14 @@ static void HandleLvlLoaded()
         }
 
         unsigned int vbSize = 0;
-        vhName[strlen(vhName)-1] = 'B';
+        vhName[strlen(vhName) - 1] = 'B';
         if (!gLvl.LoadFile(vhName, gVbBuffer, sizeof(gVbBuffer), vbSize))
         {
-            vhName[strlen(vhName)-1] = 'H';
+            vhName[strlen(vhName) - 1] = 'H';
             gMainState = eErrorLoadingTracks;
             return;
         }
-        vhName[strlen(vhName)-1] = 'H';
+        vhName[strlen(vhName) - 1] = 'H';
 
         if (!gSound.LoadVab(gVhBuffer, gVbBuffer))
         {
@@ -1330,7 +1494,7 @@ static void HandleLvlLoaded()
 
         for (int i = 0; i < gLvl.NumFiles(); i++)
         {
-            const Lvl::FileRecord& rec = gLvl.FileAt(i);
+            const Lvl::FileRecord &rec = gLvl.FileAt(i);
             char tmp[13] = {};
             strncpy(tmp, rec.mFileNameBytes, 12);
             if (strstr(tmp, ".BSQ"))
@@ -1362,8 +1526,8 @@ static void HandleLvlLoaded()
 
 static Graphics graphics;
 
-#define MAX_STARS	150
-#define star_w		8000			//determines the width of the area that stars 'appear' in
+#define MAX_STARS 150
+#define star_w 8000 //determines the width of the area that stars 'appear' in
 
 // Seems "brainwlkr" originally came up with this effect
 class StarField
@@ -1377,47 +1541,49 @@ public:
     void Init()
     {
         //inits starfield
-        srand(1);					//init the randomiser (for creating random star allocations)
+        srand(1); //init the randomiser (for creating random star allocations)
 
-        for (int i = 0; i < MAX_STARS; i++) {			//this bit sets up each 'star' (MAX_STARS number of them)
-            myStars[i].x = star_w - (rand()*(2 * star_w)) / (32767 + 1);	//set stars x-coordinate
-            myStars[i].y = star_w - (rand()*(2 * star_w)) / (32767 + 1);	//set stars y-coordinate
-            myStars[i].z = (rand()*(80)) / (32767 + 1) + 1;			//set stars z-coordinate 1-81 (cant be zero since +1)
+        for (int i = 0; i < MAX_STARS; i++)
+        {                                                                  //this bit sets up each 'star' (MAX_STARS number of them)
+            myStars[i].x = star_w - (rand() * (2 * star_w)) / (32767 + 1); //set stars x-coordinate
+            myStars[i].y = star_w - (rand() * (2 * star_w)) / (32767 + 1); //set stars y-coordinate
+            myStars[i].z = (rand() * (80)) / (32767 + 1) + 1;              //set stars z-coordinate 1-81 (cant be zero since +1)
             myStars[i].line.r = myStars[i].line.g = myStars[i].line.b = 255;
-        }//for
+        } //for
     }
 
     void Render()
     {
         //this is what makes the stars 'move', it also adds the stars to the OT
-        GsOT* otPtr = graphics.OtPtr();
+        GsOT *otPtr = graphics.OtPtr();
 
-        for (int i = 0; i < MAX_STARS; i++) 
+        for (int i = 0; i < MAX_STARS; i++)
         {
 
             if (myStars[i].z < 2)
             {
-                myStars[i].z = 100;	//if the star has reached you then put it back to come toward you again
+                myStars[i].z = 100; //if the star has reached you then put it back to come toward you again
             }
 
             //divide by c so that as star gets closer it seems to move faster past you
-            const int x = (myStars[i].x) / (myStars[i].z);		//sets x value of stars
-            const int y = (myStars[i].y) / (myStars[i].z);		//sets y value of stars
-            myStars[i].z -= speed;				//moves stars toward you
-            myStars[i].line.x1 = myStars[i].line.x0 = x + SCREEN_WIDTH / 2;			//centres starfields x value onscreen
-            myStars[i].line.y1 = myStars[i].line.y0 = y + SCREEN_HEIGHT / 2;		//centres starfields y value onscreen
+            const int x = (myStars[i].x) / (myStars[i].z);                   //sets x value of stars
+            const int y = (myStars[i].y) / (myStars[i].z);                   //sets y value of stars
+            myStars[i].z -= speed;                                           //moves stars toward you
+            myStars[i].line.x1 = myStars[i].line.x0 = x + SCREEN_WIDTH / 2;  //centres starfields x value onscreen
+            myStars[i].line.y1 = myStars[i].line.y0 = y + SCREEN_HEIGHT / 2; //centres starfields y value onscreen
 
-            GsSortLine(&myStars[i].line, otPtr, 0);	//sorts stars into OT)
+            GsSortLine(&myStars[i].line, otPtr, 0); //sorts stars into OT)
         }
     }
+
 private:
-    typedef struct{
-        int x;					//star structure - has and x, y and z coordinate
+    typedef struct
+    {
+        int x; //star structure - has and x, y and z coordinate
         int y;
         int z;
-        GsLINE line;				//GsLINE strcuture that make a star pixel
-    }Star;
-
+        GsLINE line; //GsLINE strcuture that make a star pixel
+    } Star;
 
     Star myStars[MAX_STARS];
     int speed;
@@ -1428,45 +1594,45 @@ static StarField gStarField;
 class TimImage
 {
 public:
-    explicit TimImage(const unsigned char* timBuffer)
+    explicit TimImage(const unsigned char *timBuffer)
         : mTimBuffer(timBuffer)
     {
-
     }
 
     void UploadToVram()
     {
         // +4 to skip the DWORD header magic flag
-        ::GsGetTimInfo((u_long*)(mTimBuffer+4), &mGsImage);
+        ::GsGetTimInfo((u_long *)(mTimBuffer + 4), &mGsImage);
         LoadImage(mGsImage.px, mGsImage.py, mGsImage.pw, mGsImage.ph, mGsImage.pixel);
         // Only 4 and 8 bit TIMs have CLUTs
 
         LoadImage(mGsImage.cx, mGsImage.cy, mGsImage.cw, mGsImage.ch, mGsImage.clut);
     }
 
-    int ClutX() const  { return mGsImage.cx; }
-    int ClutY() const  { return mGsImage.cy; }
-    int Width() const  { return mGsImage.pw; }
+    int ClutX() const { return mGsImage.cx; }
+    int ClutY() const { return mGsImage.cy; }
+    int Width() const { return mGsImage.pw; }
     int Height() const { return mGsImage.ph; }
     int PMode() const { return mGsImage.pmode; }
     int VramX() const { return mGsImage.px; }
     int VramY() const { return mGsImage.py; }
+
 private:
-    void LoadImage(u_short x, u_short y, u_short w, u_short h, u_long* data)
+    void LoadImage(u_short x, u_short y, u_short w, u_short h, u_long *data)
     {
-        RECT rect = { x, y, w, h };
+        RECT rect = {x, y, w, h};
         printf("Upload RECT: [%d,%d,%d,%d]\n", w, y, w, h);
         ::LoadImage(&rect, data);
     }
 
-    const unsigned char* mTimBuffer;
+    const unsigned char *mTimBuffer;
     GsIMAGE mGsImage;
 };
 
-static void InitSprite(GsSPRITE& sprite, const TimImage& tim)
+static void InitSprite(GsSPRITE &sprite, const TimImage &tim)
 {
     memset(&sprite, 0, sizeof(GsSPRITE));
-    
+
     // 16 bit CLUT, all options off (0x1 = 8-bit, 0x2 = 16-bit)
     sprite.attribute = 0x1000000;
 
@@ -1487,7 +1653,7 @@ static void InitSprite(GsSPRITE& sprite, const TimImage& tim)
     sprite.tpage = GetTPage(1, 2, tim.VramX(), tim.VramY());
 
     // Size
-    sprite.w = 256;// tim.Width() * 2;
+    sprite.w = 256; // tim.Width() * 2;
     sprite.h = tim.Height();
 }
 
@@ -1520,25 +1686,24 @@ const SfxDefinition sSligGameSpeakEntries_560868[16] = {
     {0u, 0u, 36u, 70u, 0, 0},
 };
 
-const static char* kSligSfx[] = 
-{
-    "Hi",
-    "HereBoy",
-    "Gethim",
-    "Laugh",
-    "Stay",
-    "BullShit",
-    "Lookout",
-    "Bullshit2",
-    "Freeze",
-    "What",
-    "Help",
-    "Blurgh",
-    "GotYa",
-    "Ouch1",
-    "Ouch2",
-    "LoadingSfx"
-};
+const static char *kSligSfx[] =
+    {
+        "Hi",
+        "HereBoy",
+        "Gethim",
+        "Laugh",
+        "Stay",
+        "BullShit",
+        "Lookout",
+        "Bullshit2",
+        "Freeze",
+        "What",
+        "Help",
+        "Blurgh",
+        "GotYa",
+        "Ouch1",
+        "Ouch2",
+        "LoadingSfx"};
 
 static void SND_Stop_Channels_Mask_4CA810(int bitMask)
 {
@@ -1575,7 +1740,7 @@ public:
         char volLeft = 127;
         char volRight = 127;
 
-        const SfxDefinition& def = sSligGameSpeakEntries_560868[idx];
+        const SfxDefinition &def = sSligGameSpeakEntries_560868[idx];
         mOnVoices = Sound_SsVoKeyOn(def.field_1_program | vabId, def.field_2_note << 8, volLeft, volRight);
     }
 
@@ -1596,7 +1761,6 @@ int main()
     ::ResetCallback();
 
     printf("main enter\n");
-
 
     graphics.Init();
     gStarField.Init();
@@ -1619,9 +1783,9 @@ int main()
     InitSprite(copyRight[0], copyrightLeft);
     InitSprite(copyRight[1], copyrightRight);
     copyRight[0].y = -3;
-    copyRight[0].x = 0+25;
+    copyRight[0].x = 0 + 25;
     copyRight[1].y = -3;
-    copyRight[1].x = 128+25;
+    copyRight[1].x = 128 + 25;
 
     //TestFindAllFiles(cdRom);
     int lvlIndex = -1;
@@ -1735,14 +1899,14 @@ int main()
                 gSound.CloseSeq();
                 gMainState = eLvlSelection;
             }
-        break;
+            break;
 
         case eSfxSelection:
         {
             ::FntPrint("SFX selection");
             ::FntPrint("\nPress X to play");
             ::FntPrint("\n start to stop and O to go back\n\n");
-            
+
             const int sfxNum = gSfxPlayer.DisplayMenu();
             if (gInput.Cross() && sfxNum != -1)
             {
@@ -1767,7 +1931,7 @@ int main()
             const int seqNum = gSeqChunk.DisplayMenu();
             if (gInput.Cross() && seqNum != -1)
             {
-                unsigned char* seqPtr = gSeqChunk.SeqPtr(seqNum);
+                unsigned char *seqPtr = gSeqChunk.SeqPtr(seqNum);
                 if (seqPtr)
                 {
                     if (!gSound.PlaySEQ(seqPtr + sizeof(Lvl::ChunkHeader)))
