@@ -237,6 +237,32 @@ extern "C"
         SpuSetCommonAttr(&attr);
     }
 
+    // TODO: SsVabOpenHead
+    // TODO: SsVabTransBody
+    // TODO: SsVabTransCompleted
+
+    short SsVabTransfer(u_char *vh_addr, u_char *vb_addr, short vabid, short i_flag)
+    {
+        vabid = SsVabOpenHead(vh_addr, vabid); // when vabid is -1 a new one is allocated
+        if (vabid == -1)
+        {
+            return -1;
+        }
+
+        const int trans_body_result = SsVabTransBody(vb_addr, vabid);
+        if (trans_body_result == -1)
+        {
+            return -2;
+        }
+
+        if (i_flag == SS_WAIT_COMPLETED) // OG checked i_flag << 16 ??
+        {
+            SsVabTransCompleted(SS_WAIT_COMPLETED);
+        }
+
+        return trans_body_result;
+    }
+
 } // extern "C"
 
 // ===============================
@@ -271,6 +297,7 @@ void Sound_SsSetMVol(short voll, short volr)
     ::SsSetMVol(voll, volr);
 }
 
+// ok
 int Sound_SsVabTransfer(u_char *vh_addr, u_char *vb_addr, short vabid, short i_flag)
 {
     return ::SsVabTransfer(vh_addr, vb_addr, vabid, i_flag);
