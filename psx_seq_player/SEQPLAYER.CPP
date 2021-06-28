@@ -10,16 +10,53 @@
 #include <STRINGS.H>
 #include <KERNEL.H>
 #include <LIBSND.H>
+#include <LIBSPU.H>
 #include "DebugFont.c"
 #include "tims/FONT.h"
 #include "tims/P1.h"
 #include "tims/P2.h"
-#include "spulib.c"
 
-//#define PSX_SOUND_LIB
+#define PSX_SOUND_LIB
 
 #ifdef PSX_SOUND_LIB
 
+// = PSYQ reimpl =================
+
+extern "C"
+{
+    // DE_DELAY
+    void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr Vag, short a4, u_char attr)
+    {
+        //DEBUGPRINT(("DE_DELAY\n"));
+        SsUtSetReverbDelay(attr);
+    }
+
+    void _SpuInit(int);
+
+    void SpuInit(void)
+    {
+        _SpuInit(0);
+    }
+
+    void _SsInit(void);
+
+    void SsInit(void)
+    {
+        ResetCallback();
+        SpuInit();
+        SpuClearReverbWorkArea(7); // RVB_ECHO
+        _SsInit();
+    }
+
+    void SsStart(void)
+    {
+        
+    }
+}
+
+// ===============================
+
+// ok
 void Sound_SsInit()
 {
     ::SsInit();
@@ -835,7 +872,7 @@ enum eMainStates
 };
 
 static Lvl gLvl;
-static eMainStates gMainState = eInitScreen;
+static eMainStates gMainState = eLvlSelection;
 
 class TextMenu
 {

@@ -52,11 +52,16 @@ Function psyq_setup($psyq_path)
 Write-Host "Enable psyq 4.4" -ForegroundColor "DarkMagenta" -BackgroundColor "Black"
 psyq_setup($psyq_path)
 
-del main -ea silentlycontinue
+del main.cpe -ea silentlycontinue
 del main.exe -ea silentlycontinue
 del main.cpe -ea silentlycontinue
-ccpsx -g0 -O3 -Xo$80010000 seqplayer.cpp -omain -I $Env:C_INCLUDE_PATH -l $Env:LIBRARY_PATH\libds.lib -l $Env:LIBRARY_PATH\libc.lib -l $Env:LIBRARY_PATH\libsn.lib -l $Env:LIBRARY_PATH\libgs.lib -l $Env:LIBRARY_PATH\libsnd.lib -l $Env:LIBRARY_PATH\libspu.lib -l $Env:LIBRARY_PATH\libcd.lib -l $Env:LIBRARY_PATH\libapi.lib -l $Env:LIBRARY_PATH\libgpu.lib -l $Env:LIBRARY_PATH\libgte.lib -l $Env:LIBRARY_PATH\libetc.lib
-cpe2exe main
+del main.obj -ea silentlycontinue
+
+ccpsx -O2 -G 8 -g -c -Wall "seqplayer.cpp" "-oseqplayer.obj" -I $Env:C_INCLUDE_PATH
+
+psylink.exe /m /wl /wm /c /l $Env:LIBRARY_PATH "@$PSScriptRoot\linker_command_file.txt",$PSScriptRoot\main.cpe,$PSScriptRoot\main.sym,$PSScriptRoot\main.map
+
+cpe2exe main.cpe
 del iso\main.exe -ea silentlycontinue
 del iso.cue -ea silentlycontinue
 del iso.bin -ea silentlycontinue
