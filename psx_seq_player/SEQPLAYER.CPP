@@ -129,8 +129,8 @@ extern "C"
         short field_52;
         short field_54;
         short field_56;
-        short field_58;
-        short field_5A;
+        short field_58_voll;
+        short field_5A_volr;
         short field_5C;
         short field_5E;
         short field_60_array;
@@ -222,8 +222,8 @@ extern "C"
                 pItem->field_A8 = 0;
                 pItem->field_A4 = 0;
                 pItem->field_4E = 0;
-                pItem->field_58 = 127;
-                pItem->field_5A = 127;
+                pItem->field_58_voll = 127;
+                pItem->field_5A_volr = 127;
                 pItem->field_5E = 127;
             }
         }
@@ -366,8 +366,8 @@ extern "C"
         }
         else
         {
-            pStru->field_58 = voll;
-            pStru->field_5A = volr;
+            pStru->field_58_voll = voll;
+            pStru->field_5A_volr = volr;
         }
     }
 
@@ -423,6 +423,7 @@ short Sound_SsSeqOpen(u_long *addr, short vab_id)
     return ::SsSeqOpen(addr, vab_id);
 }
 
+// ok
 void Sound_SsSeqSetVol(short seq_access_num, short voll, short volr)
 {
     ::SsSeqSetVol(seq_access_num, voll, volr);
