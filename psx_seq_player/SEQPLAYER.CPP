@@ -419,6 +419,32 @@ extern "C"
         _SsSeqClose(seq_access_num);
     }
 
+    extern int _snd_ev_flag;
+    extern short note2pitch2;
+
+    void _SsVmKeyOffNow(void);
+
+    short SsUtKeyOffV(short voice)
+    {
+        if (_snd_ev_flag == 1)
+        {
+            return -1;
+        }
+
+        _snd_ev_flag = 1;
+
+        short result = -1;
+        if (voice < 24u)
+        {
+            note2pitch2 = voice;
+            _SsVmKeyOffNow();
+            result = 0;
+        }
+
+        _snd_ev_flag = 0;
+        return result;
+    }
+
 } // extern "C"
 
 // ===============================
