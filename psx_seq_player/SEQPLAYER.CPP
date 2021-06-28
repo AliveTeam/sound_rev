@@ -371,6 +371,15 @@ extern "C"
         }
     }
 
+    // TODO
+    void Snd_SetPlayMode(int seq_sep_num, int idx, char play_mode, char l_count);
+
+    void SsSeqPlay(short seq_access_num, char play_mode, short l_count)
+    {
+        Snd_SetPlayMode(seq_access_num, 0, play_mode, l_count);
+    }
+
+
 } // extern "C"
 
 // ===============================
