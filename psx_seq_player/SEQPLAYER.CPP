@@ -83,7 +83,7 @@ extern "C"
         char field_1E;
         char field_1F;
         short field_20;
-        signed char field_22;
+        signed short field_22;
         char field_23;
         char field_24;
         char field_25;
@@ -359,7 +359,7 @@ extern "C"
 
     void SsSeqSetVol(short seq_access_num, short voll, short volr)
     {
-        SeqStruct* pStru = _ss_score[seq_access_num];
+        SeqStruct *pStru = _ss_score[seq_access_num];
         if (pStru->field_98_flags == 1)
         {
             _SsVmSetSeqVol(seq_access_num, voll, volr);
@@ -379,6 +379,45 @@ extern "C"
         Snd_SetPlayMode(seq_access_num, 0, play_mode, l_count);
     }
 
+    // TODO
+    void _SsVmSeqKeyOff(short seq_idx);
+
+    void _SsSeqClose(short seq_idx)
+    {
+        // Volume + voices off
+        _SsVmSetSeqVol(seq_idx, 0, 0);
+        _SsVmSeqKeyOff(seq_idx);
+
+        // Clear the used bit
+        _snd_openflag &= ~(1 << seq_idx);
+
+        // Reset all the SEP entries
+        SeqStruct **pItem = &_ss_score[seq_idx];
+        for (int i = 0; i < _snd_seq_t_max; i++)
+        {
+            pItem[i]->field_98_flags = 0;
+
+            pItem[i]->field_22 = -1;
+            pItem[i]->field_23 = 0; // TODO: part of field_22 ?
+
+            pItem[i]->field_48 = 0;
+            pItem[i]->field_4A = 0;
+            pItem[i]->field_9C = 0;
+            pItem[i]->field_A0 = 0;
+            pItem[i]->field_4C = 0;
+            pItem[i]->field_AC = 0;
+            pItem[i]->field_A8 = 0;
+            pItem[i]->field_A4 = 0;
+            pItem[i]->field_4E = 0;
+            pItem[i]->field_58_voll = 127;
+            pItem[i]->field_5A_volr = 127;
+        }
+    }
+
+    void SsSeqClose(short seq_access_num)
+    {
+        _SsSeqClose(seq_access_num);
+    }
 
 } // extern "C"
 
@@ -438,11 +477,13 @@ void Sound_SsSeqSetVol(short seq_access_num, short voll, short volr)
     ::SsSeqSetVol(seq_access_num, voll, volr);
 }
 
+// ok
 void Sound_SsSeqPlay(short seq_access_num, char play_mode, short l_count)
 {
     ::SsSeqPlay(seq_access_num, play_mode, l_count);
 }
 
+// ok
 void Sound_SsSeqClose(short seq_access_num)
 {
     ::SsSeqClose(seq_access_num);
