@@ -270,6 +270,89 @@ extern "C"
         return SpuIsTransferCompleted(immediateFlag);
     }
 
+    // midi handler funcs
+    extern _SsFCALL SsFCALL;
+
+    // TODO
+    short _SsInitSoundSeq(int seqId, int vabId, u_long* pSeqData);
+
+    short SsSeqOpen(u_long *pSeqData, short vab_id)
+    {
+        // All bits used
+        if (_snd_openflag == 0xFFFFFFFF)
+        {
+            printf("Can't Open Sequence data any more\n\n");
+            return -1;
+        }
+
+        // Find an unused bit
+        int openSeqId = 0;
+        int openCounter = 0;
+        while ((_snd_openflag & (1 << openCounter)) != 0)
+        {
+            if (++openCounter >= 32)
+            {
+                break;
+            }
+        }
+
+        if (openCounter < 32)
+        {
+            // Seq id is the unused bit index
+            openSeqId = openCounter;
+        }
+
+        _snd_openflag |= (1 << openSeqId);
+        const short seqInit = _SsInitSoundSeq(openSeqId, vab_id, pSeqData);
+
+        SsFCALL.noteon = (void (*)())_SsNoteOn;
+        SsFCALL.programchange = (void (*)())_SsSetProgramChange;
+        SsFCALL.metaevent = (void (*)())_SsGetMetaEvent;
+        SsFCALL.pitchbend = (void (*)())_SsSetPitchBend;
+
+        SsFCALL.control[CC_NUMBER] = (void (*)())_SsSetControlChange;
+        SsFCALL.control[CC_BANKCHANGE] = (void (*)())_SsContBankChange;
+        SsFCALL.control[CC_MAINVOL] = (void (*)())_SsContMainVol;
+        SsFCALL.control[CC_PANPOT] = (void (*)())_SsContPanpot;
+        SsFCALL.control[CC_EXPRESSION] = (void (*)())_SsContExpression;
+        SsFCALL.control[CC_DAMPER] = (void (*)())_SsContDamper;
+        SsFCALL.control[CC_NRPN1] = (void (*)())_SsContNrpn1;
+        SsFCALL.control[CC_NRPN2] = (void (*)())_SsContNrpn2;
+        SsFCALL.control[CC_RPN1] = (void (*)())_SsContRpn1;
+        SsFCALL.control[CC_RPN2] = (void (*)())_SsContRpn2;
+        SsFCALL.control[CC_EXTERNAL] = (void (*)())_SsContExternal;
+        SsFCALL.control[CC_RESETALL] = (void (*)())_SsContResetAll;
+        SsFCALL.control[CC_DATAENTRY] = (void (*)())_SsContDataEntry;
+
+        SsFCALL.ccentry[DE_PRIORITY] = (void (*)())_SsSetNrpnVabAttr0;
+        SsFCALL.ccentry[DE_MODE] = (void (*)())_SsSetNrpnVabAttr1;
+        SsFCALL.ccentry[DE_LIMITL] = (void (*)())_SsSetNrpnVabAttr2;
+        SsFCALL.ccentry[DE_LIMITH] = (void (*)())_SsSetNrpnVabAttr3;
+        SsFCALL.ccentry[DE_ADSR_AR_L] = (void (*)())_SsSetNrpnVabAttr4;
+        SsFCALL.ccentry[DE_ADSR_AR_E] = (void (*)())_SsSetNrpnVabAttr5;
+        SsFCALL.ccentry[DE_ADSR_DR] = (void (*)())_SsSetNrpnVabAttr6;
+        SsFCALL.ccentry[DE_ADSR_SL] = (void (*)())_SsSetNrpnVabAttr7;
+        SsFCALL.ccentry[DE_ADSR_SR_L] = (void (*)())_SsSetNrpnVabAttr8;
+        SsFCALL.ccentry[DE_ADSR_SR_E] = (void (*)())_SsSetNrpnVabAttr9;
+        SsFCALL.ccentry[DE_ADSR_RR_L] = (void (*)())_SsSetNrpnVabAttr10;
+        SsFCALL.ccentry[DE_ADSR_RR_E] = (void (*)())_SsSetNrpnVabAttr11;
+        SsFCALL.ccentry[DE_ADSR_SR] = (void (*)())_SsSetNrpnVabAttr12;
+        SsFCALL.ccentry[DE_VIB_TIME] = (void (*)())_SsSetNrpnVabAttr13;
+        SsFCALL.ccentry[DE_PORTA_DEPTH] = (void (*)())_SsSetNrpnVabAttr14;
+        SsFCALL.ccentry[DE_REV_TYPE] = (void (*)())_SsSetNrpnVabAttr15;
+        SsFCALL.ccentry[DE_REV_DEPTH] = (void (*)())_SsSetNrpnVabAttr16;
+        SsFCALL.ccentry[DE_ECHO_FB] = (void (*)())_SsSetNrpnVabAttr17;
+        SsFCALL.ccentry[DE_ECHO_DELAY] = (void (*)())_SsSetNrpnVabAttr18;
+        SsFCALL.ccentry[DE_DELAY] = (void (*)())_SsSetNrpnVabAttr19;
+
+        if (seqInit != -1)
+        {
+            // BUG: doesn't unset _snd_openflag
+            return openSeqId;
+        }
+
+        return -1;
+    }
 } // extern "C"
 
 // ===============================
@@ -310,11 +393,13 @@ int Sound_SsVabTransfer(u_char *vh_addr, u_char *vb_addr, short vabid, short i_f
     return ::SsVabTransfer(vh_addr, vb_addr, vabid, i_flag);
 }
 
+// ok
 short Sound_SsVabTransCompleted(short immediateFlag)
 {
     return ::SsVabTransCompleted(immediateFlag);
 }
 
+// ok
 short Sound_SsSeqOpen(u_long *addr, short vab_id)
 {
     return ::SsSeqOpen(addr, vab_id);
@@ -335,6 +420,7 @@ void Sound_SsSeqClose(short seq_access_num)
     ::SsSeqClose(seq_access_num);
 }
 
+// ??
 void Sound_SsVabClose(short vab_id)
 {
     ::SsVabClose(vab_id);
