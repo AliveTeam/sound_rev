@@ -62,6 +62,7 @@ extern "C"
     }
 
     // TODO: SpuIsTransferCompleted
+#define STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(COND)?1:-1]
 
     struct SeqStruct
     {
@@ -83,7 +84,7 @@ extern "C"
         char field_1E;
         char field_1F;
         short field_20;
-        signed short field_22;
+        signed char field_22;
         char field_23;
         char field_24;
         char field_25;
@@ -178,7 +179,7 @@ extern "C"
         int field_A4;
         int field_A8;
         int field_AC;
-    };
+    }  __attribute__((packed));
 
     extern short _snd_seq_s_max;
     extern short _snd_seq_t_max;
@@ -360,7 +361,7 @@ extern "C"
     void SsSeqSetVol(short seq_access_num, short voll, short volr)
     {
         SeqStruct *pStru = _ss_score[seq_access_num];
-        if (pStru->field_98_flags == 1)
+        if (pStru->field_98_flags == 1) // TODO: not being hit resulting in mono seqs
         {
             _SsVmSetSeqVol(seq_access_num, voll, volr);
         }
@@ -471,7 +472,7 @@ extern "C"
 
     static void RunTrack(SeqStruct *pItem, int i, int j)
     {
-        if ((pItem->field_98_flags & 1) == 0) // TODO: WRONG!
+        if (pItem->field_98_flags & 1)
         {
             _SsSndPlay(i, j);
 
@@ -2091,6 +2092,8 @@ static SfxPlayer gSfxPlayer;
 
 int main()
 {
+    //STATIC_ASSERT(1,sizeof(SeqStruct)==0xB0); 
+    
     ::ResetCallback();
 
     printf("main enter\n");
@@ -2133,6 +2136,8 @@ int main()
         {
             gStarField.Render();
         }
+
+        ::FntPrint("Size = %d\n", sizeof(SeqStruct));
 
         switch (gMainState)
         {
