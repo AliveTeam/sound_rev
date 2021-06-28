@@ -382,41 +382,43 @@ extern "C"
     // TODO
     void _SsVmSeqKeyOff(short seq_idx);
 
-    void _SsSeqClose(short seq_idx)
+    static void Impl_SsSeqClose(short seq_idx)
     {
         // Volume + voices off
         _SsVmSetSeqVol(seq_idx, 0, 0);
         _SsVmSeqKeyOff(seq_idx);
 
         // Clear the used bit
-        _snd_openflag &= ~(1 << seq_idx);
+        const int seq_idx_int = seq_idx;
+        _snd_openflag &= ~(1 << seq_idx_int);
 
         // Reset all the SEP entries
-        SeqStruct **pItem = &_ss_score[seq_idx];
         for (int i = 0; i < _snd_seq_t_max; i++)
         {
-            pItem[i]->field_98_flags = 0;
+            SeqStruct *pItem = &_ss_score[seq_idx_int][i];
 
-            pItem[i]->field_22 = -1;
-            pItem[i]->field_23 = 0; // TODO: part of field_22 ?
+            pItem->field_98_flags = 0;
 
-            pItem[i]->field_48 = 0;
-            pItem[i]->field_4A = 0;
-            pItem[i]->field_9C = 0;
-            pItem[i]->field_A0 = 0;
-            pItem[i]->field_4C = 0;
-            pItem[i]->field_AC = 0;
-            pItem[i]->field_A8 = 0;
-            pItem[i]->field_A4 = 0;
-            pItem[i]->field_4E = 0;
-            pItem[i]->field_58_voll = 127;
-            pItem[i]->field_5A_volr = 127;
+            pItem->field_22 = -1;
+            pItem->field_23 = 0; // TODO: part of field_22 ?
+
+            pItem->field_48 = 0;
+            pItem->field_4A = 0;
+            pItem->field_9C = 0;
+            pItem->field_A0 = 0;
+            pItem->field_4C = 0;
+            pItem->field_AC = 0;
+            pItem->field_A8 = 0;
+            pItem->field_A4 = 0;
+            pItem->field_4E = 0;
+            pItem->field_58_voll = 127;
+            pItem->field_5A_volr = 127;
         }
     }
 
     void SsSeqClose(short seq_access_num)
     {
-        _SsSeqClose(seq_access_num);
+        Impl_SsSeqClose(seq_access_num);
     }
 
     extern int _snd_ev_flag;
