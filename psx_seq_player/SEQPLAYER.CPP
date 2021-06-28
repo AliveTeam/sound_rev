@@ -172,7 +172,7 @@ extern "C"
         int field_8C;
         int field_90_delta_value;
         int field_94;
-        int field_98_flags;
+        unsigned int field_98_flags;
         int field_9C;
         int field_A0;
         int field_A4;
@@ -421,7 +421,7 @@ extern "C"
         Impl_SsSeqClose(seq_access_num);
     }
 
-    extern int _snd_ev_flag;
+    extern volatile int _snd_ev_flag;
     extern short note2pitch2;
 
     void _SsVmKeyOffNow(void);
@@ -452,14 +452,99 @@ extern "C"
     long SsVoKeyOn(long vab_pro, long pitch, u_short volL, u_short volR)
     {
         return _SsVmSeKeyOn(
-           (vab_pro >> 8),
-           vab_pro & 0xFF,
-           (unsigned short)(pitch >> 8),
-           pitch & 0xFF,
-           volL,
-           volR);
+            (vab_pro >> 8),
+            vab_pro & 0xFF,
+            (unsigned short)(pitch >> 8),
+            pitch & 0xFF,
+            volL,
+            volR);
     }
 
+    // TODO
+    void _SsVmFlush(void);
+    void _SsSndPlay(short seqNum, short sepNum);
+    void _SsSndCrescendo(short seqNum, short sepNum);
+    void _SsSndTempo(short seqNum, short sepNum);
+    void _SsSndPause(short seqNum, short sepNum);
+    void _SsSndReplay(short seqNum, short sepNum);
+    void _SsSndStop(short seqNum, short sepNum);
+
+    static void RunTrack(SeqStruct *pItem, int i, int j)
+    {
+        if ((pItem->field_98_flags & 1) == 0) // TODO: WRONG!
+        {
+            _SsSndPlay(i, j);
+
+            if (pItem->field_98_flags & 0x10)
+            {
+                _SsSndCrescendo(i, j);
+            }
+
+            if (pItem->field_98_flags & 0x20)
+            {
+                _SsSndCrescendo(i, j);
+            }
+
+            if (pItem->field_98_flags & 0x40)
+            {
+                _SsSndTempo(i, j);
+            }
+
+            if (pItem->field_98_flags & 0x80)
+            {
+                _SsSndTempo(i, j);
+            }
+        }
+
+        if (pItem->field_98_flags & 2)
+        {
+            _SsSndPause(i, j);
+        }
+
+        if (pItem->field_98_flags & 8)
+        {
+            _SsSndReplay(i, j);
+        }
+
+        if (pItem->field_98_flags & 4)
+        {
+            _SsSndStop(i, j);
+            pItem->field_98_flags = 0;
+        }
+    }
+
+    static void RunTracks()
+    {
+        // For each SEP block
+        SeqStruct *pItem = _ss_score[0];
+        for (int i = 0; i < _snd_seq_s_max; i++)
+        {
+            // Is it on?
+            if (_snd_openflag & (1 << i))
+            {
+                // Go through each SEQ track
+                for (int j = 0; j < _snd_seq_t_max; j++)
+                {
+                    RunTrack(&pItem[j], i, j);
+                }
+            }
+            pItem++;
+        }
+    }
+
+    void SsSeqCalledTbyT(void)
+    {
+        if (_snd_ev_flag != 1)
+        {
+            _snd_ev_flag = 1;
+
+            _SsVmFlush();
+
+            RunTracks();
+
+            _snd_ev_flag = 0;
+        }
+    }
 
 } // extern "C"
 
@@ -543,6 +628,7 @@ short Sound_SsUtKeyOffV(short voice)
     return ::SsUtKeyOffV(voice);
 }
 
+// ok
 long Sound_SsVoKeyOn(long vab_pro, long pitch, u_short volL, u_short volR)
 {
     return ::SsVoKeyOn(vab_pro, pitch, volL, volR);
