@@ -24,6 +24,8 @@
 
 extern "C"
 {
+    // LIBSPU
+    
     // DE_DELAY
     void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr Vag, short a4, u_char attr)
     {
@@ -59,7 +61,8 @@ extern "C"
         // SsSeqCalledTbyT manually.
     }
 
-    
+    // TODO: SpuIsTransferCompleted
+
     struct SeqStruct
     {
         unsigned char *field_0_seq_ptr;
@@ -239,7 +242,6 @@ extern "C"
 
     // TODO: SsVabOpenHead
     // TODO: SsVabTransBody
-    // TODO: SsVabTransCompleted
 
     short SsVabTransfer(u_char *vh_addr, u_char *vb_addr, short vabid, short i_flag)
     {
@@ -261,6 +263,11 @@ extern "C"
         }
 
         return trans_body_result;
+    }
+
+    short SsVabTransCompleted(short immediateFlag)
+    {
+        return SpuIsTransferCompleted(immediateFlag);
     }
 
 } // extern "C"
