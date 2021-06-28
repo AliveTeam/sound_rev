@@ -25,7 +25,7 @@
 extern "C"
 {
     // LIBSPU
-    
+
     // DE_DELAY
     void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr Vag, short a4, u_char attr)
     {
@@ -182,15 +182,15 @@ extern "C"
 
     extern short _snd_seq_s_max;
     extern short _snd_seq_t_max;
-    extern SeqStruct* _ss_score[32];
+    extern SeqStruct *_ss_score[32];
     extern u_long _snd_openflag;
 
-    void SsSetTableSize(char* table, short s_max, short t_max)
+    void SsSetTableSize(char *table, short s_max, short t_max)
     {
         _snd_seq_s_max = s_max; // max 32
         _snd_seq_t_max = t_max; // max 16
 
-        SeqStruct* pTypedTable = (SeqStruct*)table;
+        SeqStruct *pTypedTable = (SeqStruct *)table;
 
         // Point each item to the users supplied buffer
         for (int i = 0; i < _snd_seq_s_max; i++)
@@ -209,7 +209,7 @@ extern "C"
             for (int j = 0; j < _snd_seq_t_max; j++)
             {
                 // Init each structure
-                SeqStruct* pItem = &_ss_score[i][j];
+                SeqStruct *pItem = &_ss_score[i][j];
                 pItem->field_98_flags = 0;
                 pItem->field_22 = -1;
                 pItem->field_23 = 0;
@@ -274,7 +274,7 @@ extern "C"
     extern _SsFCALL SsFCALL;
 
     // TODO
-    short _SsInitSoundSeq(int seqId, int vabId, u_long* pSeqData);
+    short _SsInitSoundSeq(int seqId, int vabId, u_long *pSeqData);
 
     short SsSeqOpen(u_long *pSeqData, short vab_id)
     {
@@ -353,6 +353,24 @@ extern "C"
 
         return -1;
     }
+
+    // TODO
+    void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr);
+
+    void SsSeqSetVol(short seq_access_num, short voll, short volr)
+    {
+        SeqStruct* pStru = _ss_score[seq_access_num];
+        if (pStru->field_98_flags == 1)
+        {
+            _SsVmSetSeqVol(seq_access_num, voll, volr);
+        }
+        else
+        {
+            pStru->field_58 = voll;
+            pStru->field_5A = volr;
+        }
+    }
+
 } // extern "C"
 
 // ===============================
