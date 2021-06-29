@@ -33,6 +33,7 @@ extern "C"
         SsUtSetReverbDelay(attr);
     }
 
+    // TODO
     void _SpuInit(int);
 
     void SpuInit(void)
@@ -40,7 +41,10 @@ extern "C"
         _SpuInit(0);
     }
 
+    // TODO
     void _SsInit(void);
+
+    // TODO: SpuClearReverbWorkArea
 
     void SsInit(void)
     {
@@ -52,7 +56,7 @@ extern "C"
 
     void SsStart(void)
     {
-        // Works as a stub, not sure why
+        // Works as a stub, not sure why - emulator issue?
     }
 
     void SsSetTickMode(long tick_mode)
@@ -361,7 +365,7 @@ extern "C"
     void SsSeqSetVol(short seq_access_num, short voll, short volr)
     {
         SeqStruct *pStru = _ss_score[seq_access_num];
-        if (pStru->field_98_flags == 1) // TODO: not being hit resulting in mono seqs
+        if (pStru->field_98_flags == 1)
         {
             _SsVmSetSeqVol(seq_access_num, voll, volr);
         }
@@ -470,8 +474,9 @@ extern "C"
     void _SsSndReplay(short seqNum, short sepNum);
     void _SsSndStop(short seqNum, short sepNum);
 
-    static void RunTrack(SeqStruct *pItem, int i, int j)
+    static void RunTrack(int i, int j)
     {
+        SeqStruct *pItem = &_ss_score[i][j];
         if (pItem->field_98_flags & 1)
         {
             _SsSndPlay(i, j);
@@ -517,7 +522,6 @@ extern "C"
     static void RunTracks()
     {
         // For each SEP block
-        SeqStruct *pItem = _ss_score[0];
         for (int i = 0; i < _snd_seq_s_max; i++)
         {
             // Is it on?
@@ -526,10 +530,9 @@ extern "C"
                 // Go through each SEQ track
                 for (int j = 0; j < _snd_seq_t_max; j++)
                 {
-                    RunTrack(&pItem[j], i, j);
+                    RunTrack(i, j);
                 }
             }
-            pItem++;
         }
     }
 
