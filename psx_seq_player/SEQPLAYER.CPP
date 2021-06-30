@@ -71,11 +71,11 @@ extern "C"
     struct SeqStruct
     {
         unsigned char *field_0_seq_ptr;
-        int field_4;
+        unsigned char *field_4;
         unsigned char *field_8;
-        int field_C;
+        unsigned char *field_C;
         int field_10;
-        char field_14;
+        char field_14_play_mode;
         char field_15;
         char field_16;
         unsigned char field_17_array_60_idx;
@@ -87,7 +87,8 @@ extern "C"
         char field_1D;
         char field_1E;
         char field_1F;
-        short field_20;
+        char field_20_l_count;
+        char field_21;
         signed char field_22;
         char field_23;
         char field_24;
@@ -349,8 +350,31 @@ extern "C"
         }
     }
 
-    // TODO
-    void Snd_SetPlayMode(int seq_sep_num, int idx, char play_mode, char l_count);
+    void Snd_SetPlayMode(int seq_sep_num, int idx, char play_mode, char l_count)
+    {
+        SeqStruct* pStru = &_ss_score[seq_sep_num][idx]; // TODO: 14bit access
+
+        pStru->field_0_seq_ptr = pStru->field_4;
+        pStru->field_8 = pStru->field_4;
+        pStru->field_C = pStru->field_4;
+
+        pStru->field_98_flags &= ~0x200u;
+        pStru->field_98_flags &= ~4u;
+
+        pStru->field_20_l_count = l_count;
+
+        if (play_mode == 1)
+        {
+            pStru->field_98_flags |= 1u;
+            pStru->field_14_play_mode = play_mode;
+            pStru->field_21 = 0;
+            _SsVmSetSeqVol(seq_sep_num | (idx << 8), pStru->field_58_voll, pStru->field_5A_volr); // TODO: Check param1
+        }
+        else if (play_mode == 0)
+        {
+            pStru->field_98_flags |= 2u;
+        }
+    }
 
     void SsSeqPlay(short seq_access_num, char play_mode, short l_count)
     {
