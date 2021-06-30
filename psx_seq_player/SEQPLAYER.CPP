@@ -93,38 +93,8 @@ extern "C"
         char field_24;
         char field_25;
         char field_26_vab_id;
-        char field_27;
-        char field_28;
-        char field_29;
-        char field_2A;
-        char field_2B;
-        char field_2C;
-        char field_2D;
-        char field_2E;
-        char field_2F;
-        char field_30;
-        char field_31;
-        char field_32;
-        char field_33;
-        char field_34;
-        char field_35;
-        char field_36;
-        char field_37;
-        char field_38;
-        char field_39;
-        char field_3A;
-        char field_3B;
-        char field_3C;
-        char field_3D;
-        char field_3E;
-        char field_3F;
-        char field_40;
-        char field_41;
-        char field_42;
-        char field_43;
-        char field_44;
-        char field_45;
-        char field_46;
+        char field_27_array[16];
+        char field_37_array[16];
         char field_47;
         short field_48;
         short field_4A;
@@ -138,37 +108,7 @@ extern "C"
         short field_5A_volr;
         short field_5C;
         short field_5E;
-        short field_60_array;
-        char field_62;
-        char field_63;
-        char field_64;
-        char field_65;
-        char field_66;
-        char field_67;
-        char field_68;
-        char field_69;
-        char field_6A;
-        char field_6B;
-        char field_6C;
-        char field_6D;
-        char field_6E;
-        char field_6F;
-        char field_70;
-        char field_71;
-        char field_72;
-        char field_73;
-        char field_74;
-        char field_75;
-        char field_76;
-        char field_77;
-        char field_78;
-        char field_79;
-        char field_7A;
-        char field_7B;
-        char field_7C;
-        char field_7D;
-        char field_7E;
-        char field_7F;
+        short field_60_array[16];
         short field_80;
         char field_82;
         char field_83;
@@ -280,6 +220,14 @@ extern "C"
 
     // TODO
     short _SsInitSoundSeq(int seqId, int vabId, u_long *pSeqData);
+    int _SsReadDeltaValue(short seq_access_num, short seq_num);
+
+    void _SsSetProgramChange(short seq_access_num, short seq_num, unsigned char programNum)
+    {
+        SeqStruct *pStru = &_ss_score[seq_access_num][seq_num];
+        pStru->field_37_array[pStru->field_17_array_60_idx] = programNum;
+        pStru->field_90_delta_value = _SsReadDeltaValue(seq_access_num, seq_num);
+    }
 
     short SsSeqOpen(u_long *pSeqData, short vab_id)
     {
