@@ -66,7 +66,7 @@ extern "C"
     }
 
     // TODO: SpuIsTransferCompleted
-#define STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(COND)?1:-1]
+#define STATIC_ASSERT(COND, MSG) typedef char static_assertion_##MSG[(COND) ? 1 : -1]
 
     struct SeqStruct
     {
@@ -123,7 +123,7 @@ extern "C"
         int field_A4;
         int field_A8;
         int field_AC;
-    }  __attribute__((packed));
+    } __attribute__((packed));
 
     extern short _snd_seq_s_max;
     extern short _snd_seq_t_max;
@@ -227,6 +227,31 @@ extern "C"
         SeqStruct *pStru = &_ss_score[seq_access_num][seq_num];
         pStru->field_37_array[pStru->field_17_array_60_idx] = programNum;
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_access_num, seq_num);
+    }
+
+    int _SsReadDeltaValue(short seq_access_num, short seq_num)
+    {
+        SeqStruct *pStruc = &_ss_score[seq_access_num][seq_num]; // note 14bit access
+        int delta_value = *pStruc->field_0_seq_ptr++;
+        int result = 0;
+        if (delta_value)
+        {
+            int dv_mul4 = 4 * delta_value;
+            if ((delta_value & 0x80) != 0)
+            {
+                delta_value &= 0x7Fu;
+                unsigned char next_byte = 0;
+                do
+                {
+                    next_byte = *pStruc->field_0_seq_ptr++;
+                    delta_value = (delta_value << 7) + (next_byte & 0x7F);
+                } while ((next_byte & 0x80) != 0);
+                dv_mul4 = 4 * delta_value;
+            }
+            result = 2 * (dv_mul4 + delta_value);
+            pStruc->field_88 += result;
+        }
+        return result;
     }
 
     short SsSeqOpen(u_long *pSeqData, short vab_id)
@@ -2043,8 +2068,8 @@ static SfxPlayer gSfxPlayer;
 
 int main()
 {
-    //STATIC_ASSERT(1,sizeof(SeqStruct)==0xB0); 
-    
+    //STATIC_ASSERT(1,sizeof(SeqStruct)==0xB0);
+
     ::ResetCallback();
 
     printf("main enter\n");
