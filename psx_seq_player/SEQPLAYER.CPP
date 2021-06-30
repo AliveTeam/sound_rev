@@ -81,7 +81,7 @@ extern "C"
         unsigned char field_17_array_60_idx;
         char field_18;
         char field_19;
-        char field_1A;
+        char field_1A_fn_idx;
         char field_1B;
         char field_1C;
         char field_1D;
@@ -469,7 +469,51 @@ extern "C"
     void _SsSndTempo(short seqNum, short sepNum);
     void _SsSndPause(short seqNum, short sepNum);
     void _SsSndReplay(short seqNum, short sepNum);
-    void _SsSndStop(short seqNum, short sepNum);
+    void _SsVmDamperOff(void);
+
+    void _SsSndStop(short seq_or_sep_access_num, short seq_num)
+    {
+        SeqStruct* pStru = &_ss_score[seq_or_sep_access_num][seq_num]; // TODO: 14bit access
+        pStru->field_98_flags &= ~1u;
+        pStru->field_98_flags &= ~2u;
+        pStru->field_98_flags &= ~8u;
+        pStru->field_98_flags &= ~0x400u;
+        pStru->field_98_flags |= 4u; // playing bit?
+
+        _SsVmSeqKeyOff(seq_or_sep_access_num | (seq_num << 8));
+        _SsVmDamperOff();
+
+        pStru->field_14_play_mode = 0;
+        pStru->field_88 = 0;
+        pStru->field_1C = 0;
+        pStru->field_18 = 0;
+        pStru->field_19 = 0;
+        pStru->field_1E = 0;
+        pStru->field_1A_fn_idx = 0;
+        pStru->field_1B = 0;
+        pStru->field_1F = 0;
+        pStru->field_17_array_60_idx = 0;
+        pStru->field_21 = 0;
+        pStru->field_1C = 0;
+        pStru->field_1D = 0;
+        pStru->field_15 = 0;
+        pStru->field_16 = 0;
+        pStru->field_90_delta_value = pStru->field_84;
+        pStru->field_94 = pStru->field_8C;
+        pStru->field_54 = pStru->field_56;
+        pStru->field_0_seq_ptr = pStru->field_4;
+        pStru->field_8 = pStru->field_4;
+
+        for (int i = 0; i < 16; i++)
+        {
+            pStru->field_37_array[i] = i;
+            pStru->field_27_array[i] = 64;
+            pStru->field_60_array[i] = 127;
+        }
+
+        pStru->field_5C = 127;
+        pStru->field_5E = 127;
+    }
 
     static void RunTrack(int i, int j)
     {
@@ -866,8 +910,9 @@ void my_memcpy(void *dst, void *src, int size)
 class CdRom
 {
 public:
-    void Init(bool debugOn = false)
+    void Init(bool debugOn = true)
     {
+        printf("DsInit\n");
         ::DsInit();
         ::DsSetDebug(debugOn ? 1 : 0);
     }
@@ -886,12 +931,14 @@ public:
     void StopCdRotation()
     {
         DslLOC pos;
+        printf("Calling DsControl...\n");
         ::DsControl(DslStop, reinterpret_cast<u_char *>(&pos), mStatusBuffer);
     }
 
     // Check if file exists, if yes returns true and populates fileInfo, else returns false and fileInfo is undefined
     bool Find(const char *fileName, DslFILE &fileInfo)
     {
+        printf("Calling DsSearchFile...\n");
         if (!::DsSearchFile(&fileInfo, const_cast<char *>(fileName)))
         {
             printf("File %s not found\n", fileName);
