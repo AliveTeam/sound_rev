@@ -74,10 +74,10 @@ extern "C"
         unsigned char *field_4;
         unsigned char *field_8;
         unsigned char *field_C;
-        int field_10;
+        unsigned char *field_10;
         char field_14_play_mode;
         char field_15;
-        char field_16;
+        unsigned char field_16_running_status;
         unsigned char field_17_array_60_idx;
         char field_18;
         char field_19;
@@ -473,7 +473,6 @@ extern "C"
 
     void _SsSndNextSep(char next_seq, char next_sep);
 
-    /*
     void _SsSeqGetEof(short seq_access_num, short sep_num)
     {
         int seq_access_num_ = seq_access_num; // promote to 32bits
@@ -555,14 +554,140 @@ extern "C"
             }
         }
     }
-    */
 
-    // TODO
-    void _SsGetSeqData(int seq_idx, short sep_idx);
+    void _SsGetSeqData(short seq_idx, short sep_idx)
+    {
+        SeqStruct* pSeqPtr = &_ss_score[seq_idx][sep_idx];
+        const unsigned char midi_byte = *pSeqPtr->field_0_seq_ptr;
+        unsigned char* pNext_midi_byte = pSeqPtr->field_0_seq_ptr + 1;
+        pSeqPtr->field_0_seq_ptr = pNext_midi_byte;
 
-    void _SsSeqPlay(short seq_access_num, short seq_num);
+        unsigned char midi_byte_and_80 = 0;
+        if ((pSeqPtr->field_98_flags & 0x401) == 0x401)
+        {
+            midi_byte_and_80 = midi_byte & 0x80;
+            if (pNext_midi_byte == pSeqPtr->field_10 + 1)
+            {
+                _SsSeqGetEof(seq_idx, sep_idx);
+                return;
+            }
+        }
+        else
+        {
+            midi_byte_and_80 = midi_byte & 0x80;
+        }
 
-    /*
+        if (midi_byte_and_80)
+        {
+            pSeqPtr->field_17_array_60_idx = midi_byte & 0xF; // Channel ?
+            
+            unsigned char midi_byte_and_F0 = midi_byte & 0xF0;
+            if (midi_byte_and_F0 == 0xC0)
+            {
+                pSeqPtr->field_16_running_status = 0xC0;
+                pSeqPtr->field_0_seq_ptr++;
+                //SsFCALL.programchange(seq_idx);
+                _SsSetProgramChange(seq_idx, sep_idx, midi_byte);
+                return;
+            }
+
+            if ((midi_byte & 0xF0u) < 0xC1)
+            {
+                if (midi_byte_and_F0 == 0x90)
+                {
+                    pSeqPtr->field_16_running_status = 0x90;
+                    const unsigned char midi_byte_next_ = *pSeqPtr->field_0_seq_ptr++;
+                    const unsigned char midi_byte_ = *pSeqPtr->field_0_seq_ptr++;
+                    pSeqPtr->field_90_delta_value = _SsReadDeltaValue(seq_idx, sep_idx);
+                    //SsFCALL.noteon(seq_idx, sep_idx, midi_byte_next_, midi_byte_);
+                    _SsNoteOn(seq_idx, sep_idx, midi_byte_next_, midi_byte_);
+                }
+                else if (midi_byte_and_F0 == 0xB0)
+                {
+                    pSeqPtr->field_16_running_status = 0xB0;
+                    pSeqPtr->field_0_seq_ptr++;
+                    //SsFCALL.control[CC_NUMBER](seq_idx);
+                    _SsSetControlChange(seq_idx, sep_idx, midi_byte);
+                }
+                return;
+            }
+
+            if (midi_byte_and_F0 != 0xE0)
+            {
+                if (midi_byte_and_F0 != 0xF0)
+                {
+                    return;
+                }
+
+                pSeqPtr->field_16_running_status = 0xFF; // TODO ?? -1;
+                const unsigned char midi_byte__ = *pSeqPtr->field_0_seq_ptr;
+                pSeqPtr->field_0_seq_ptr++;
+
+                if (midi_byte__ == 0x2F)
+                {
+                    _SsSeqGetEof(seq_idx, sep_idx);
+                    return;
+                }
+
+                //SsFCALL.metaevent(seq_idx);
+                _SsGetMetaEvent(seq_idx, sep_idx, midi_byte);
+                return;
+            }
+
+            pSeqPtr->field_16_running_status = 0xE0;
+            pSeqPtr->field_0_seq_ptr++;
+            //SsFCALL.pitchbend(seq_idx, sep_idx);
+            _SsSetPitchBend(seq_idx, sep_idx);
+            return;
+        }
+
+        const unsigned char running_status = pSeqPtr->field_16_running_status;
+        if (running_status == 0xC0)
+        {
+            //SsFCALL.programchange(seq_idx);
+            _SsSetProgramChange(seq_idx, sep_idx, midi_byte); // short seq_no, short sep_no, unsigned char ch
+            return;
+        }
+
+        if (pSeqPtr->field_16_running_status >= 0xC1)
+        {
+            if (running_status != 0xE0)
+            {
+                if (running_status != 0xFF)
+                {
+                    return;
+                }
+
+                if (midi_byte == 0x2F)
+                {
+                    _SsSeqGetEof(seq_idx, sep_idx);
+                    return;
+                }
+
+                //SsFCALL.metaevent(seq_idx);
+                _SsGetMetaEvent(seq_idx, sep_idx, midi_byte);
+                return;
+            }
+
+            //SsFCALL.pitchbend(seq_idx, sep_idx);
+            _SsSetPitchBend(seq_idx, sep_idx);
+            return;
+        }
+
+        if (running_status == 0x90)
+        {
+            unsigned char next_midi_byte__ = *pSeqPtr->field_0_seq_ptr++;
+            pSeqPtr->field_90_delta_value = _SsReadDeltaValue(seq_idx, sep_idx);
+            //SsFCALL.noteon(seq_idx, sep_idx, midi_byte, next_midi_byte__);
+            _SsNoteOn(seq_idx, sep_idx, midi_byte, next_midi_byte__);
+        }
+        else if (running_status == 0xB0)
+        {
+            //SsFCALL.control[CC_NUMBER](seq_idx);
+            _SsSetControlChange(seq_idx, sep_idx, midi_byte);
+        }
+    }
+
     void _SsSeqPlay(short seq_access_num, short seq_num)
     {
         SeqStruct* pSeqStructure = &_ss_score[seq_access_num][seq_num]; // note 14bit access
@@ -607,7 +732,6 @@ extern "C"
             pSeqStructure->field_90_delta_value--;
         }
     }
-    */
 
     void _SsSndPlay(short seq_access_num, short seq_num)
     {
@@ -640,7 +764,7 @@ extern "C"
         pStru->field_1C = 0;
         pStru->field_1D = 0;
         pStru->field_15 = 0;
-        pStru->field_16 = 0;
+        pStru->field_16_running_status = 0;
         pStru->field_90_delta_value = pStru->field_84;
         pStru->field_94 = pStru->field_8C;
         pStru->field_54 = pStru->field_56;
