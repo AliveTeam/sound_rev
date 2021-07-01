@@ -89,8 +89,8 @@ extern "C"
         char field_1F;
         char field_20_l_count;
         char field_21;
-        signed char field_22;
-        char field_23;
+        signed char field_22_next_seq;
+        char field_23_next_sep;
         char field_24;
         char field_25;
         char field_26_vab_id;
@@ -157,8 +157,8 @@ extern "C"
                 // Init each structure
                 SeqStruct *pItem = &_ss_score[i][j];
                 pItem->field_98_flags = 0;
-                pItem->field_22 = -1;
-                pItem->field_23 = 0;
+                pItem->field_22_next_seq = -1;
+                pItem->field_23_next_sep = 0;
                 pItem->field_48 = 0;
                 pItem->field_4A = 0;
                 pItem->field_9C = 0;
@@ -401,8 +401,8 @@ extern "C"
 
             pItem->field_98_flags = 0;
 
-            pItem->field_22 = -1;
-            pItem->field_23 = 0; // TODO: part of field_22 ?
+            pItem->field_22_next_seq = -1;
+            pItem->field_23_next_sep = 0;
 
             pItem->field_48 = 0;
             pItem->field_4A = 0;
@@ -464,12 +464,109 @@ extern "C"
 
     // TODO
     void _SsVmFlush(void);
-    void _SsSndPlay(short seqNum, short sepNum);
+
     void _SsSndCrescendo(short seqNum, short sepNum);
     void _SsSndTempo(short seqNum, short sepNum);
     void _SsSndPause(short seqNum, short sepNum);
     void _SsSndReplay(short seqNum, short sepNum);
     void _SsVmDamperOff(void);
+
+    void _SsSndNextSep(char next_seq, char next_sep);
+
+    /*
+    void _SsSeqGetEof(short seq_access_num, short sep_num)
+    {
+        int seq_access_num_ = seq_access_num; // promote to 32bits
+
+        SeqStruct* pStru = &_ss_score[seq_access_num][sep_num]; // Note: 14bit access
+        pStru->field_21++;
+
+        if (pStru->field_20_l_count > 0)
+        {
+            if (pStru->field_21 >= pStru->field_20_l_count)
+            {
+                // Max loop iterations hit
+
+                pStru->field_98_flags &= ~1u;
+                pStru->field_98_flags &= ~8u;
+                pStru->field_98_flags &= ~2u;
+                pStru->field_98_flags |= 0x200u;
+                pStru->field_98_flags |= 4u;
+                
+                pStru->field_14_play_mode = 0;
+
+                if (pStru->field_98_flags & 0x400)
+                {
+                    pStru->field_8 = pStru->field_C;
+                }
+                else
+                {
+                    pStru->field_8 = pStru->field_4;
+                }
+
+                // Start the next track if there is one
+                if (pStru->field_22_next_seq != -1)
+                {
+                    pStru->field_14_play_mode = 0;
+                    _SsSndNextSep(pStru->field_22_next_seq, pStru->field_23_next_sep);
+                    _SsVmSeqKeyOff(seq_access_num_ | (sep_num << 8));
+                }
+
+                // Kill this track (bug: Already done if there is next track?)
+                _SsVmSeqKeyOff(seq_access_num_ | (sep_num << 8));
+                pStru->field_90_delta_value = pStru->field_54;
+            }
+            else
+            {
+                // More loops iterations to do
+
+                pStru->field_88 = 0;
+                pStru->field_1C = 0;
+                pStru->field_90_delta_value = 0;
+
+                if (pStru->field_98_flags & 0x400)
+                {
+                    pStru->field_0_seq_ptr = pStru->field_C;
+                    pStru->field_8 = pStru->field_C;
+                }
+                else
+                {
+                    pStru->field_0_seq_ptr = pStru->field_4;
+                    pStru->field_8 = pStru->field_4;
+
+                }
+            }
+        }
+        else
+        {
+            // No looping
+            pStru->field_88 = 0;
+            pStru->field_1C = 0;
+            
+            pStru->field_90_delta_value = 0;
+
+            if (pStru->field_98_flags & 0x400)
+            {
+                pStru->field_0_seq_ptr = pStru->field_C;
+            }
+            else
+            {
+                pStru->field_0_seq_ptr = pStru->field_4;
+            }
+        }
+    }
+    */
+
+    // TODO
+    void _SsGetSeqData(int seq_idx, short sep_idx);
+
+    // TODO
+    void _SsSeqPlay(short seq_access_num, short seq_num);
+
+    void _SsSndPlay(short seq_access_num, short seq_num)
+    {
+        _SsSeqPlay(seq_access_num, seq_num);
+    }
 
     void _SsSndStop(short seq_or_sep_access_num, short seq_num)
     {
@@ -478,7 +575,7 @@ extern "C"
         pStru->field_98_flags &= ~2u;
         pStru->field_98_flags &= ~8u;
         pStru->field_98_flags &= ~0x400u;
-        pStru->field_98_flags |= 4u; // playing bit?
+        pStru->field_98_flags |= 4u;
 
         _SsVmSeqKeyOff(seq_or_sep_access_num | (seq_num << 8));
         _SsVmDamperOff();
