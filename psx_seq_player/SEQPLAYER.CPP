@@ -560,8 +560,54 @@ extern "C"
     // TODO
     void _SsGetSeqData(int seq_idx, short sep_idx);
 
-    // TODO
     void _SsSeqPlay(short seq_access_num, short seq_num);
+
+    /*
+    void _SsSeqPlay(short seq_access_num, short seq_num)
+    {
+        SeqStruct* pSeqStructure = &_ss_score[seq_access_num][seq_num]; // note 14bit access
+
+        const int diff = pSeqStructure->field_90_delta_value - pSeqStructure->field_54;
+        if ( diff <= 0)
+        {
+            int local_90_ = pSeqStructure->field_90_delta_value;
+            if (pSeqStructure->field_54 < local_90_)
+            {
+                return;
+            }
+
+            int new_90 = 0;
+            do
+            {
+                do
+                {
+                    _SsGetSeqData(seq_access_num, seq_num);
+                } while (!pSeqStructure->field_90_delta_value);
+
+                local_90_ += pSeqStructure->field_90_delta_value;
+                new_90 = local_90_ - pSeqStructure->field_54;
+            } while (local_90_ < pSeqStructure->field_54);
+            pSeqStructure->field_90_delta_value = new_90;
+        }
+        else
+        {
+            if (pSeqStructure->field_52 > 0)
+            {
+                pSeqStructure->field_52--;
+                return;
+            }
+
+            if (pSeqStructure->field_52)
+            {
+                pSeqStructure->field_90_delta_value = diff;
+                return;
+            }
+
+            pSeqStructure->field_52 = pSeqStructure->field_54;
+            pSeqStructure->field_90_delta_value--;
+        }
+    }
+    */
 
     void _SsSndPlay(short seq_access_num, short seq_num)
     {
