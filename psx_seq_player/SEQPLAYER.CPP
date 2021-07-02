@@ -26,13 +26,6 @@ extern "C"
 {
     // LIBSPU
 
-    // DE_DELAY
-    void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr Vag, short a4, u_char attr)
-    {
-        //DEBUGPRINT(("DE_DELAY\n"));
-        SsUtSetReverbDelay(attr);
-    }
-
     // TODO
     void _SpuInit(int);
 
@@ -117,7 +110,7 @@ extern "C"
         int field_88;
         int field_8C;
         int field_90_delta_value;
-        int field_94;
+        int field_94; // tempo?
         unsigned int field_98_flags;
         int field_9C;
         int field_A0;
@@ -223,13 +216,6 @@ extern "C"
     short _SsInitSoundSeq(int seqId, int vabId, u_long *pSeqData);
     int _SsReadDeltaValue(short seq_access_num, short seq_num);
 
-    void _SsSetProgramChange(short seq_access_num, short seq_num, unsigned char programNum)
-    {
-        SeqStruct *pStru = &_ss_score[seq_access_num][seq_num];
-        pStru->field_37_array[pStru->field_17_array_60_idx] = programNum;
-        pStru->field_90_delta_value = _SsReadDeltaValue(seq_access_num, seq_num);
-    }
-
     int _SsReadDeltaValue(short seq_access_num, short seq_num)
     {
         SeqStruct *pStruc = &_ss_score[seq_access_num][seq_num]; // note 14bit access
@@ -253,6 +239,49 @@ extern "C"
             pStruc->field_88 += result;
         }
         return result;
+    }
+   
+    // DE_DELAY
+    void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr Vag, short a4, u_char attr)
+    {
+        //DEBUGPRINT(("DE_DELAY\n"));
+        SsUtSetReverbDelay(attr);
+    }
+
+
+
+    void _SsSetProgramChange(short seq_access_num, short seq_num, unsigned char programNum)
+    {
+        SeqStruct *pStru = &_ss_score[seq_access_num][seq_num];
+        pStru->field_37_array[pStru->field_17_array_60_idx] = programNum;
+        pStru->field_90_delta_value = _SsReadDeltaValue(seq_access_num, seq_num);
+    }
+
+    // TODO:
+    void _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
+    void _SsVmKeyOff(int seq_sep_no, short vabId, short unknown37, short note);
+
+    void _SsNoteOn(short seq_no, short sep_no, unsigned char note, unsigned char voll)
+    {
+        int seq_no_promoted = seq_no;
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        if (voll)
+        {
+            if (((pStru->field_80 >> pStru->field_17_array_60_idx) & 1) == 0)
+            {
+                _SsVmKeyOn(
+                    seq_no_promoted | (sep_no << 8),
+                    pStru->field_26_vab_id,
+                    pStru->field_37_array[pStru->field_17_array_60_idx],
+                    note,
+                    voll,
+                    pStru->field_27_array[pStru->field_17_array_60_idx]);
+            }
+        }
+        else
+        {
+            _SsVmKeyOff(seq_no_promoted | (sep_no << 8), pStru->field_26_vab_id, pStru->field_37_array[pStru->field_17_array_60_idx], note);
+        }
     }
 
     short SsSeqOpen(u_long *pSeqData, short vab_id)
@@ -473,6 +502,11 @@ extern "C"
 
     void _SsSndNextSep(char next_seq, char next_sep);
 
+    void _SsSeqGetEof(short seq_access_num, short sep_num);
+    void _SsGetSeqData(short seq_idx, short sep_idx);
+    void _SsSeqPlay(short seq_access_num, short seq_num);
+
+/*
     void _SsSeqGetEof(short seq_access_num, short sep_num)
     {
         int seq_access_num_ = seq_access_num; // promote to 32bits
@@ -732,6 +766,7 @@ extern "C"
             pSeqStructure->field_90_delta_value--;
         }
     }
+*/
 
     void _SsSndPlay(short seq_access_num, short seq_num)
     {
