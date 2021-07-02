@@ -327,6 +327,24 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
+    // TODO
+    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch);
+
+    void SsSetPitchBend(short seq_no, short sep_no)
+    {
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        unsigned char midi_byte = *pStru->field_0_seq_ptr;
+        pStru->field_0_seq_ptr++;
+
+        _SsVmPitchBend(
+            seq_no | (sep_no << 8),
+            pStru->field_26_vab_id,
+            pStru->field_37_programs[pStru->field_17_channel_idx],
+            midi_byte);
+
+        pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
+
     short SsSeqOpen(u_long *pSeqData, short vab_id)
     {
         // All bits used
@@ -539,7 +557,6 @@ extern "C"
 
     void _SsSndCrescendo(short seqNum, short sepNum);
     void _SsSndTempo(short seqNum, short sepNum);
-    void _SsSndPause(short seqNum, short sepNum);
     void _SsSndReplay(short seqNum, short sepNum);
     void _SsVmDamperOff(void);
 
@@ -548,6 +565,16 @@ extern "C"
     void _SsSeqGetEof(short seq_access_num, short sep_num);
     void _SsGetSeqData(short seq_idx, short sep_idx);
     void _SsSeqPlay(short seq_access_num, short seq_num);
+
+    void _SsSndPause(short seq_no, short sep_no)
+    {
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no]; // TODO: 14bit access
+
+        _SsVmSeqKeyOff(seq_no | (sep_no << 8));
+
+        pStru->field_14_play_mode = 0;
+        pStru->field_98_flags &= ~2u;
+    }
 
 /*
     void _SsSeqGetEof(short seq_access_num, short sep_num)
