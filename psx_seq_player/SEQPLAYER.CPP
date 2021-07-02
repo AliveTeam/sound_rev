@@ -285,6 +285,48 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
+    extern int VBLANK_MINUS;
+
+    // TODO: Not test and some funny stuff happening in here
+    void _SsGetMetaEvent(short seq_no, short sep_no, unsigned char ev)
+    {
+        printf("_SsGetMetaEvent\n");
+
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        pStru->field_0_seq_ptr += 3;
+
+        int read = pStru->field_0_seq_ptr[2] | (pStru->field_0_seq_ptr[0] << 16) | (pStru->field_0_seq_ptr[1] << 8);
+
+        read = 60000000 / read;
+
+        pStru->field_94 = read;
+  
+        const int v6 = read * pStru->field_50;
+
+        const int v8 = 15 * VBLANK_MINUS;
+        const int v9 = 60 * VBLANK_MINUS;
+        if (10 * v6 < 60 * VBLANK_MINUS)
+        {
+            const int v10 = 600 * VBLANK_MINUS / v6;
+            pStru->field_52 = v10;
+            pStru->field_54 = v10;
+        }
+        else
+        {
+            const int v11 = 10 * pStru->field_50 * pStru->field_94 / v9;
+            const int v12 = 10 * pStru->field_50 * pStru->field_94 % v9;
+
+            pStru->field_52 = -1;
+            pStru->field_54 = v11;
+
+            if (2 * v8 < v12)
+            {
+                pStru->field_54 = v11 + 1;
+            }
+        }
+        pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
+
     short SsSeqOpen(u_long *pSeqData, short vab_id)
     {
         // All bits used
