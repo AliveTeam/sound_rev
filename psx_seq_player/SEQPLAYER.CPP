@@ -71,7 +71,7 @@ extern "C"
         char field_14_play_mode;
         char field_15;
         unsigned char field_16_running_status;
-        unsigned char field_17_array_60_idx;
+        unsigned char field_17_channel_idx;
         char field_18;
         char field_19;
         char field_1A_fn_idx;
@@ -88,7 +88,7 @@ extern "C"
         char field_25;
         char field_26_vab_id;
         char field_27_array[16];
-        char field_37_array[16];
+        char field_37_programs[16];
         char field_47;
         short field_48;
         short field_4A;
@@ -248,40 +248,41 @@ extern "C"
         SsUtSetReverbDelay(attr);
     }
 
-
-
-    void _SsSetProgramChange(short seq_access_num, short seq_num, unsigned char programNum)
-    {
-        SeqStruct *pStru = &_ss_score[seq_access_num][seq_num];
-        pStru->field_37_array[pStru->field_17_array_60_idx] = programNum;
-        pStru->field_90_delta_value = _SsReadDeltaValue(seq_access_num, seq_num);
-    }
-
     // TODO:
     void _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
     void _SsVmKeyOff(int seq_sep_no, short vabId, short unknown37, short note);
 
     void _SsNoteOn(short seq_no, short sep_no, unsigned char note, unsigned char voll)
     {
+        printf("_SsNoteOn seq_no=%d sep_no=%d note=%d voll=%d\n", seq_no, sep_no, static_cast<int>(note), static_cast<int>(voll));
+
         int seq_no_promoted = seq_no;
         SeqStruct* pStru = &_ss_score[seq_no][sep_no];
         if (voll)
         {
-            if (((pStru->field_80 >> pStru->field_17_array_60_idx) & 1) == 0)
+            if (((pStru->field_80 >> pStru->field_17_channel_idx) & 1) == 0)
             {
                 _SsVmKeyOn(
                     seq_no_promoted | (sep_no << 8),
                     pStru->field_26_vab_id,
-                    pStru->field_37_array[pStru->field_17_array_60_idx],
+                    pStru->field_37_programs[pStru->field_17_channel_idx],
                     note,
                     voll,
-                    pStru->field_27_array[pStru->field_17_array_60_idx]);
+                    pStru->field_27_array[pStru->field_17_channel_idx]);
             }
         }
         else
         {
-            _SsVmKeyOff(seq_no_promoted | (sep_no << 8), pStru->field_26_vab_id, pStru->field_37_array[pStru->field_17_array_60_idx], note);
+            _SsVmKeyOff(seq_no_promoted | (sep_no << 8), pStru->field_26_vab_id, pStru->field_37_programs[pStru->field_17_channel_idx], note);
         }
+    }
+
+    void _SsSetProgramChange(short seq_no, short sep_no, unsigned char programNum)
+    {
+        printf("_SsSetProgramChange seq_no=%d, sep_no=%d program=%d\n", seq_no, sep_no, static_cast<int>(programNum));
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
+        pStru->field_37_programs[pStru->field_17_channel_idx] = programNum;
+        pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
     short SsSeqOpen(u_long *pSeqData, short vab_id)
@@ -613,7 +614,7 @@ extern "C"
 
         if (midi_byte_and_80)
         {
-            pSeqPtr->field_17_array_60_idx = midi_byte & 0xF; // Channel ?
+            pSeqPtr->field_17_channel_idx = midi_byte & 0xF; // Channel ?
             
             unsigned char midi_byte_and_F0 = midi_byte & 0xF0;
             if (midi_byte_and_F0 == 0xC0)
@@ -794,7 +795,7 @@ extern "C"
         pStru->field_1A_fn_idx = 0;
         pStru->field_1B = 0;
         pStru->field_1F = 0;
-        pStru->field_17_array_60_idx = 0;
+        pStru->field_17_channel_idx = 0;
         pStru->field_21 = 0;
         pStru->field_1C = 0;
         pStru->field_1D = 0;
@@ -808,7 +809,7 @@ extern "C"
 
         for (int i = 0; i < 16; i++)
         {
-            pStru->field_37_array[i] = i;
+            pStru->field_37_programs[i] = i;
             pStru->field_27_array[i] = 64;
             pStru->field_60_array[i] = 127;
         }
