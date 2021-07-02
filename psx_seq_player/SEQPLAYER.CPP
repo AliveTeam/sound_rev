@@ -345,6 +345,14 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
+    void _SsContBankChange(short seq_no, short sep_no)
+    {
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        pStru->field_26_vab_id = *pStru->field_0_seq_ptr;
+        pStru->field_0_seq_ptr++;
+        pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
+
     short SsSeqOpen(u_long *pSeqData, short vab_id)
     {
         // All bits used
