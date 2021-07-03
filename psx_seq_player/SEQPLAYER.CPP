@@ -102,7 +102,7 @@ extern "C"
         short field_5A_volr;
         short field_5C;
         short field_5E;
-        short field_60_array[16];
+        short field_60_vol[16];
         short field_80;
         char field_82;
         char field_83;
@@ -351,6 +351,21 @@ extern "C"
         pStru->field_26_vab_id = *pStru->field_0_seq_ptr;
         pStru->field_0_seq_ptr++;
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
+
+    void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
+
+    void _SsContMainVol(short seq_no, short sep_no, unsigned char vol)
+    {
+        SeqStruct* pStruc = &_ss_score[seq_no][sep_no];
+        _SsVmSetVol(
+            seq_no | (sep_no << 8),
+            pStruc->field_26_vab_id,
+            pStruc->field_37_programs[pStruc->field_17_channel_idx],
+            vol,
+            pStruc->field_27_array[pStruc->field_17_channel_idx]);
+        pStruc->field_60_vol[pStruc->field_17_channel_idx] = vol;
+        pStruc->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
     short SsSeqOpen(u_long *pSeqData, short vab_id)
@@ -901,7 +916,7 @@ extern "C"
         {
             pStru->field_37_programs[i] = i;
             pStru->field_27_array[i] = 64;
-            pStru->field_60_array[i] = 127;
+            pStru->field_60_vol[i] = 127;
         }
 
         pStru->field_5C = 127;
