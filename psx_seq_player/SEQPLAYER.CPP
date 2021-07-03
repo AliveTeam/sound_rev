@@ -87,7 +87,7 @@ extern "C"
         char field_24;
         char field_25;
         char field_26_vab_id;
-        char field_27_array[16];
+        char field_27_panpot[16];
         char field_37_programs[16];
         char field_47;
         short field_48;
@@ -268,7 +268,7 @@ extern "C"
                     pStru->field_37_programs[pStru->field_17_channel_idx],
                     note,
                     voll,
-                    pStru->field_27_array[pStru->field_17_channel_idx]);
+                    pStru->field_27_panpot[pStru->field_17_channel_idx]);
             }
         }
         else
@@ -363,9 +363,22 @@ extern "C"
             pStruc->field_26_vab_id,
             pStruc->field_37_programs[pStruc->field_17_channel_idx],
             vol,
-            pStruc->field_27_array[pStruc->field_17_channel_idx]);
+            pStruc->field_27_panpot[pStruc->field_17_channel_idx]);
         pStruc->field_60_vol[pStruc->field_17_channel_idx] = vol;
         pStruc->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
+
+    void _SsContPanpot(short seq_no, short sep_no, unsigned char panpot)
+    {
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        _SsVmSetVol(
+            seq_no | (sep_no << 8),
+            pStru->field_26_vab_id,
+            pStru->field_37_programs[pStru->field_17_channel_idx],
+            pStru->field_60_vol[pStru->field_17_channel_idx],
+            panpot);
+        pStru->field_27_panpot[pStru->field_17_channel_idx] = panpot;
+        pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
     short SsSeqOpen(u_long *pSeqData, short vab_id)
@@ -915,7 +928,7 @@ extern "C"
         for (int i = 0; i < 16; i++)
         {
             pStru->field_37_programs[i] = i;
-            pStru->field_27_array[i] = 64;
+            pStru->field_27_panpot[i] = 64;
             pStru->field_60_vol[i] = 127;
         }
 
