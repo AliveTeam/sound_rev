@@ -34,8 +34,51 @@ extern "C"
         _SpuInit(0);
     }
 
+    struct SeqMarker
+    {
+        int field_0_entries[16];
+    };
+    struct SeqStruct;
+    extern SeqMarker _SsMarkCallback[32];
+    extern int VBLANK_MINUS;
+    extern u_long _snd_openflag;
+    extern int _snd_ev_flag;
+    extern SeqStruct *_ss_score[32];
+    extern short _snd_seq_s_max;
+    extern short _snd_seq_t_max;
+
     // TODO
-    void _SsInit(void);
+    void _SsVmInit(int);
+
+    void _SsInit(void); // TODO: Impl can't link due to redef of global vars
+
+/*
+    void _SsInit(void)
+    {
+        // Init regs
+        const static short private_8001D0A4[16] = { 0x3FFF, 0x3FFF, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        volatile short* pReg = (volatile short*)0x1F801D80;
+        for (int i = 0; i < 16; i++)
+        {
+            pReg[i] = private_8001D0A4[i];
+        }
+
+        _SsVmInit(24);
+
+        // Init mark data
+        for (int i = 0; i < 32; i++)
+        {
+            for (int j = 0; j < 16; j++)
+            {
+                _SsMarkCallback[i].field_0_entries[j] = 0;
+            }
+        }
+
+        VBLANK_MINUS = 60;
+        _snd_openflag = 0;
+        _snd_ev_flag = 0;
+    }
+*/
 
     // TODO: SpuClearReverbWorkArea
 
@@ -118,11 +161,6 @@ extern "C"
         int field_A8;
         int field_AC;
     } __attribute__((packed));
-
-    extern short _snd_seq_s_max;
-    extern short _snd_seq_t_max;
-    extern SeqStruct *_ss_score[32];
-    extern u_long _snd_openflag;
 
     void SsSetTableSize(char *table, short s_max, short t_max)
     {
@@ -285,8 +323,6 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
-    extern int VBLANK_MINUS;
-
     // TODO: Not test and some funny stuff happening in here
     void _SsGetMetaEvent(short seq_no, short sep_no, unsigned char ev)
     {
@@ -407,7 +443,7 @@ extern "C"
     // TODO
     void _SsVmDamperOn(void);
     void _SsVmDamperOff(void);
-    
+
     void _SsContDamper(short seq_no, short sep_no, unsigned char damper)
     {
         SeqStruct* pStru = &_ss_score[seq_no][sep_no];
@@ -590,7 +626,6 @@ extern "C"
         Impl_SsSeqClose(seq_access_num);
     }
 
-    extern volatile int _snd_ev_flag;
     extern short note2pitch2;
 
     void _SsVmKeyOffNow(void);
