@@ -381,6 +381,22 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
+    // TODO
+    void _SsVmSetProgVol(short vabId, short program, unsigned char vol);
+
+    void _SsContExpression(short seq_no, short sep_no, unsigned char progVol)
+    {
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        _SsVmSetProgVol(pStru->field_26_vab_id, pStru->field_37_programs[pStru->field_17_channel_idx], progVol);
+        _SsVmSetVol(
+            seq_no | (sep_no << 8),
+            pStru->field_26_vab_id,
+            pStru->field_37_programs[pStru->field_17_channel_idx],
+            pStru->field_60_vol[pStru->field_17_channel_idx],
+            pStru->field_27_panpot[pStru->field_17_channel_idx]);
+        pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
+
     short SsSeqOpen(u_long *pSeqData, short vab_id)
     {
         // All bits used
