@@ -34,9 +34,11 @@ extern "C"
         _SpuInit(0);
     }
 
+    typedef void(*SndSsMarkCallbackProc)(short seq_no, short sep_no, short data);
+
     struct SeqMarker
     {
-        int field_0_entries[16];
+        SndSsMarkCallbackProc field_0_entries[16];
     };
     struct SeqStruct;
     extern SeqMarker _SsMarkCallback[32];
@@ -118,7 +120,7 @@ extern "C"
         char field_18;
         char field_19;
         char field_1A_fn_idx;
-        char field_1B;
+        unsigned char field_1B;
         char field_1C;
         char field_1D;
         char field_1E;
@@ -455,6 +457,32 @@ extern "C"
         {
             _SsVmDamperOff();
         }
+        pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
+
+    void _SsContNrpn1(short seq_no, short sep_no, unsigned char func_idx)
+    {
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+
+        if (pStru->field_1B == 40)
+        {
+            SndSsMarkCallbackProc pFunc = _SsMarkCallback[seq_no].field_0_entries[sep_no];
+            if (pFunc)
+            {
+                pFunc(seq_no, sep_no, func_idx);
+            }
+        }
+
+        if (pStru->field_1B != 30 && pStru->field_1B != 20) // TODO: goto removed
+        {
+            if (pStru->field_1B != 40)
+            {
+                pStru->field_1A_fn_idx = func_idx;
+                pStru->field_1C = 0;
+                pStru->field_1F++;
+            }
+        }
+
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
