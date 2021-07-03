@@ -397,6 +397,13 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
+    void _SsContExternal(short seq_no, short sep_no, unsigned char reverbDepth)
+    {
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SsUtSetReverbDepth(reverbDepth, reverbDepth);
+        pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
+
     short SsSeqOpen(u_long *pSeqData, short vab_id)
     {
         // All bits used
