@@ -567,12 +567,25 @@ extern "C"
     void _SsSndTempo(short seqNum, short sepNum);
     void _SsSndReplay(short seqNum, short sepNum);
     void _SsVmDamperOff(void);
-
-    void _SsSndNextSep(char next_seq, char next_sep);
-
     void _SsSeqGetEof(short seq_access_num, short sep_num);
     void _SsGetSeqData(short seq_idx, short sep_idx);
     void _SsSeqPlay(short seq_access_num, short seq_num);
+
+    void _SsSndNextSep(int seq_no, short sep_no)
+    {
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no]; // TODO: 14bit access
+
+        pStru->field_20_l_count = 1; // TODO: Setting field 21 to 0 or 1 also ??
+        pStru->field_21 = 0;
+        pStru->field_98_flags &= ~0x100u;
+        pStru->field_98_flags &= ~8u;
+        pStru->field_98_flags &= ~2u;
+        pStru->field_98_flags &= ~4u;
+        pStru->field_98_flags &= ~0x200u;
+        pStru->field_14_play_mode = 1;
+        pStru->field_0_seq_ptr = pStru->field_4;
+        pStru->field_98_flags |= 1u;
+    }
 
     void _SsSndPause(short seq_no, short sep_no)
     {
