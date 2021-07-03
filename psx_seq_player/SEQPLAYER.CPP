@@ -122,7 +122,7 @@ extern "C"
         char field_1A_fn_idx;
         unsigned char field_1B;
         char field_1C;
-        char field_1D;
+        unsigned char field_1D;
         char field_1E;
         char field_1F;
         char field_20_l_count;
@@ -484,6 +484,57 @@ extern "C"
         }
 
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
+
+    void _SsContNrpn2(short seq_no, short sep_no, unsigned char a3)
+    {
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+
+        if (a3 == 20)
+        {
+            pStru->field_1B = a3;
+            pStru->field_1C = 1;
+            pStru->field_8 = pStru->field_0_seq_ptr;
+            pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+            return;
+        }
+
+        if (a3 != 30)
+        {
+            pStru->field_1B = a3;
+            pStru->field_1F++;
+            pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+            return;
+        }
+
+        pStru->field_1B = a3;
+
+        if (!pStru->field_1D)
+        {
+            pStru->field_15 = 0;
+            pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+            return;
+        }
+
+        if (pStru->field_1D >= 127)
+        {
+            _SsReadDeltaValue(seq_no, sep_no);
+            pStru->field_90_delta_value = 0;
+            pStru->field_0_seq_ptr = pStru->field_8;
+        }
+        else
+        {
+            pStru->field_1D--;
+            pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+            if (pStru->field_1D)
+            {
+                pStru->field_0_seq_ptr = pStru->field_8;
+            }
+            else
+            {
+                pStru->field_15 = 0;
+            }
+        }
     }
 
     short SsSeqOpen(u_long *pSeqData, short vab_id)
