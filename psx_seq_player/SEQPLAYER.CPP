@@ -575,6 +575,19 @@ extern "C"
         SsUtSetVagAtr(vabId, program, vag_idx, &vagAtr);
     }
 
+    extern short _svm_cur;
+    
+    // TODO: Can't link till _SsVmSeqKeyOff and _SsVmSetSeqVol impl
+    /*
+    void _SsVmGetSeqVol(short seq_sep_no, short *pVolL, short *pVolR)
+    {
+        SeqStruct* pStru = &_ss_score[seq_sep_no & 0xFF][(seq_sep_no & 0xFF00) >> 8];
+        _svm_cur = seq_sep_no;
+        *pVolL = pStru->field_58_voll;
+        *pVolR = pStru->field_5A_volr;
+    }
+    */
+   
     short SsSeqOpen(u_long *pSeqData, short vab_id)
     {
         // All bits used
