@@ -282,7 +282,7 @@ extern "C"
     }
    
     // DE_DELAY
-    void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr Vag, short a4, u_char attr)
+    void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr Vag, short fn_idx, u_char attr)
     {
         //DEBUGPRINT(("DE_DELAY\n"));
         SsUtSetReverbDelay(attr);
@@ -566,6 +566,13 @@ extern "C"
         pStru->field_60_vol[pStru->field_17_channel_idx] = 127;
         pStru->field_27_panpot[pStru->field_17_channel_idx] = 64;
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
+
+    void _SsSetNrpnVabAttr0(short vabId, short program, short vag_idx, VagAtr vagAtr, short fn_idx, unsigned char priority)
+    {
+        SsUtGetVagAtr(vabId, program, vag_idx, &vagAtr);
+        vagAtr.prior = priority;
+        SsUtSetVagAtr(vabId, program, vag_idx, &vagAtr);
     }
 
     short SsSeqOpen(u_long *pSeqData, short vab_id)
