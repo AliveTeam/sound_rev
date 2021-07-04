@@ -553,6 +553,21 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
+    void _SsContResetAll(short seq_no, short sep_no)
+    {
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+
+        SsUtReverbOff();
+        _SsVmDamperOff();
+
+        pStru->field_37_programs[pStru->field_17_channel_idx] = pStru->field_17_channel_idx;
+        pStru->field_18 = 0;
+        pStru->field_19 = 0;
+        pStru->field_60_vol[pStru->field_17_channel_idx] = 127;
+        pStru->field_27_panpot[pStru->field_17_channel_idx] = 64;
+        pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
+
     short SsSeqOpen(u_long *pSeqData, short vab_id)
     {
         // All bits used
