@@ -9,7 +9,7 @@
 #include <LIBETC.H>
 #include <STRINGS.H>
 #include <KERNEL.H>
-#include <LIBSND.H>
+//#include <LIBSND.H>
 #include <LIBSPU.H>
 #include "DebugFont.c"
 #include "tims/FONT.h"
@@ -24,6 +24,122 @@
 
 extern "C"
 {
+    #define SS_WAIT_COMPLETED   1
+
+    #define CC_NUMBER     0
+    #define CC_BANKCHANGE 1
+    #define CC_DATAENTRY  2
+    #define CC_MAINVOL    3
+    #define CC_PANPOT     4
+    #define CC_EXPRESSION 5
+    #define CC_DAMPER     6
+    #define CC_NRPN1      7
+    #define CC_NRPN2      8
+    #define CC_RPN1       9
+    #define CC_RPN2       10
+    #define CC_EXTERNAL   11
+    #define CC_RESETALL   12
+
+    #define DE_PRIORITY	0	 
+    #define DE_MODE  	1 
+    #define DE_LIMITL	2
+    #define DE_LIMITH	3 
+    #define DE_ADSR_AR_L	4 
+    #define DE_ADSR_AR_E	5
+    #define DE_ADSR_DR  	6 
+    #define DE_ADSR_SL  	7 
+    #define DE_ADSR_SR_L  	8 
+    #define DE_ADSR_SR_E 	9 
+    #define DE_ADSR_RR_L	10 
+    #define DE_ADSR_RR_E	11
+    #define DE_ADSR_SR  	12 
+    #define DE_VIB_TIME 	13 
+    #define DE_PORTA_DEPTH	14 
+    #define DE_REV_TYPE  	15 
+    #define DE_REV_DEPTH 	16 
+    #define DE_ECHO_FB  	17 
+    #define DE_ECHO_DELAY	18 
+    #define DE_DELAY  	19 
+
+    #define SS_SEQ_TABSIZ     176
+
+    #define SS_NOTICK	 0x1000
+
+    #define SSPLAY_PLAY      1
+
+    typedef struct VagAtr {         /* VAG Tone Headdings */
+
+        unsigned char  prior;         /* tone priority */
+        unsigned char  mode;          /* play mode */
+        unsigned char  vol;           /* tone volume*/
+        unsigned char  pan;           /* tone panning */
+        unsigned char  center;        /* center note */
+        unsigned char  shift;         /* center note fine tune */
+        unsigned char  min;           /* minimam note limit */
+        unsigned char  max;           /* maximam note limit */
+        unsigned char  vibW;          /* vibrate depth */
+        unsigned char  vibT;          /* vibrate duration */
+        unsigned char  porW;          /* portamento depth */
+        unsigned char  porT;          /* portamento duration */
+        unsigned char  pbmin;         /* under pitch bend max */
+        unsigned char  pbmax;         /* upper pitch bend max */
+        unsigned char  reserved1;     /* system reserved */
+        unsigned char  reserved2;     /* system reserved */
+        unsigned short adsr1;         /* adsr1 */
+        unsigned short adsr2;         /* adsr2 */
+        short          prog;          /* parent program*/
+        short          vag;           /* vag reference */
+        short          reserved[4];   /* system reserved */
+
+    } VagAtr;			/* 32 byte */
+
+    // TODO
+    extern short SsVabOpenHead(unsigned char*, short);
+    extern short SsVabTransBody(unsigned char*, short);
+    extern short SsVabTransCompleted(short);
+    extern void  SsVabClose(short);
+
+    extern void  SsUtSetReverbDelay(short);
+
+    extern void _SsContExternal(short, short, unsigned char); 
+    extern void _SsContResetAll(short, short);
+
+    extern short SsUtSetVagAtr(short, short, short, VagAtr*);
+    extern short SsUtGetVagAtr(short, short, short, VagAtr*);
+
+    extern void  SsUtSetReverbDepth(short, short);
+    extern void  SsUtReverbOff(void);
+
+    extern void _SsSetPitchBend(short, short);
+    extern void _SsContDataEntry(short, short, unsigned char);
+
+    extern void _SsSetNrpnVabAttr0(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr1(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr2(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr3(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr4(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr5(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr6(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr7(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr8(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr9(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr10(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr11(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr12(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr13(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr14(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr15(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr16(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr17(short, short, short, VagAtr, short, unsigned char);
+    extern void _SsSetNrpnVabAttr18(short, short, short, VagAtr, short, unsigned char);
+   
+    // DE_DELAY
+    void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr Vag, short fn_idx, u_char attr)
+    {
+        //DEBUGPRINT(("DE_DELAY\n"));
+        SsUtSetReverbDelay(attr);
+    }
+
     // LIBSPU
 
     // TODO
@@ -55,6 +171,7 @@ extern "C"
     void _SsInit(void); // TODO: Impl can't link due to redef of global vars
 
 /*
+    // TODO: Can't link as obj has some globals in there
     void _SsInit(void)
     {
         // Init regs
@@ -249,12 +366,8 @@ extern "C"
         return SpuIsTransferCompleted(immediateFlag);
     }
 
-    // midi handler funcs
-    extern _SsFCALL SsFCALL;
-
     // TODO
     short _SsInitSoundSeq(int seqId, int vabId, u_long *pSeqData);
-    int _SsReadDeltaValue(short seq_access_num, short seq_num);
 
     int _SsReadDeltaValue(short seq_access_num, short seq_num)
     {
@@ -280,13 +393,7 @@ extern "C"
         }
         return result;
     }
-   
-    // DE_DELAY
-    void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr Vag, short fn_idx, u_char attr)
-    {
-        //DEBUGPRINT(("DE_DELAY\n"));
-        SsUtSetReverbDelay(attr);
-    }
+
 
     // TODO:
     void _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
@@ -325,7 +432,7 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
-    // TODO: Not test and some funny stuff happening in here
+    // TODO: Not tested and some funny stuff happening in here - probably totally bugged
     void _SsGetMetaEvent(short seq_no, short sep_no, unsigned char ev)
     {
         printf("_SsGetMetaEvent\n");
@@ -588,6 +695,79 @@ extern "C"
     }
     */
    
+   
+    typedef struct {
+        void (*noteon) ();
+        void (*programchange) ();
+        void (*pitchbend) ();
+        void (*metaevent) ();
+        void (*control[13]) (short, short, unsigned char);
+        void (*ccentry[20]) (short, short, short, VagAtr, short, unsigned char);
+    } _SsFCALL;
+    extern _SsFCALL SsFCALL;
+
+    void _SsSetControlChange(short seq_no, short sep_no, unsigned char control)
+    {
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        const unsigned char control_value = *pStru->field_0_seq_ptr++;
+
+        switch (control)
+        {
+            case 0:
+                pStru->field_26_vab_id = control_value; // or 0
+                pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+                break;
+
+            case 6:
+                SsFCALL.control[2](seq_no, sep_no, control_value);
+                break;
+
+            case 7:
+                SsFCALL.control[3](seq_no, sep_no, control_value);
+                break;
+
+            case 10:
+                SsFCALL.control[4](seq_no, sep_no, control_value);
+                break;
+
+            case 11:
+                SsFCALL.control[5](seq_no, sep_no, control_value);
+                break;
+
+            case 64:
+                SsFCALL.control[6](seq_no, sep_no, control_value);
+                break;
+
+            case 91:
+                SsFCALL.control[11](seq_no, sep_no, control_value);
+                break;
+
+            case 98:
+                SsFCALL.control[7](seq_no, sep_no, control_value);
+                break;
+
+            case 99:
+                SsFCALL.control[8](seq_no, sep_no, control_value);
+                break;
+
+            case 100:
+                SsFCALL.control[9](seq_no, sep_no, control_value);
+                break;
+
+            case 101:
+                SsFCALL.control[10](seq_no, sep_no, control_value);
+                break;
+            
+            case 121:
+                SsFCALL.control[12](seq_no, sep_no, control_value);
+                break;
+
+            default:
+                pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+                break;
+        }
+    }
+
     short SsSeqOpen(u_long *pSeqData, short vab_id)
     {
         // All bits used
@@ -622,40 +802,40 @@ extern "C"
         SsFCALL.metaevent = (void (*)())_SsGetMetaEvent;
         SsFCALL.pitchbend = (void (*)())_SsSetPitchBend;
 
-        SsFCALL.control[CC_NUMBER] = (void (*)())_SsSetControlChange;
-        SsFCALL.control[CC_BANKCHANGE] = (void (*)())_SsContBankChange;
-        SsFCALL.control[CC_MAINVOL] = (void (*)())_SsContMainVol;
-        SsFCALL.control[CC_PANPOT] = (void (*)())_SsContPanpot;
-        SsFCALL.control[CC_EXPRESSION] = (void (*)())_SsContExpression;
-        SsFCALL.control[CC_DAMPER] = (void (*)())_SsContDamper;
-        SsFCALL.control[CC_NRPN1] = (void (*)())_SsContNrpn1;
-        SsFCALL.control[CC_NRPN2] = (void (*)())_SsContNrpn2;
-        SsFCALL.control[CC_RPN1] = (void (*)())_SsContRpn1;
-        SsFCALL.control[CC_RPN2] = (void (*)())_SsContRpn2;
-        SsFCALL.control[CC_EXTERNAL] = (void (*)())_SsContExternal;
-        SsFCALL.control[CC_RESETALL] = (void (*)())_SsContResetAll;
-        SsFCALL.control[CC_DATAENTRY] = (void (*)())_SsContDataEntry;
+        SsFCALL.control[CC_NUMBER] = _SsSetControlChange;
+        SsFCALL.control[CC_BANKCHANGE] = (void (*)(short int, short int, unsigned char))_SsContBankChange; // sony lol
+        SsFCALL.control[CC_MAINVOL] = _SsContMainVol;
+        SsFCALL.control[CC_PANPOT] = _SsContPanpot;
+        SsFCALL.control[CC_EXPRESSION] = _SsContExpression;
+        SsFCALL.control[CC_DAMPER] = _SsContDamper;
+        SsFCALL.control[CC_NRPN1] = _SsContNrpn1;
+        SsFCALL.control[CC_NRPN2] = _SsContNrpn2;
+        SsFCALL.control[CC_RPN1] = _SsContRpn1;
+        SsFCALL.control[CC_RPN2] = _SsContRpn2;
+        SsFCALL.control[CC_EXTERNAL] = _SsContExternal;
+        SsFCALL.control[CC_RESETALL] = (void (*)(short int, short int, unsigned char))_SsContResetAll;
+        SsFCALL.control[CC_DATAENTRY] = _SsContDataEntry;
 
-        SsFCALL.ccentry[DE_PRIORITY] = (void (*)())_SsSetNrpnVabAttr0;
-        SsFCALL.ccentry[DE_MODE] = (void (*)())_SsSetNrpnVabAttr1;
-        SsFCALL.ccentry[DE_LIMITL] = (void (*)())_SsSetNrpnVabAttr2;
-        SsFCALL.ccentry[DE_LIMITH] = (void (*)())_SsSetNrpnVabAttr3;
-        SsFCALL.ccentry[DE_ADSR_AR_L] = (void (*)())_SsSetNrpnVabAttr4;
-        SsFCALL.ccentry[DE_ADSR_AR_E] = (void (*)())_SsSetNrpnVabAttr5;
-        SsFCALL.ccentry[DE_ADSR_DR] = (void (*)())_SsSetNrpnVabAttr6;
-        SsFCALL.ccentry[DE_ADSR_SL] = (void (*)())_SsSetNrpnVabAttr7;
-        SsFCALL.ccentry[DE_ADSR_SR_L] = (void (*)())_SsSetNrpnVabAttr8;
-        SsFCALL.ccentry[DE_ADSR_SR_E] = (void (*)())_SsSetNrpnVabAttr9;
-        SsFCALL.ccentry[DE_ADSR_RR_L] = (void (*)())_SsSetNrpnVabAttr10;
-        SsFCALL.ccentry[DE_ADSR_RR_E] = (void (*)())_SsSetNrpnVabAttr11;
-        SsFCALL.ccentry[DE_ADSR_SR] = (void (*)())_SsSetNrpnVabAttr12;
-        SsFCALL.ccentry[DE_VIB_TIME] = (void (*)())_SsSetNrpnVabAttr13;
-        SsFCALL.ccentry[DE_PORTA_DEPTH] = (void (*)())_SsSetNrpnVabAttr14;
-        SsFCALL.ccentry[DE_REV_TYPE] = (void (*)())_SsSetNrpnVabAttr15;
-        SsFCALL.ccentry[DE_REV_DEPTH] = (void (*)())_SsSetNrpnVabAttr16;
-        SsFCALL.ccentry[DE_ECHO_FB] = (void (*)())_SsSetNrpnVabAttr17;
-        SsFCALL.ccentry[DE_ECHO_DELAY] = (void (*)())_SsSetNrpnVabAttr18;
-        SsFCALL.ccentry[DE_DELAY] = (void (*)())_SsSetNrpnVabAttr19;
+        SsFCALL.ccentry[DE_PRIORITY] = _SsSetNrpnVabAttr0;
+        SsFCALL.ccentry[DE_MODE] = _SsSetNrpnVabAttr1;
+        SsFCALL.ccentry[DE_LIMITL] = _SsSetNrpnVabAttr2;
+        SsFCALL.ccentry[DE_LIMITH] =  _SsSetNrpnVabAttr3;
+        SsFCALL.ccentry[DE_ADSR_AR_L] = _SsSetNrpnVabAttr4;
+        SsFCALL.ccentry[DE_ADSR_AR_E] = _SsSetNrpnVabAttr5;
+        SsFCALL.ccentry[DE_ADSR_DR] = _SsSetNrpnVabAttr6;
+        SsFCALL.ccentry[DE_ADSR_SL] = _SsSetNrpnVabAttr7;
+        SsFCALL.ccentry[DE_ADSR_SR_L] = _SsSetNrpnVabAttr8;
+        SsFCALL.ccentry[DE_ADSR_SR_E] = _SsSetNrpnVabAttr9;
+        SsFCALL.ccentry[DE_ADSR_RR_L] = _SsSetNrpnVabAttr10;
+        SsFCALL.ccentry[DE_ADSR_RR_E] = _SsSetNrpnVabAttr11;
+        SsFCALL.ccentry[DE_ADSR_SR] = _SsSetNrpnVabAttr12;
+        SsFCALL.ccentry[DE_VIB_TIME] = _SsSetNrpnVabAttr13;
+        SsFCALL.ccentry[DE_PORTA_DEPTH] = _SsSetNrpnVabAttr14;
+        SsFCALL.ccentry[DE_REV_TYPE] = _SsSetNrpnVabAttr15;
+        SsFCALL.ccentry[DE_REV_DEPTH] = _SsSetNrpnVabAttr16;
+        SsFCALL.ccentry[DE_ECHO_FB] = _SsSetNrpnVabAttr17;
+        SsFCALL.ccentry[DE_ECHO_DELAY] = _SsSetNrpnVabAttr18;
+        SsFCALL.ccentry[DE_DELAY] = _SsSetNrpnVabAttr19;
 
         if (seqInit != -1)
         {
@@ -781,6 +961,7 @@ extern "C"
         return result;
     }
 
+    // TODO
     long _SsVmSeKeyOn(u_char vab, u_char program, u_char note, u_char pitch, u_short volL, u_short volR);
 
     long SsVoKeyOn(long vab_pro, long pitch, u_short volL, u_short volR)
