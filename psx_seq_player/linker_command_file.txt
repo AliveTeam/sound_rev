@@ -2,6 +2,8 @@
 	org     $80010000
 
 	include "seqplayer.obj"
+	include "lib_snd.obj"
+	include "lib_spu.obj"
 
 	inclib libsn.lib
 	inclib libds.lib

@@ -1,0 +1,15 @@
+*.LVL
+*.exe
+*.obj
+*.gpr
+*.map
+*.cpe
+*.user
+*.bin
+*.cue
+*.rep
+*.sym
+*.elf
+*.lib
+.vs
+Sound/Debug/

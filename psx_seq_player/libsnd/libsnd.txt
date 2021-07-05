@@ -1,0 +1,247 @@
+
+PsyLib version 2.09
+
+Module     Date     Time   Externals defined
+
+CCADSR   23-07-99 19:46:22 _SsUtResolveADSR _SsUtBuildADSR 
+CC_0     23-07-99 19:46:22 _SsContBankChange 
+CC_6     23-07-99 19:46:22 _SsContDataEntry 
+CC_7     23-07-99 19:46:22 _SsContMainVol 
+CC_10    23-07-99 19:46:22 _SsContPanpot 
+CC_11    23-07-99 19:46:22 _SsContExpression 
+CC_64    23-07-99 19:46:22 _SsContDamper 
+CC_91    23-07-99 19:46:22 _SsContExternal 
+CC_98    23-07-99 19:46:22 _SsContNrpn1 
+CC_99    23-07-99 19:46:22 _SsContNrpn2 
+CC_100   23-07-99 19:46:22 _SsContRpn1 
+CC_101   23-07-99 19:46:22 _SsContRpn2 
+CC_121   23-07-99 19:46:22 _SsContResetAll 
+DE_0     23-07-99 19:46:22 _SsSetNrpnVabAttr0 
+DE_1     23-07-99 19:46:22 _SsSetNrpnVabAttr1 
+DE_2     23-07-99 19:46:22 _SsSetNrpnVabAttr2 
+DE_3     23-07-99 19:46:22 _SsSetNrpnVabAttr3 
+DE_4     23-07-99 19:46:22 _SsSetNrpnVabAttr4 
+DE_5     23-07-99 19:46:22 _SsSetNrpnVabAttr5 
+DE_6     23-07-99 19:46:22 _SsSetNrpnVabAttr6 
+DE_7     23-07-99 19:46:24 _SsSetNrpnVabAttr7 
+DE_8     23-07-99 19:46:24 _SsSetNrpnVabAttr8 
+DE_9     23-07-99 19:46:24 _SsSetNrpnVabAttr9 
+DE_10    23-07-99 19:46:24 _SsSetNrpnVabAttr10 
+DE_11    23-07-99 19:46:24 _SsSetNrpnVabAttr11 
+DE_12    23-07-99 19:46:24 _SsSetNrpnVabAttr12 
+DE_13    23-07-99 19:46:24 _SsSetNrpnVabAttr13 
+DE_14    23-07-99 19:46:24 _SsSetNrpnVabAttr14 
+DE_15    23-07-99 19:46:24 _SsSetNrpnVabAttr15 
+DE_16    23-07-99 19:46:24 _SsSetNrpnVabAttr16 
+DE_17    23-07-99 19:46:24 _SsSetNrpnVabAttr17 
+DE_18    23-07-99 19:46:24 _SsSetNrpnVabAttr18 
+DE_19    23-07-99 19:46:24 _SsSetNrpnVabAttr19 
+CRES     23-07-99 19:46:24 _SsSndCrescendo 
+DECRES   23-07-99 19:46:24 
+MIDIBEND 23-07-99 19:46:24 _SsSetPitchBend 
+MIDICC   23-07-99 19:46:24 _SsSetControlChange 
+MIDIMETA 23-07-99 19:46:24 _SsGetMetaEvent 
+MIDINOTE 23-07-99 19:46:24 _SsNoteOn 
+MIDIPROG 23-07-99 19:46:24 _SsSetProgramChange 
+MIDIREAD 23-07-99 19:46:24 _SsSeqPlay _SsGetSeqData _SsSeqGetEof 
+MIDITIME 23-07-99 19:46:24 _SsReadDeltaValue 
+NEXT     23-07-99 19:46:24 _SsSndNextSep 
+NPAUSE   23-07-99 19:46:24 _SsSndNextPause 
+PAUSE    23-07-99 19:46:24 _SsSndPause 
+PLAY     23-07-99 19:46:24 _SsSndPlay 
+REPLAY   23-07-99 19:46:24 _SsSndReplay 
+SEPINIT  23-07-99 19:46:24 _SsInitSoundSep 
+SEQINIT  23-07-99 19:46:24 _SsInitSoundSeq 
+SSACCELE 23-07-99 19:46:24 _SsSndSetAccele SsSeqSetAccelerando 
+                           SsSepSetAccelerando 
+SSCALL   23-07-99 19:46:24 SsSeqCalledTbyT 
+SSCLOSE  23-07-99 19:46:24 SsSeqClose SsSepClose 
+SSCMUTE  23-07-99 19:46:24 SsChannelMute 
+SSGCMUTE 23-07-99 19:46:24 SsGetChannelMute 
+SSCRES   23-07-99 19:46:24 _SsSndSetCres SsSeqSetCrescendo SsSepSetCrescendo 
+SSDECRES 23-07-99 19:46:24 _SsSndSetDecres SsSeqSetDecrescendo 
+                           SsSepSetDecrescendo 
+SSEND    23-07-99 19:46:24 SsEnd 
+SSGM     23-07-99 19:46:24 SsGetMute 
+SSGMV    23-07-99 19:46:24 SsGetMVol 
+SSGNC    23-07-99 19:46:24 SsGetNck 
+SSGRV    23-07-99 19:46:24 SsGetRVol 
+SSGSATTR 23-07-99 19:46:24 SsGetSerialAttr 
+SSGSV    23-07-99 19:46:24 SsGetSerialVol 
+SSINIT   23-07-99 19:46:24 _snd_vmask _SsInit *_SsMarkCallback *VBLANK_MINUS 
+                           *_snd_openflag *_snd_ev_flag *SsFCALL *_ss_score 
+                           *_snd_seq_s_max *_snd_seq_t_max 
+SSINIT_C 23-07-99 19:46:24 SsInit 
+SSINIT_H 23-07-99 19:46:24 SsInitHot 
+SSLOOP   23-07-99 19:46:24 SsSetLoop 
+SSISEOS  23-07-99 19:46:24 SsIsEos 
+SSMARK   23-07-99 19:46:24 SsSetMarkCallback 
+SSNEXT   23-07-99 19:46:24 SsSetNext 
+SSNEXT_2 23-07-99 19:46:24 SsSeqSetNext 
+SSNOFF   23-07-99 19:46:24 SsSetNoiseOff 
+SSNON    23-07-99 19:46:24 SsSetNoiseOn 
+SSOPENP  23-07-99 19:46:24 SsSepOpen 
+SSOPENQ  23-07-99 19:46:24 SsSeqOpen 
+SSOPENPJ 23-07-99 19:46:24 SsSepOpenJ 
+SSOPENQJ 23-07-99 19:46:24 SsSeqOpenJ 
+SSPAUSE  23-07-99 19:46:24 _SsSndSetPauseMode SsSeqPause SsSepPause 
+SSPLAY   23-07-99 19:46:24 SsSeqPlay 
+SSPLAY_2 23-07-99 19:46:24 SsSepPlay 
+SSPLAYB  23-07-99 19:46:24 SsPlayBack 
+SSQUIT   23-07-99 19:46:24 SsQuit 
+SSREPLAY 23-07-99 19:46:24 _SsSndSetReplayMode SsSeqReplay SsSepReplay 
+PLAYMODE 23-07-99 19:46:24 Snd_SetPlayMode 
+SSRIT    23-07-99 19:46:24 _SsSndSetRit SsSeqSetRitardando SsSepSetRitardando 
+SSP      23-07-99 19:46:24 SsSeqSkip 
+SSSP     23-07-99 19:46:26 SsSetCurrentPoint 
+SSPPTP   23-07-99 19:46:26 SsSeqPlayPtoP 
+SSSATTR  23-07-99 19:46:26 SsSetSerialAttr 
+SSSM     23-07-99 19:46:26 SsSetMute 
+SSSMV    23-07-99 19:46:26 SsSetMVol 
+SSSNC    23-07-99 19:46:26 SsSetNck 
+SSSRV    23-07-99 19:46:26 SsSetRVol 
+SSSTART  23-07-99 19:46:26 _snd_seq_tick_env SsStart SsStart2 
+SSSTOP   23-07-99 19:46:26 _SsSndStop SsSeqStop SsSepStop 
+SSSV     23-07-99 19:46:26 SsSetSerialVol 
+SSTABLE  23-07-99 19:46:26 SsSetTableSize 
+SSTEMPO  23-07-99 19:46:26 SsSetTempo 
+SSTICK   23-07-99 19:46:26 SsSetTickMode 
+SSTICKCB 23-07-99 19:46:26 SsSetTickCallback 
+SSVKOFF  23-07-99 19:46:26 SsVoKeyOff 
+SSVKON   23-07-99 19:46:26 SsVoKeyOn 
+SSVOL    23-07-99 19:46:26 _SsSndSetVol SsSeqSetVol SsSepSetVol 
+SSVOL_2  23-07-99 19:46:26 SsSeqGetVol 
+TEMPO    23-07-99 19:46:26 _SsSndTempo 
+VOL      23-07-99 19:46:26 _SsSndSetVolData 
+DMYNOT1  23-07-99 19:46:26 dmy_nothing1 
+DMYNOTE  23-07-99 19:46:26 dmy_SsNoteOn 
+DMYPROG  23-07-99 19:46:26 dmy_SsSetProgramChange 
+DMYMETA  23-07-99 19:46:26 dmy_SsGetMetaEvent 
+DMYBEND  23-07-99 19:46:26 dmy_SsSetPitchBend 
+DMYCC    23-07-99 19:46:26 dmy_SsSetControlChange 
+DMYCC_0  23-07-99 19:46:26 dmy_SsContBankChange 
+DMYCC_6  23-07-99 19:46:26 dmy_SsContDataEntry 
+DMYCC_7  23-07-99 19:46:26 dmy_SsContMainVol 
+DMYCC_10 23-07-99 19:46:26 dmy_SsContPanpot 
+DMYCC_11 23-07-99 19:46:26 dmy_SsContExpression 
+DMYCC_64 23-07-99 19:46:26 dmy_SsContDamper 
+DMYCC_91 23-07-99 19:46:26 dmy_SsContExternal 
+DMYCC_98 23-07-99 19:46:26 dmy_SsContNrpn1 
+DMYCC_99 23-07-99 19:46:26 dmy_SsContNrpn2 
+DMYCC100 23-07-99 19:46:26 dmy_SsContRpn1 
+DMYCC101 23-07-99 19:46:26 dmy_SsContRpn2 
+DMYCC121 23-07-99 19:46:26 dmy_SsContResetAll 
+DMYDE_0  23-07-99 19:46:26 dmy_SsSetNrpnVabAttr0 
+DMYDE_1  23-07-99 19:46:26 dmy_SsSetNrpnVabAttr1 
+DMYDE_2  23-07-99 19:46:26 dmy_SsSetNrpnVabAttr2 
+DMYDE_3  23-07-99 19:46:26 dmy_SsSetNrpnVabAttr3 
+DMYDE_4  23-07-99 19:46:26 dmy_SsSetNrpnVabAttr4 
+DMYDE_5  23-07-99 19:46:26 dmy_SsSetNrpnVabAttr5 
+DMYDE_6  23-07-99 19:46:26 dmy_SsSetNrpnVabAttr6 
+DMYDE_7  23-07-99 19:46:26 dmy_SsSetNrpnVabAttr7 
+DMYDE_8  23-07-99 19:46:26 dmy_SsSetNrpnVabAttr8 
+DMYDE_9  23-07-99 19:46:26 dmy_SsSetNrpnVabAttr9 
+DMYDE_10 23-07-99 19:46:26 dmy_SsSetNrpnVabAttr10 
+DMYDE_11 23-07-99 19:46:26 dmy_SsSetNrpnVabAttr11 
+DMYDE_12 23-07-99 19:46:26 dmy_SsSetNrpnVabAttr12 
+DMYDE_13 23-07-99 19:46:26 dmy_SsSetNrpnVabAttr13 
+DMYDE_14 23-07-99 19:46:26 dmy_SsSetNrpnVabAttr14 
+DMYDE_15 23-07-99 19:46:26 dmy_SsSetNrpnVabAttr15 
+DMYDE_16 23-07-99 19:46:26 dmy_SsSetNrpnVabAttr16 
+DMYDE_17 23-07-99 19:46:26 dmy_SsSetNrpnVabAttr17 
+DMYDE_18 23-07-99 19:46:26 dmy_SsSetNrpnVabAttr18 
+DMYDE_19 23-07-99 19:46:26 dmy_SsSetNrpnVabAttr19 
+SSGCP    23-07-99 19:46:26 SsGetCurrentPoint 
+SSVM     23-07-99 19:46:26 SsSetVoiceMask 
+SSVM_2   23-07-99 19:46:26 SsGetVoiceMask 
+UT_AKO   23-07-99 19:46:26 SsUtAllKeyOff 
+UT_AUTOP 23-07-99 19:46:26 SsUtAutoPan 
+UT_AUTOV 23-07-99 19:46:26 SsUtAutoVol 
+UT_CADSR 23-07-99 19:46:26 SsUtChangeADSR 
+UT_CP    23-07-99 19:46:28 SsUtChangePitch 
+UT_F     23-07-99 19:46:28 SsUtFlush 
+UT_GPA   23-07-99 19:46:28 SsUtGetProgAtr 
+UT_GVA   23-07-99 19:46:28 SsUtGetVagAtr 
+UT_GVAD  23-07-99 19:46:28 SsUtGetVagAddr 
+UT_GVAFT 23-07-99 19:46:28 SsUtGetVagAddrFromTone 
+UT_GVBA  23-07-99 19:46:28 SsUtGetVBaddrInSB 
+UT_GVH   23-07-99 19:46:28 SsUtGetVabHdr 
+UT_KEY   23-07-99 19:46:28 SsUtKeyOn SsUtKeyOff 
+UT_KEYV  23-07-99 19:46:28 SsUtKeyOnV SsUtKeyOffV 
+UT_PB    23-07-99 19:46:28 SsUtPitchBend 
+UT_RDEL  23-07-99 19:46:28 SsUtSetReverbDelay 
+UT_RDEP  23-07-99 19:46:28 SsUtSetReverbDepth 
+UT_REV   23-07-99 19:46:28 SsUtSetReverbType 
+UT_REV_2 23-07-99 19:46:28 SsUtGetReverbType 
+UT_RFB   23-07-99 19:46:28 SsUtSetReverbFeedback 
+UT_ROFF  23-07-99 19:46:28 SsUtReverbOff 
+UT_RON   23-07-99 19:46:28 SsUtReverbOn 
+UT_SPA   23-07-99 19:46:28 SsUtSetProgAtr 
+UT_SVA   23-07-99 19:46:28 SsUtSetVagAtr 
+UT_SVH   23-07-99 19:46:28 SsUtSetVabHdr 
+UT_VVOL  23-07-99 19:46:28 SsUtGetDetVVol 
+UT_VVOL2 23-07-99 19:46:28 SsUtSetDetVVol 
+UT_VVOL3 23-07-99 19:46:28 SsUtGetVVol 
+UT_VVOL4 23-07-99 19:46:28 SsUtSetVVol 
+VM_ALOC1 23-07-99 19:46:28 _SsVmAlloc 
+VM_ALOC2 23-07-99 19:46:28 _SsVmDoAllocate 
+VM_AUTOP 23-07-99 19:46:28 SeAutoPan SetAutoPan 
+VM_AUTOV 23-07-99 19:46:28 SeAutoVol SetAutoVol 
+VM_DOFF  23-07-99 19:46:28 _SsVmDamperOff 
+VM_DON   23-07-99 19:46:28 _SsVmDamperOn 
+VM_F     23-07-99 19:46:28 _SsVmFlush *_svm_envx_ptr *_svm_envx_hist 
+                           *_svm_voice *_svm_okof1 *_svm_okon1 *_svm_okof2 
+                           *_svm_okon2 *_autovol *_autopan *_svm_sreg_dirty 
+                           *_svm_sreg_buf *_svm_orev2 *_svm_orev1 *_svm_onos2 
+                           *_svm_onos1 
+VM_G     23-07-99 19:46:28 *_svm_stereo_mono *_svm_vab_not_send_size 
+                           *_svm_rattr *_svm_vab_used *_SsVmMaxVoice 
+                           *_svm_vab_count *kMaxPrograms *_svm_cur 
+                           *_svm_damper *_svm_auto_kof_mode *_svm_vab_vh 
+                           *_svm_vab_pg *_svm_vab_tn *_svm_vab_start 
+                           *_svm_vab_total *_svm_vh *_svm_pg *_svm_tn 
+                           *_svm_vg 
+VM_INIT  23-07-99 19:46:28 _SsVmInit 
+VM_KEY   23-07-99 19:46:28 _SsVmKeyOn _SsVmKeyOff _SsVmSeKeyOn _SsVmSeKeyOff 
+VM_KEY_2 23-07-99 19:46:28 KeyOnCheck 
+VM_N2P   23-07-99 19:46:28 note2pitch SsPitchFromNote note2pitch2 
+VM_NO1   23-07-99 19:46:28 vmNoiseOn 
+VM_NO2   23-07-99 19:46:28 vmNoiseOn2 
+VM_NOFF  23-07-99 19:46:28 vmNoiseOff 
+VM_NOISE 23-07-99 19:46:28 _SsVmNoiseOnWithAdsr _SsVmNoiseOn 
+VM_NOIS2 23-07-99 19:46:28 _SsVmNoiseOff 
+VM_NOWOF 23-07-99 19:46:28 _SsVmKeyOffNow 
+VM_NOWON 23-07-99 19:46:28 _SsVmKeyOnNow 
+VM_PB    23-07-99 19:46:28 _SsVmPBVoice _SsVmPitchBend 
+VM_PORTA 23-07-99 19:46:28 
+VM_PROG  23-07-99 19:46:28 _SsVmGetProgVol _SsVmSetProgPan _SsVmGetProgPan 
+VM_PROG2 23-07-99 19:46:28 _SsVmSetProgVol 
+VM_SEQ   23-07-99 19:46:28 _SsVmSetSeqVol _SsVmGetSeqVol _SsVmSeqKeyOff 
+VM_SEQ_2 23-07-99 19:46:28 _SsVmGetSeqLVol _SsVmGetSeqRVol 
+VM_SPB   23-07-99 19:46:28 SePitchBend 
+VM_STAV  23-07-99 19:46:28 _SsVmSelectToneAndVag 
+VM_VIB   23-07-99 19:46:28 SeVibOn SetVib SsUtVibrateOn SsUtVibrateOff 
+VM_VOL   23-07-99 19:46:28 _SsVmSetVol 
+VM_VSU   23-07-99 19:46:28 _SsVmVSetUp 
+VS_AUTO  23-07-99 19:46:28 SsSetAutoKeyOffMode 
+VS_MONO  23-07-99 19:46:28 SsSetMono SsSetStereo 
+VS_SRV   23-07-99 19:46:28 SsSetReservedVoice 
+VS_VAB   23-07-99 19:46:28 SsVabClose 
+VS_VFB   23-07-99 19:46:28 SsVabFakeBody 
+VS_VH    23-07-99 19:46:30 SsVabOpenHeadSticky _SsVabOpenHeadWithMode 
+                           SsVabFakeHead 
+VS_VH2   23-07-99 19:46:30 SsVabOpenHead 
+VS_VT    23-07-99 19:46:30 SsVabTransfer 
+VS_VTB   23-07-99 19:46:30 SsVabTransBody 
+VS_VTBP  23-07-99 19:46:30 SsVabTransBodyPartly 
+VS_VTC   23-07-99 19:46:30 SsVabTransCompleted 
+VM_ALOC3 23-07-99 19:46:30 SsBlockVoiceAllocation 
+VM_ALOC4 23-07-99 19:46:30 SsUnBlockVoiceAllocation 
+VM_ALOC5 23-07-99 19:46:30 SsAllocateVoices 
+Q_KEYON  23-07-99 19:46:30 SsQueueKeyOn 
+Q_KEYON2 23-07-99 19:46:30 SsQueueReverb 
+Q_KEYON3 23-07-99 19:46:30 SsQueueRegisters 
+Q_KEYON4 23-07-99 19:46:30 SsGetActualProgFromProg 
+Q_KEYON5 23-07-99 19:46:30 SsSetVoiceSettings 
+Q_KEYON6 23-07-99 19:46:30 SsVoiceCheck 
+

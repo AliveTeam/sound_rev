@@ -1,0 +1,155 @@
+
+PsyLib version 2.09
+
+Module     Date     Time   Externals defined
+
+SPU      23-07-99 19:46:30 _spu_RXX _spu_tsa _spu_transMode _spu_addrMode 
+                           _spu_mem_mode _spu_mem_mode_plus 
+                           _spu_mem_mode_unit _spu_mem_mode_unitM 
+                           _spu_inTransfer _spu_transferCallback 
+                           _spu_IRQCallback _spu_init _spu_Fw1ts *_spu_RQ 
+                           _spu_FiDMA _spu_Fr_ _spu_t _spu_Fw _spu_Fr 
+                           _spu_FsetRXX _spu_FsetRXXa _spu_FgetRXXa 
+                           _spu_FsetPCR 
+S_CB     23-07-99 19:46:30 _SpuCallback 
+S_DCB    23-07-99 19:46:30 _SpuDataCallback 
+SPU_GEX  23-07-99 19:46:30 
+S_INI    23-07-99 19:46:30 _spu_EVdma _spu_keystat _spu_trans_mode 
+                           _spu_rev_flag _spu_rev_reserve_wa 
+                           _spu_rev_offsetaddr _spu_rev_attr _spu_RQvoice 
+                           _spu_RQmask _spu_voice_centerNote _spu_env 
+                           _SpuInit SpuStart _spu_isCalled 
+S_I      23-07-99 19:46:30 SpuInit 
+S_IH     23-07-99 19:46:30 SpuInitHot 
+S_Q      23-07-99 19:46:30 SpuQuit 
+S_SM     23-07-99 19:46:30 SpuSetMute 
+S_GM     23-07-99 19:46:30 SpuGetMute 
+S_M      23-07-99 19:46:32 _spu_AllocBlockNum _spu_AllocLastNum _spu_memList 
+S_M_INT  23-07-99 19:46:32 _spu_gcSPU 
+S_M_INIT 23-07-99 19:46:32 SpuInitMalloc 
+S_M_UTIL 23-07-99 19:46:32 _SpuIsInAllocateArea _SpuIsInAllocateArea_ 
+S_M_M    23-07-99 19:46:32 SpuMalloc 
+S_M_WSA  23-07-99 19:46:32 SpuMallocWithStartAddr 
+S_M_F    23-07-99 19:46:32 SpuFree 
+S_M_X    23-07-99 19:46:32 _spu_print 
+S_SE     23-07-99 19:46:32 SpuSetEnv 
+S_F      23-07-99 19:46:32 SpuFlush 
+ZEROBUF  23-07-99 19:46:32 _spu_zerobuf 
+S_SAV    23-07-99 19:46:32 _SpuSetAnyVoice 
+S_GAV    23-07-99 19:46:32 _SpuGetAnyVoice 
+S_SNV    23-07-99 19:46:32 SpuSetNoiseVoice 
+S_GNV    23-07-99 19:46:32 SpuGetNoiseVoice 
+S_SNC    23-07-99 19:46:32 SpuSetNoiseClock 
+S_GNC    23-07-99 19:46:32 SpuGetNoiseClock 
+S_SR     23-07-99 19:46:32 SpuSetReverb 
+S_GR     23-07-99 19:46:32 SpuGetReverb 
+S_SRMP   23-07-99 19:46:32 SpuSetReverbModeParam 
+S_GRMP   23-07-99 19:46:32 SpuGetReverbModeParam 
+S_SRA    23-07-99 19:46:32 _spu_setReverbAttr 
+S_RRWA   23-07-99 19:46:32 SpuReserveReverbWorkArea 
+S_IRWAR  23-07-99 19:46:32 SpuIsReverbWorkAreaReserved 
+S_SRD    23-07-99 19:46:32 SpuSetReverbDepth 
+S_SRV    23-07-99 19:46:32 SpuSetReverbVoice 
+S_GRV    23-07-99 19:46:32 SpuGetReverbVoice 
+S_CRWA   23-07-99 19:46:32 SpuClearReverbWorkArea 
+S_RDD    23-07-99 19:46:32 SpuReadDecodedData 
+S_SI     23-07-99 19:46:32 SpuSetIRQ 
+S_GI     23-07-99 19:46:32 SpuGetIRQ 
+S_SIA    23-07-99 19:46:32 SpuSetIRQAddr 
+S_GIA    23-07-99 19:46:32 SpuGetIRQAddr 
+S_SIC    23-07-99 19:46:32 SpuSetIRQCallback 
+S_SK     23-07-99 19:46:32 SpuSetKey 
+S_GKS    23-07-99 19:46:32 SpuGetKeyStatus 
+S_SKOWA  23-07-99 19:46:32 SpuSetKeyOnWithAttr 
+S_GVEA   23-07-99 19:46:34 SpuGetVoiceEnvelopeAttr 
+S_R      23-07-99 19:46:34 SpuRead 
+S_W      23-07-99 19:46:34 SpuWrite 
+S_W0     23-07-99 19:46:34 SpuWrite0 
+S_STSA   23-07-99 19:46:34 SpuSetTransferStartAddr 
+S_GTSA   23-07-99 19:46:34 SpuGetTransferStartAddr 
+S_STM    23-07-99 19:46:34 SpuSetTransferMode 
+S_GTM    23-07-99 19:46:34 SpuGetTransferMode 
+S_WP     23-07-99 19:46:34 SpuWritePartly 
+S_ITC    23-07-99 19:46:34 SpuIsTransferCompleted 
+S_STC    23-07-99 19:46:34 SpuSetTransferCallback 
+S_IT     23-07-99 19:46:34 _spu_setInTransfer _spu_getInTransfer 
+S_SPLV   23-07-99 19:46:34 SpuSetPitchLFOVoice 
+S_GPLV   23-07-99 19:46:34 SpuGetPitchLFOVoice 
+S_GCA    23-07-99 19:46:34 SpuGetCommonAttr 
+S_N2P    23-07-99 19:46:34 _spu_note2pitch _spu_pitch2note 
+SR_GAKS  23-07-99 19:46:34 SpuRGetAllKeysStatus SpuGetAllKeysStatus 
+ST       23-07-99 19:46:34 SpuStTransfer SpuStInit SpuStQuit SpuStGetStatus 
+                           SpuStGetVoiceStatus 
+                           SpuStSetPreparationFinishedCallback 
+                           SpuStSetTransferFinishedCallback 
+                           SpuStSetStreamFinishedCallback 
+T_C      23-07-99 19:46:34 TimerCallback 
+VERSION  23-07-99 19:46:34 
+S_SESA   23-07-99 19:46:34 SpuSetESA 
+S_SVV    23-07-99 19:46:34 SpuSetVoiceVolume 
+S_SVVA   23-07-99 19:46:34 SpuSetVoiceVolumeAttr 
+S_SVP    23-07-99 19:46:34 SpuSetVoicePitch 
+S_SVN    23-07-99 19:46:34 SpuSetVoiceNote 
+S_SVSN   23-07-99 19:46:34 SpuSetVoiceSampleNote 
+S_SVSA   23-07-99 19:46:34 SpuSetVoiceStartAddr 
+S_SVLSA  23-07-99 19:46:34 SpuSetVoiceLoopStartAddr 
+S_SVAR   23-07-99 19:46:34 SpuSetVoiceAR 
+S_SVDR   23-07-99 19:46:34 SpuSetVoiceDR 
+S_SVSR   23-07-99 19:46:34 SpuSetVoiceSR 
+S_SVRR   23-07-99 19:46:34 SpuSetVoiceRR 
+S_SVSL   23-07-99 19:46:34 SpuSetVoiceSL 
+S_SVARA  23-07-99 19:46:34 SpuSetVoiceARAttr 
+S_SVSRA  23-07-99 19:46:34 SpuSetVoiceSRAttr 
+S_SVRRA  23-07-99 19:46:34 SpuSetVoiceRRAttr 
+S_SVAD   23-07-99 19:46:34 SpuSetVoiceADSR 
+S_SVADA  23-07-99 19:46:34 SpuSetVoiceADSRAttr 
+S_SVA    23-07-99 19:46:34 SpuSetVoiceAttr 
+SR_SVA   23-07-99 19:46:34 SpuRSetVoiceAttr 
+SN_SVA   23-07-99 19:46:34 SpuNSetVoiceAttr 
+SL_SVA   23-07-99 19:46:34 SpuLSetVoiceAttr 
+S_GVV    23-07-99 19:46:34 SpuGetVoiceVolume 
+S_GVVA   23-07-99 19:46:34 SpuGetVoiceVolumeAttr 
+S_GVVX   23-07-99 19:46:34 SpuGetVoiceVolumeX 
+S_GVP    23-07-99 19:46:34 SpuGetVoicePitch 
+S_GVN    23-07-99 19:46:34 SpuGetVoiceNote 
+S_GVSN   23-07-99 19:46:34 SpuGetVoiceSampleNote 
+S_GVEX   23-07-99 19:46:34 SpuGetVoiceEnvelope 
+S_GVSA   23-07-99 19:46:34 SpuGetVoiceStartAddr 
+S_GVLSA  23-07-99 19:46:34 SpuGetVoiceLoopStartAddr 
+S_GVAR   23-07-99 19:46:34 SpuGetVoiceAR 
+S_GVDR   23-07-99 19:46:34 SpuGetVoiceDR 
+S_GVSR   23-07-99 19:46:34 SpuGetVoiceSR 
+S_GVRR   23-07-99 19:46:34 SpuGetVoiceRR 
+S_GVSL   23-07-99 19:46:34 SpuGetVoiceSL 
+S_GVARA  23-07-99 19:46:34 SpuGetVoiceARAttr 
+S_GVSRA  23-07-99 19:46:34 SpuGetVoiceSRAttr 
+S_GVRRA  23-07-99 19:46:34 SpuGetVoiceRRAttr 
+S_GVAD   23-07-99 19:46:34 SpuGetVoiceADSR 
+S_GVADA  23-07-99 19:46:34 SpuGetVoiceADSRAttr 
+S_SCMV   23-07-99 19:46:34 SpuSetCommonMasterVolume 
+S_SCMVA  23-07-99 19:46:34 SpuSetCommonMasterVolumeAttr 
+S_SCCV   23-07-99 19:46:34 SpuSetCommonCDVolume 
+S_SCCR   23-07-99 19:46:34 SpuSetCommonCDReverb 
+S_SCCM   23-07-99 19:46:34 SpuSetCommonCDMix 
+S_GCMV   23-07-99 19:46:36 SpuGetCommonMasterVolume 
+S_GCMVX  23-07-99 19:46:36 SpuGetCommonMasterVolumeX 
+S_GCMVA  23-07-99 19:46:36 SpuGetCommonMasterVolumeAttr 
+S_GCCV   23-07-99 19:46:36 SpuGetCommonCDVolume 
+S_GCCR   23-07-99 19:46:36 SpuGetCommonCDReverb 
+S_GCCM   23-07-99 19:46:36 SpuGetCommonCDMix 
+S_SCA    23-07-99 19:46:36 SpuSetCommonAttr 
+S_SCERR  23-07-99 19:46:36 *SpuCommonError 
+S_SRMT   23-07-99 19:46:36 SpuSetReverbModeType 
+S_SRMD   23-07-99 19:46:36 SpuSetReverbModeDepth 
+S_SRMDT  23-07-99 19:46:36 SpuSetReverbModeDelayTime 
+S_SRMFB  23-07-99 19:46:36 SpuSetReverbModeFeedback 
+S_GRMT   23-07-99 19:46:36 SpuGetReverbModeType 
+S_GRMD   23-07-99 19:46:36 SpuGetReverbModeDepth 
+S_GRMDT  23-07-99 19:46:36 SpuGetReverbModeDelayTime 
+S_GRMFB  23-07-99 19:46:36 SpuGetReverbModeFeedback 
+S_GVA    23-07-99 19:46:36 SpuGetVoiceAttr 
+SN_GVA   23-07-99 19:46:36 SpuNGetVoiceAttr 
+S_RMP0   23-07-99 19:46:36 _spu_rev_startaddr 
+S_RMP1   23-07-99 19:46:36 _spu_rev_workareasize 
+S_RMP2   23-07-99 19:46:36 _spu_rev_param 
+

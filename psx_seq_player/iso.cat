@@ -22,4 +22,50 @@ dir {
   file MAIN.EXE
   file PM.LVL
   file SYSTEM.CNF
+  file E1.LVL
+  file F1.LVL
+  file F2.LVL
+  file F4.LVL
+  file L1.LVL
+  file R1.LVL
+  file S1.LVL
+  dir P2 {
+    file C1.LVL
+    file D1.LVL
+    file D2.LVL
+    file D7.LVL
+    file E2.LVL
+    file R2.LVL
+    file R6.LVL
+  }
+  dir BA {
+     file BA.LVL
+   }
+   dir BR {
+     file BR.LVL
+   }
+   dir BW {
+     file BW.LVL
+   }
+   dir CR {
+     file CR.LVL
+   }
+   dir FD {
+     file FD.LVL
+   }
+   dir MI {
+     file MI.LVL
+   }
+   dir NE {
+     file NE.LVL
+   }
+   dir PV {
+     file PV.LVL
+   }
+   dir ST {
+     file ST.LVL
+   }
+   dir SV {
+     file SV.LVL
+   }
 }
