@@ -7,8 +7,9 @@
 
 extern "C"
 {
-    
+
     extern short note2pitch2;
+    extern short _svm_damper;
 
     // TODO
     void SsUtReverbOn(void);
@@ -37,8 +38,7 @@ extern "C"
     void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch);
     extern void _SsSetPitchBend(short, short);
     extern void _SsContDataEntry(short, short, unsigned char);
-    void _SsVmDamperOn(void);
-    void _SsVmDamperOff(void);
+
     void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr);
     void _SsVmSeqKeyOff(short seq_idx);
     void _SsVmKeyOffNow(void);
@@ -46,11 +46,27 @@ extern "C"
     void _SsVmFlush(void);
     void _SsSndCrescendo(short seqNum, short sepNum);
     void _SsSndTempo(short seqNum, short sepNum);
-    void _SsSndReplay(short seqNum, short sepNum);
-    void _SsVmDamperOff(void);
-    void _SsSeqGetEof(short seq_access_num, short sep_num);
-    void _SsGetSeqData(short seq_idx, short sep_idx);
-    void _SsSeqPlay(short seq_access_num, short seq_num);
+
+    void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
+    void _SsGetSeqData(short seq_idx, short sep_idx); // wip
+    void _SsSeqPlay(short seq_access_num, short seq_num); // wip
+
+    void _SsVmDamperOn(void)
+    {
+        _svm_damper = 2;
+    }
+
+    void _SsVmDamperOff(void)
+    {
+        _svm_damper = 0;
+    }
+
+    void _SsSndReplay(short seqNum, short sepNum)
+    {
+        SeqStruct* pStruc = &_ss_score[seqNum][sepNum]; // note: 14bit access
+        pStruc->field_14_play_mode = 1;
+        pStruc->field_98_flags &= ~8u;
+    }
 
     void _SsSetNrpnVabAttr0(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char priority)
     {
