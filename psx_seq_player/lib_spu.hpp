@@ -32,6 +32,7 @@ extern "C"
     extern void SpuSetCommonAttr (SpuCommonAttr *attr);
     extern long SpuIsTransferCompleted (long flag);
 
+    void SpuInit(void);
 
 }
 

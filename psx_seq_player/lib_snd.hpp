@@ -189,6 +189,12 @@ extern "C"
 
     void SsSeqCalledTbyT(void);
 
+    void SsUtReverbOn(void);
+    void SsUtReverbOff(void);
+
+    short SsUtSetReverbType(short);
+    void SsUtSetReverbFeedback(short);
+
 }
 
 #endif // _LIB_SND_HPP_

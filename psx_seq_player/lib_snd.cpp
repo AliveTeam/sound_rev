@@ -7,65 +7,271 @@
 
 extern "C"
 {
+    
+    extern short note2pitch2;
+
     // TODO
+    void SsUtReverbOn(void);
+    void SsUtReverbOff(void);
+    
+    short SsUtSetReverbType(short);
+    void SsUtSetReverbFeedback(short);
+
     extern short SsVabOpenHead(unsigned char*, short);
     extern short SsVabTransBody(unsigned char*, short);
     extern short SsVabTransCompleted(short);
-    extern void  SsVabClose(short);
-
-    extern void  SsUtSetReverbDelay(short);
-
+    extern void SsVabClose(short);
+    extern void SsUtSetReverbDelay(short);
     extern void _SsContExternal(short, short, unsigned char); 
     extern void _SsContResetAll(short, short);
-
     extern short SsUtSetVagAtr(short, short, short, VagAtr*);
     extern short SsUtGetVagAtr(short, short, short, VagAtr*);
-
-    extern void  SsUtSetReverbDepth(short, short);
-    extern void  SsUtReverbOff(void);
-
+    extern void SsUtSetReverbDepth(short, short);
+    extern void SsUtReverbOff(void);
+    void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
+    void _SsVmSetProgVol(short vabId, short program, unsigned char vol);
+    void _SsVmInit(int);
+    short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData);
+    void _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
+    void _SsVmKeyOff(int seq_sep_no, short vabId, short unknown37, short note);
+    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch);
     extern void _SsSetPitchBend(short, short);
     extern void _SsContDataEntry(short, short, unsigned char);
+    void _SsVmDamperOn(void);
+    void _SsVmDamperOff(void);
+    void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr);
+    void _SsVmSeqKeyOff(short seq_idx);
+    void _SsVmKeyOffNow(void);
+    long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR);
+    void _SsVmFlush(void);
+    void _SsSndCrescendo(short seqNum, short sepNum);
+    void _SsSndTempo(short seqNum, short sepNum);
+    void _SsSndReplay(short seqNum, short sepNum);
+    void _SsVmDamperOff(void);
+    void _SsSeqGetEof(short seq_access_num, short sep_num);
+    void _SsGetSeqData(short seq_idx, short sep_idx);
+    void _SsSeqPlay(short seq_access_num, short seq_num);
 
-    extern void _SsSetNrpnVabAttr0(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr1(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr2(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr3(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr4(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr5(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr6(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr7(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr8(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr9(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr10(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr11(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr12(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr13(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr14(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr15(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr16(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr17(short, short, short, VagAtr, short, unsigned char);
-    extern void _SsSetNrpnVabAttr18(short, short, short, VagAtr, short, unsigned char);
-   
-    // DE_DELAY
-    void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr Vag, short fn_idx, unsigned char attr)
+    void _SsSetNrpnVabAttr0(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char priority)
     {
-        //DEBUGPRINT(("DE_DELAY\n"));
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        vagAtr.prior = priority;
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr1(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char mode)
+    {
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        vagAtr.mode = mode;
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        if (mode)
+        {
+            if (mode == 4)
+            {
+                SsUtReverbOn();
+            }
+        }
+        else
+        {
+            SsUtReverbOff();
+        }
+    }
+
+    void _SsSetNrpnVabAttr2(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char minKey)
+    {
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        vagAtr.min = minKey;
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr3(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char keyMax)
+    {
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        vagAtr.max = keyMax;
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+
+    void _SsUtResolveADSR(unsigned short adsr1, unsigned short adsr2, unsigned short *pResolvedADSR)
+    {
+        pResolvedADSR[5] = adsr1 & 0x8000;
+        pResolvedADSR[6] = adsr2 & 0x8000;
+        pResolvedADSR[8] = adsr2 & 0x4000;
+        pResolvedADSR[7] = adsr2 & 0x20;
+        //pResolvedADSR[0] = HIBYTE(adsr1) & 0x7F;
+        pResolvedADSR[0] = (adsr1 >> 8) & 0x7F;
+
+        pResolvedADSR[1] = (unsigned char)adsr1 >> 4;
+        pResolvedADSR[2] = adsr1 & 0xF;
+        pResolvedADSR[3] = (adsr2 >> 6) & 0x7F;
+        pResolvedADSR[4] = adsr2 & 0x1F;
+    }
+
+    void _SsUtBuildADSR(unsigned short *pResolvedADSR, unsigned short *pAdsr1, unsigned short *pAdsr2)
+    {
+        unsigned int v4 = (pResolvedADSR[5] != 0 ? 0xFFFF8000 : 0);
+        unsigned int v5 = (pResolvedADSR[6] != 0 ? 0xFFFF8000 : 0);
+
+        if (pResolvedADSR[8])
+        {
+            v5 |= 0x4000;
+        }
+
+        if (pResolvedADSR[7])
+        {
+            v5 |= 0x20u;
+        }
+
+        *pAdsr1 = v4 | (pResolvedADSR[0] << 8) & 0x7F00 | (16 * pResolvedADSR[1]) & 0xF0 | pResolvedADSR[2] & 0xF;
+        *pAdsr2 = v5 | (pResolvedADSR[3] << 6) & 0x1FC0 | pResolvedADSR[4] & 0x1F;
+    }
+
+    void _SsSetNrpnVabAttr4(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char asdr)
+    {
+        unsigned short resolvedADSR[12];
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        _SsUtResolveADSR(vagAtr.adsr1, vagAtr.adsr2, resolvedADSR);
+        resolvedADSR[5] = 0;
+        resolvedADSR[0] = asdr;
+        _SsUtBuildADSR(resolvedADSR, &vagAtr.adsr1, &vagAtr.adsr2);
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr5(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char adsr)
+    {
+        unsigned short resolvedADSR[12];
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        _SsUtResolveADSR(vagAtr.adsr1, vagAtr.adsr2, resolvedADSR);
+        resolvedADSR[5] = 1;
+        resolvedADSR[0] = adsr;
+        _SsUtBuildADSR(resolvedADSR, &vagAtr.adsr1, &vagAtr.adsr2);
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr6(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char adsr)
+    {
+        unsigned short resolvedADSR[12];
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        _SsUtResolveADSR(vagAtr.adsr1, vagAtr.adsr2, resolvedADSR);
+        resolvedADSR[1] = adsr;
+        _SsUtBuildADSR(resolvedADSR, &vagAtr.adsr1, &vagAtr.adsr2);
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr7(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char adsr)
+    {
+        unsigned short resolvedADSR[12];
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        _SsUtResolveADSR(vagAtr.adsr1, vagAtr.adsr2, resolvedADSR);
+        resolvedADSR[2] = adsr;
+        _SsUtBuildADSR(resolvedADSR, &vagAtr.adsr1, &vagAtr.adsr2);
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr8(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char adsr)
+    {
+        unsigned short resolvedADSR[12];
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        _SsUtResolveADSR(vagAtr.adsr1, vagAtr.adsr2, resolvedADSR);
+        resolvedADSR[6] = 0;
+        resolvedADSR[3] = adsr;
+        _SsUtBuildADSR(resolvedADSR, &vagAtr.adsr1, &vagAtr.adsr2);
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr9(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char adsr)
+    {
+        unsigned short resolvedADSR[12];
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        _SsUtResolveADSR(vagAtr.adsr1, vagAtr.adsr2, resolvedADSR);
+        resolvedADSR[6] = 1;
+        resolvedADSR[3] = adsr;
+        _SsUtBuildADSR(resolvedADSR, &vagAtr.adsr1, &vagAtr.adsr2);
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr10(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char asdr)
+    {
+        unsigned short resolvedADSR[12];
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        _SsUtResolveADSR(vagAtr.adsr1, vagAtr.adsr2, resolvedADSR);
+        resolvedADSR[7] = 0;
+        resolvedADSR[4] = asdr;
+        _SsUtBuildADSR(resolvedADSR, &vagAtr.adsr1, &vagAtr.adsr2);
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr11(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char adsr)
+    {
+        unsigned short resolvedADSR[12];
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        resolvedADSR[7] = 1;
+        resolvedADSR[4] = adsr;
+        _SsUtBuildADSR(resolvedADSR, &vagAtr.adsr1, &vagAtr.adsr2);
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr12(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char attr)
+    {
+        unsigned short asdrBuffer[12];
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        if ((attr - 1) >= 63)
+        {
+            if ((attr - 64) < 64)
+            {
+                asdrBuffer[8] = 1;
+            }
+        }
+        else
+        {
+            asdrBuffer[8] = 0;
+        }
+        _SsUtBuildADSR(asdrBuffer, &vagAtr.adsr1, &vagAtr.adsr2);
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr13(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char vibT)
+    {
+        unsigned short asdrBuffer[12];
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        vagAtr.vibT = vibT;
+        _SsUtBuildADSR(asdrBuffer, &vagAtr.adsr1, &vagAtr.adsr2); // bugged ??
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr14(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char porW)
+    {
+        unsigned short asdrBuffer[12];
+        SsUtGetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+        vagAtr.porW = porW;
+        _SsUtBuildADSR(asdrBuffer, &vagAtr.adsr1, &vagAtr.adsr2); // bugged ??
+        SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
+    }
+
+    void _SsSetNrpnVabAttr15(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char attr)
+    {
+        SsUtSetReverbType(attr);
+    }
+
+    void _SsSetNrpnVabAttr16(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char attr)
+    {
+        SsUtSetReverbDepth(attr, attr);
+    }
+
+    void _SsSetNrpnVabAttr17(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char attr)
+    {
+        SsUtSetReverbFeedback(attr);
+    }
+
+    void _SsSetNrpnVabAttr18(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char attr)
+    {
         SsUtSetReverbDelay(attr);
     }
 
-    // LIBSPU
-
-    // TODO
-    void _SpuInit(int);
-
-    void SpuInit(void)
+    void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char attr)
     {
-        _SpuInit(0);
+        SsUtSetReverbDelay(attr);
     }
-
-    // TODO
-    void _SsVmInit(int);
 
     void _SsInit(void); // TODO: Impl can't link due to redef of global vars
 
@@ -108,6 +314,7 @@ extern "C"
         _SsInit();
     }
 
+    // TODO
     void SsStart(void)
     {
         // Works as a stub, not sure why - emulator issue?
@@ -119,9 +326,6 @@ extern "C"
         // Seems fine to do nothing, probably because we call
         // SsSeqCalledTbyT manually.
     }
-
-    // TODO: SpuIsTransferCompleted
-
 
     void SsSetTableSize(char *table, short s_max, short t_max)
     {
@@ -167,8 +371,6 @@ extern "C"
         }
     }
 
-    // TODO: SpuSetCommonAttr
-
     void SsSetMVol(short voll, short volr)
     {
         SpuCommonAttr attr;
@@ -177,9 +379,6 @@ extern "C"
         attr.mvol.right = 129 * volr;
         SpuSetCommonAttr(&attr);
     }
-
-    // TODO: SsVabOpenHead
-    // TODO: SsVabTransBody
 
     short SsVabTransfer(unsigned char *vh_addr, unsigned char *vb_addr, short vabid, short i_flag)
     {
@@ -208,9 +407,6 @@ extern "C"
         return SpuIsTransferCompleted(immediateFlag);
     }
 
-    // TODO
-    short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData);
-
     int _SsReadDeltaValue(short seq_access_num, short seq_num)
     {
         SeqStruct *pStruc = &_ss_score[seq_access_num][seq_num]; // note 14bit access
@@ -235,11 +431,6 @@ extern "C"
         }
         return result;
     }
-
-
-    // TODO:
-    void _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
-    void _SsVmKeyOff(int seq_sep_no, short vabId, short unknown37, short note);
 
     void _SsNoteOn(short seq_no, short sep_no, unsigned char note, unsigned char voll)
     {
@@ -314,9 +505,6 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
-    // TODO
-    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch);
-
     void SsSetPitchBend(short seq_no, short sep_no)
     {
         SeqStruct* pStru = &_ss_score[seq_no][sep_no];
@@ -339,8 +527,6 @@ extern "C"
         pStru->field_0_seq_ptr++;
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
-
-    void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
 
     void _SsContMainVol(short seq_no, short sep_no, unsigned char vol)
     {
@@ -368,9 +554,6 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
-    // TODO
-    void _SsVmSetProgVol(short vabId, short program, unsigned char vol);
-
     void _SsContExpression(short seq_no, short sep_no, unsigned char progVol)
     {
         SeqStruct* pStru = &_ss_score[seq_no][sep_no];
@@ -390,10 +573,6 @@ extern "C"
         SsUtSetReverbDepth(reverbDepth, reverbDepth);
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
-
-    // TODO
-    void _SsVmDamperOn(void);
-    void _SsVmDamperOff(void);
 
     void _SsContDamper(short seq_no, short sep_no, unsigned char damper)
     {
@@ -517,15 +696,7 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
-    void _SsSetNrpnVabAttr0(short vabId, short program, short vag_idx, VagAtr vagAtr, short fn_idx, unsigned char priority)
-    {
-        SsUtGetVagAtr(vabId, program, vag_idx, &vagAtr);
-        vagAtr.prior = priority;
-        SsUtSetVagAtr(vabId, program, vag_idx, &vagAtr);
-    }
 
-
-    
     // TODO: Can't link till _SsVmSeqKeyOff and _SsVmSetSeqVol impl
     /*
     void _SsVmGetSeqVol(short seq_sep_no, short *pVolL, short *pVolR)
@@ -677,9 +848,6 @@ extern "C"
         return -1;
     }
 
-    // TODO
-    void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr);
-
     void SsSeqSetVol(short seq_access_num, short voll, short volr)
     {
         SeqStruct *pStru = _ss_score[seq_access_num];
@@ -725,9 +893,6 @@ extern "C"
         Snd_SetPlayMode(seq_access_num, 0, play_mode, l_count);
     }
 
-    // TODO
-    void _SsVmSeqKeyOff(short seq_idx);
-
     static void Impl_SsSeqClose(short seq_idx)
     {
         // Volume + voices off
@@ -767,10 +932,6 @@ extern "C"
         Impl_SsSeqClose(seq_access_num);
     }
 
-    extern short note2pitch2;
-
-    void _SsVmKeyOffNow(void);
-
     short SsUtKeyOffV(short voice)
     {
         if (_snd_ev_flag == 1)
@@ -792,9 +953,6 @@ extern "C"
         return result;
     }
 
-    // TODO
-    long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR);
-
     long SsVoKeyOn(long vab_pro, long pitch, unsigned short volL, unsigned short volR)
     {
         return _SsVmSeKeyOn(
@@ -805,17 +963,6 @@ extern "C"
             volL,
             volR);
     }
-
-    // TODO
-    void _SsVmFlush(void);
-
-    void _SsSndCrescendo(short seqNum, short sepNum);
-    void _SsSndTempo(short seqNum, short sepNum);
-    void _SsSndReplay(short seqNum, short sepNum);
-    void _SsVmDamperOff(void);
-    void _SsSeqGetEof(short seq_access_num, short sep_num);
-    void _SsGetSeqData(short seq_idx, short sep_idx);
-    void _SsSeqPlay(short seq_access_num, short seq_num);
 
     void _SsSndNextSep(int seq_no, short sep_no)
     {
