@@ -23,27 +23,25 @@ extern "C"
     extern short SsVabTransCompleted(short);
     extern void SsVabClose(short);
     extern void SsUtSetReverbDelay(short);
-    extern void _SsContExternal(short, short, unsigned char); 
-    extern void _SsContResetAll(short, short);
     extern short SsUtSetVagAtr(short, short, short, VagAtr*);
     extern short SsUtGetVagAtr(short, short, short, VagAtr*);
     extern void SsUtSetReverbDepth(short, short);
     extern void SsUtReverbOff(void);
+
     void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
     void _SsVmSetProgVol(short vabId, short program, unsigned char vol);
-    void _SsVmInit(int);
+    void _SsVmInit(int); // many unknown globals, inits voice structures
     short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData);
     void _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
     void _SsVmKeyOff(int seq_sep_no, short vabId, short unknown37, short note);
-    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch);
-    extern void _SsSetPitchBend(short, short);
-    extern void _SsContDataEntry(short, short, unsigned char);
+    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch); // unknown func + globals
+    extern void _SsContDataEntry(short, short, unsigned char); // med
 
-    void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr);
-    void _SsVmSeqKeyOff(short seq_idx);
-    void _SsVmKeyOffNow(void);
-    long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR);
-    void _SsVmFlush(void);
+    void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr); // high
+    void _SsVmSeqKeyOff(short seq_idx); // unknown var/struct (voice struct?)
+    void _SsVmKeyOffNow(void); // many vars
+    long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR); // low
+    void _SsVmFlush(void); // many vars
     void _SsSndCrescendo(short seqNum, short sepNum);
     void _SsSndTempo(short seqNum, short sepNum);
 
@@ -521,7 +519,7 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
-    void SsSetPitchBend(short seq_no, short sep_no)
+    void _SsSetPitchBend(short seq_no, short sep_no)
     {
         SeqStruct* pStru = &_ss_score[seq_no][sep_no];
         unsigned char midi_byte = *pStru->field_0_seq_ptr;
