@@ -12,9 +12,7 @@ extern "C"
     extern short _svm_damper;
 
     // TODO
-    void SsUtReverbOn(void);
-    void SsUtReverbOff(void);
-    
+
     short SsUtSetReverbType(short);
     void SsUtSetReverbFeedback(short);
 
@@ -48,6 +46,16 @@ extern "C"
     void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
     void _SsGetSeqData(short seq_idx, short sep_idx); // wip
     void _SsSeqPlay(short seq_access_num, short seq_num); // wip
+
+    void SsUtReverbOn(void)
+    {
+        SpuSetReverb(1);
+    }
+    
+    void SsUtReverbOff(void)
+    {
+        SpuSetReverb(0);
+    }
 
     void _SsVmDamperOn(void)
     {

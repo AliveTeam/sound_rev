@@ -10,6 +10,8 @@ extern "C"
     // TODO
     void _SpuInit(int);
 
+    void SpuSetReverb(long on_off);
+
     void SpuInit(void)
     {
         _SpuInit(0);

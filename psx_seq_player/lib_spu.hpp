@@ -34,6 +34,8 @@ extern "C"
 
     void SpuInit(void);
 
+    void SpuSetReverb(long on_off);
+
 }
 
 #endif // _LIB_SPU_HPP_
