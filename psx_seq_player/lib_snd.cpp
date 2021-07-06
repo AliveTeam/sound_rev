@@ -10,6 +10,7 @@ extern "C"
 
     extern short note2pitch2;
     extern short _svm_damper;
+    extern ProgAtr** _svm_pg;
 
     // TODO
 
@@ -27,7 +28,9 @@ extern "C"
     extern void SsUtReverbOff(void);
 
     void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
-    void _SsVmSetProgVol(short vabId, short program, unsigned char vol);
+    
+    int _SsVmVSetUp(short vabId, short program);
+
     void _SsVmInit(int); // many unknown globals, inits voice structures
     short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData);
     void _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
@@ -47,6 +50,13 @@ extern "C"
     void _SsGetSeqData(short seq_idx, short sep_idx); // wip
     void _SsSeqPlay(short seq_access_num, short seq_num); // wip
 
+    void _SsVmSetProgVol(short vabId, short program, unsigned char vol)
+    {
+        if (!_SsVmVSetUp(vabId, program))
+        {
+            _svm_pg[program]->mvol = vol;
+        }
+    }
     void SsUtReverbOn(void)
     {
         SpuSetReverb(1);
