@@ -11,6 +11,11 @@ extern "C"
     void _SpuInit(int);
 
     void SpuSetReverb(long on_off);
+    
+    short _spu_getInTransfer(void);
+    void _spu_setInTransfer(short);
+
+    void SpuFree(unsigned long addr);
 
     void SpuInit(void)
     {

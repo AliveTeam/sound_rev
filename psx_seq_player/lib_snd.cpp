@@ -11,6 +11,9 @@ extern "C"
     extern short note2pitch2;
     extern short _svm_damper;
     extern ProgAtr** _svm_pg;
+    extern unsigned char _svm_vab_used[16];
+    extern short _svm_vab_count;
+    extern unsigned long _svm_vab_start[16];
 
     // TODO
 
@@ -20,7 +23,7 @@ extern "C"
     extern short SsVabOpenHead(unsigned char*, short);
     extern short SsVabTransBody(unsigned char*, short);
     extern short SsVabTransCompleted(short);
-    extern void SsVabClose(short);
+
     extern void SsUtSetReverbDelay(short);
     extern short SsUtSetVagAtr(short, short, short, VagAtr*);
     extern short SsUtGetVagAtr(short, short, short, VagAtr*);
@@ -49,6 +52,26 @@ extern "C"
     void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
     void _SsGetSeqData(short seq_idx, short sep_idx); // wip
     void _SsSeqPlay(short seq_access_num, short seq_num); // wip
+
+    void SsVabClose(short vabId)
+    {
+        if (vabId < 16)
+        {
+            if (_svm_vab_used[vabId] < 3 && _svm_vab_used[vabId] != 0)
+            {
+                _svm_vab_used[vabId] = 0;
+                
+                SpuFree(_svm_vab_start[vabId]);
+
+                _svm_vab_count--;
+
+                if (_spu_getInTransfer())
+                {
+                    _spu_setInTransfer(0);
+                }
+            }
+        }
+    }
 
     void _SsVmSetProgVol(short vabId, short program, unsigned char vol)
     {
