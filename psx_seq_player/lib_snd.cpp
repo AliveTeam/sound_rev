@@ -5,17 +5,51 @@
 #include <sys/types.h>
 #include <libetc.h> // ResetCallback
 
+template<class T, class Y>
+static inline T* AddBytes(Y ptr, int bytes)
+{
+    return reinterpret_cast<T*>(reinterpret_cast<unsigned char*>(ptr) + bytes);
+}
+
 extern "C"
 {
 
     extern short note2pitch2;
     extern short _svm_damper;
     extern ProgAtr** _svm_pg;
+    extern ProgAtr* _svm_vab_pg[16];
     extern unsigned char _svm_vab_used[16];
     extern short _svm_vab_count;
-    extern unsigned long _svm_vab_start[16];
-
+    extern long _svm_vab_start[16];
+    extern VagAtr* _svm_vab_tn[16];
+    extern int _svm_vab_total[16];
+    extern VabHdr* _svm_vab_vh[16];
+    extern int _svm_vab_not_send_size;
+    
+ 
     // TODO
+
+    void debug_dump_vh(unsigned long *pAddr, short vabId)
+    {
+        VabHdr* pHeader = (VabHdr*)pAddr;
+        printf("Dump %p for vabId %d\n", pAddr, vabId); // id ok
+        printf("Vab total = %d\n", _svm_vab_total[vabId]); // ok
+
+        ProgAtr* pProgTable = _svm_vab_pg[vabId];
+        for (int i=0; i< pHeader->vs; i++)
+        {
+            if ((i & 1) == 0)
+            {
+                printf("Idx %d IdxD2 %d rev0 %d rev3 %d\n", i, i / 2, (int)pProgTable[i].reserved1,  pProgTable[i / 2].reserved3);
+            }
+            else
+            {
+                printf("Idx %d IdxD2 %d rev0 %d rev3 %d\n", i, i / 2, (int)pProgTable[i].reserved1,  pProgTable[i / 2].reserved2);
+            }
+        }
+
+        printf("Tone start %p\n", _svm_vab_tn[vabId]); // ok
+    }
 
     short SsUtSetReverbType(short);
     void SsUtSetReverbFeedback(short);
@@ -52,6 +86,175 @@ extern "C"
     void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
     void _SsGetSeqData(short seq_idx, short sep_idx); // wip
     void _SsSeqPlay(short seq_access_num, short seq_num); // wip
+
+
+    typedef long(*VabAllocateCallBack)(unsigned int sizeInBytes, int mode, short vabId);
+
+    // obj also needs SsVabOpenHeadSticky SsVabFakeHead but we seem to get away with it because those are never called ??
+    int _SsVabOpenHeadWithMode(unsigned long *pAddr,int vabId, VabAllocateCallBack pFn, int mode)
+    {
+        int vagLens[256]; // max vags
+
+        if (_spu_getInTransfer() == 1)
+        {
+            // Already uploading to SPU
+            printf("Already xfter in progress\n");
+            return -1;
+        }
+
+        _spu_setInTransfer(1);
+        if (vabId < 16)
+        {
+            if (vabId == -1)
+            {
+                // Find a free vabId
+                vabId = 16; // set to not found
+                for (int i = 0; i < 16; i++)
+                {
+                    if (_svm_vab_used[i] == 0)
+                    {
+                        _svm_vab_used[i] = 1;
+                        _svm_vab_count++;
+                        vabId = i;
+                        printf("alloc vabid %d\n", vabId);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                // Use the given vabId
+                if (_svm_vab_used[vabId] == 0)
+                {
+                    _svm_vab_used[vabId] = 1;
+                    _svm_vab_count++;
+                }
+                else
+                {
+                    vabId = 0; // TODO: check
+                }
+            }
+
+            if (vabId < 16)
+            {
+                VabHdr* pHeader = (VabHdr*)pAddr;
+
+                _svm_vab_vh[vabId] = pHeader;
+                _svm_vab_not_send_size = 0;
+                if ((pHeader->form >> 8) == 0x564142) // check for VAB magic marker
+                {
+                    int maxPrograms = 64; // old versions had 64 progs only?
+                    if ((pHeader->form & 0xff) == 'p' && pHeader->ver >= 4)
+                    {
+                        printf(">= v4 VAB\n");
+                        maxPrograms = 128;
+                    }
+                    else
+                    {
+                        printf("Old style VAB\n");
+                    }
+
+                    int progCount = maxPrograms;
+                    if (pHeader->ps > progCount)
+                    {
+                        // too many progs in header
+                        printf("VAB header program count too high\n");
+                        _svm_vab_used[vabId] = 0;
+                    }
+                    else
+                    {
+                        _svm_vab_pg[vabId] = AddBytes<ProgAtr>(pAddr, sizeof(VabHdr));
+                        
+
+                        _svm_vab_tn[vabId] = AddBytes<VagAtr>(_svm_vab_pg[vabId], progCount * sizeof(ProgAtr)); // 128 program attributes
+                        
+                        unsigned short* pVagOffTable = AddBytes<unsigned short>(_svm_vab_tn[vabId], 16 * pHeader->ps * sizeof(VagAtr)); // 16 tones per program
+
+                        unsigned int fakeProgIdx = 0;
+                        ProgAtr* pProgTable = _svm_vab_pg[vabId];
+                        for (int i = 0; i < progCount; i++)
+                        {
+                            pProgTable[i].reserved1 = fakeProgIdx;
+                            if (pProgTable[i].tones != 0)
+                            {
+                                fakeProgIdx++;
+                            }
+                        }
+
+                        unsigned int totalVagsSize = 0;
+                        for (int i = 0; i < 256; i++)
+                        {
+                            if (i <= pHeader->vs) // vag count
+                            {
+                                if (pHeader->ver >= 4)
+                                {
+                                    vagLens[i] = pVagOffTable[i] << 3;
+                                }
+                                else
+                                {
+                                    vagLens[i] = pVagOffTable[i] << 2; // TODO: Why is this bit needed?
+                                }
+                                totalVagsSize += vagLens[i]; // calc total vag size
+                            }
+                        }
+
+                        const unsigned int roundedSize = totalVagsSize + 63 & ~63; // Round to multiple of 64
+                        const long spuAllocMem = (*pFn)(roundedSize, mode, vabId);
+
+                        if (spuAllocMem == -1)
+                        {
+                            printf("Spu alloc failed size 0x%X id %d\n", roundedSize, vabId); // 0x1C5FC0
+                            return -1;
+                        }
+
+                        if (spuAllocMem + roundedSize <= 0x80000) // less than spu ram size ??
+                        {
+                            _svm_vab_start[vabId] = spuAllocMem;
+                            int vagIdx = 0;
+                            int totalVagSize = 0;
+                            pProgTable = _svm_vab_pg[vabId];
+
+                            do
+                            {
+                                totalVagSize += vagLens[vagIdx]; // incremental total
+                                // 256 vags, but 128 progs, so alternate the storage
+                                if ((vagIdx & 1) == 0)
+                                {
+                                    pProgTable[vagIdx / 2].reserved2 = (spuAllocMem + totalVagSize) >> 3;
+                                }
+                                else
+                                {
+                                    pProgTable[vagIdx / 2].reserved3 = (spuAllocMem + totalVagSize) >> 3;
+                                }
+                               
+                                vagIdx++; // vag counter
+                            } while (vagIdx <= pHeader->vs);
+
+                            _svm_vab_total[vabId] = totalVagSize;
+                            _svm_vab_used[vabId] = 2;
+                            printf("OK!\n");
+                            return vabId;
+                        }
+
+                        printf("Bigger than spu ram\n");
+                        _svm_vab_used[vabId] = 0;
+                    }
+                }
+                else
+                {
+                    // bad file magic
+                    printf("Bad file magic\n");
+                    _svm_vab_used[vabId] = 0;
+                }
+
+                _spu_setInTransfer(0);
+                _svm_vab_count--;
+                return -1;
+            }
+        }
+        _spu_setInTransfer(0);
+        return -1;
+    }
 
     void SsVabClose(short vabId)
     {

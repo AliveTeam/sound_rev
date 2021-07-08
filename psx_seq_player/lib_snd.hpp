@@ -84,6 +84,39 @@ extern "C"
 
     } VagAtr;			/* 32 byte */
 
+    typedef struct VabHdr {         /* VAB Bank Headdings */
+
+        long           form;          /* always 'VABp' */
+        long           ver;           /* VAB file version number */
+        long           id;            /* VAB id */
+        unsigned long  fsize;         /* VAB file size */
+        unsigned short reserved0;     /* system reserved */
+        unsigned short ps;            /* # of the programs in this bank */
+        unsigned short ts;            /* # of the tones in this bank */
+        unsigned short vs;            /* # of the vags in this bank */
+        unsigned char  mvol;          /* master volume for this bank */
+        unsigned char  pan;           /* master panning for this bank */
+        unsigned char  attr1;         /* bank attributes1 */
+        unsigned char  attr2;         /* bank attributes2 */
+        unsigned long  reserved1;     /* system reserved */
+
+    } VabHdr;			/* 32 byte */
+
+
+    typedef struct ProgAtr {        /* Program Headdings */
+
+        unsigned char tones;          /* # of tones */
+        unsigned char mvol;           /* program volume */
+        unsigned char prior;          /* program priority */
+        unsigned char mode;           /* program mode */
+        unsigned char mpan;           /* program pan */
+        char          reserved0;      /* system reserved */
+        short         attr;           /* program attribute */
+        unsigned long reserved1;      // "fake" program index (skips empties)
+        unsigned short reserved2;     // even vag spu ptr
+        unsigned short reserved3;     // odd vag spu ptr
+    } ProgAtr;			/* 16 byte */
+
     typedef void(*SndSsMarkCallbackProc)(short seq_no, short sep_no, short data);
 
     struct SeqMarker
@@ -194,6 +227,9 @@ extern "C"
 
     short SsUtSetReverbType(short);
     void SsUtSetReverbFeedback(short);
+
+    // Debugging
+    void debug_dump_vh(unsigned long *pAddr, short vabId);
 
 }
 

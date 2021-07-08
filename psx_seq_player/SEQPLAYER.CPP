@@ -964,6 +964,8 @@ public:
             return false;
         }
 
+        debug_dump_vh((unsigned long *)vhBuffer, mOpenVabId);
+
         return true;
     }
 
