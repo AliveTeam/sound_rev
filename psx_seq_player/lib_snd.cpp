@@ -5,10 +5,10 @@
 #include <sys/types.h>
 #include <libetc.h> // ResetCallback
 
-template<class T, class Y>
-static inline T* AddBytes(Y ptr, int bytes)
+template <class T, class Y>
+static inline T *AddBytes(Y ptr, int bytes)
 {
-    return reinterpret_cast<T*>(reinterpret_cast<unsigned char*>(ptr) + bytes);
+    return reinterpret_cast<T *>(reinterpret_cast<unsigned char *>(ptr) + bytes);
 }
 
 extern "C"
@@ -16,35 +16,34 @@ extern "C"
 
     extern short note2pitch2;
     extern short _svm_damper;
-    extern ProgAtr** _svm_pg;
-    extern ProgAtr* _svm_vab_pg[16];
+    extern ProgAtr **_svm_pg;
+    extern ProgAtr *_svm_vab_pg[16];
     extern unsigned char _svm_vab_used[16];
     extern short _svm_vab_count;
     extern long _svm_vab_start[16];
-    extern VagAtr* _svm_vab_tn[16];
+    extern VagAtr *_svm_vab_tn[16];
     extern int _svm_vab_total[16];
-    extern VabHdr* _svm_vab_vh[16];
+    extern VabHdr *_svm_vab_vh[16];
     extern int _svm_vab_not_send_size;
-    
- 
+
     // TODO
 
     void debug_dump_vh(unsigned long *pAddr, short vabId)
     {
-        VabHdr* pHeader = (VabHdr*)pAddr;
-        printf("Dump %p for vabId %d\n", pAddr, vabId); // id ok
+        VabHdr *pHeader = (VabHdr *)pAddr;
+        printf("Dump %p for vabId %d\n", pAddr, vabId);    // id ok
         printf("Vab total = %d\n", _svm_vab_total[vabId]); // ok
 
-        ProgAtr* pProgTable = _svm_vab_pg[vabId];
-        for (int i=0; i< pHeader->vs; i++)
+        ProgAtr *pProgTable = _svm_vab_pg[vabId];
+        for (int i = 0; i < pHeader->vs; i++)
         {
             if ((i & 1) == 0)
             {
-                printf("Idx %d IdxD2 %d rev0 %d rev3 %d\n", i, i / 2, (int)pProgTable[i].reserved1,  pProgTable[i / 2].reserved3);
+                printf("Idx %d IdxD2 %d rev0 %d rev3 %d\n", i, i / 2, (int)pProgTable[i].reserved1, pProgTable[i / 2].reserved3);
             }
             else
             {
-                printf("Idx %d IdxD2 %d rev0 %d rev3 %d\n", i, i / 2, (int)pProgTable[i].reserved1,  pProgTable[i / 2].reserved2);
+                printf("Idx %d IdxD2 %d rev0 %d rev3 %d\n", i, i / 2, (int)pProgTable[i].reserved1, pProgTable[i / 2].reserved2);
             }
         }
 
@@ -54,18 +53,16 @@ extern "C"
     short SsUtSetReverbType(short);
     void SsUtSetReverbFeedback(short);
 
-    extern short SsVabOpenHead(unsigned char*, short);
-    extern short SsVabTransBody(unsigned char*, short);
+    extern short SsVabTransBody(unsigned char *, short);
     extern short SsVabTransCompleted(short);
 
     extern void SsUtSetReverbDelay(short);
-    extern short SsUtSetVagAtr(short, short, short, VagAtr*);
-    extern short SsUtGetVagAtr(short, short, short, VagAtr*);
+    extern short SsUtSetVagAtr(short, short, short, VagAtr *);
+    extern short SsUtGetVagAtr(short, short, short, VagAtr *);
     extern void SsUtSetReverbDepth(short, short);
-    extern void SsUtReverbOff(void);
 
     void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
-    
+
     int _SsVmVSetUp(short vabId, short program);
 
     void _SsVmInit(int); // many unknown globals, inits voice structures
@@ -73,25 +70,24 @@ extern "C"
     void _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
     void _SsVmKeyOff(int seq_sep_no, short vabId, short unknown37, short note);
     void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch); // unknown func + globals
-    extern void _SsContDataEntry(short, short, unsigned char); // med
+    extern void _SsContDataEntry(short, short, unsigned char);                                      // med
 
-    void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr); // high
-    void _SsVmSeqKeyOff(short seq_idx); // unknown var/struct (voice struct?)
-    void _SsVmKeyOffNow(void); // many vars
+    void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr);                                                                                 // high
+    void _SsVmSeqKeyOff(short seq_idx);                                                                                                             // unknown var/struct (voice struct?)
+    void _SsVmKeyOffNow(void);                                                                                                                      // many vars
     long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR); // low
-    void _SsVmFlush(void); // many vars
+    void _SsVmFlush(void);                                                                                                                          // many vars
     void _SsSndCrescendo(short seqNum, short sepNum);
     void _SsSndTempo(short seqNum, short sepNum);
 
     void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
-    void _SsGetSeqData(short seq_idx, short sep_idx); // wip
-    void _SsSeqPlay(short seq_access_num, short seq_num); // wip
+    void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
+    void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
 
-
-    typedef long(*VabAllocateCallBack)(unsigned int sizeInBytes, int mode, short vabId);
+    typedef long (*VabAllocateCallBack)(unsigned int sizeInBytes, long mode, short vabId);
 
     // obj also needs SsVabOpenHeadSticky SsVabFakeHead but we seem to get away with it because those are never called ??
-    int _SsVabOpenHeadWithMode(unsigned long *pAddr,int vabId, VabAllocateCallBack pFn, int mode)
+    int _SsVabOpenHeadWithMode(unsigned char *pAddr, int vabId, VabAllocateCallBack pFn, long mode)
     {
         int vagLens[256]; // max vags
 
@@ -137,7 +133,7 @@ extern "C"
 
             if (vabId < 16)
             {
-                VabHdr* pHeader = (VabHdr*)pAddr;
+                VabHdr *pHeader = (VabHdr *)pAddr;
 
                 _svm_vab_vh[vabId] = pHeader;
                 _svm_vab_not_send_size = 0;
@@ -164,14 +160,13 @@ extern "C"
                     else
                     {
                         _svm_vab_pg[vabId] = AddBytes<ProgAtr>(pAddr, sizeof(VabHdr));
-                        
 
                         _svm_vab_tn[vabId] = AddBytes<VagAtr>(_svm_vab_pg[vabId], progCount * sizeof(ProgAtr)); // 128 program attributes
-                        
-                        unsigned short* pVagOffTable = AddBytes<unsigned short>(_svm_vab_tn[vabId], 16 * pHeader->ps * sizeof(VagAtr)); // 16 tones per program
+
+                        unsigned short *pVagOffTable = AddBytes<unsigned short>(_svm_vab_tn[vabId], 16 * pHeader->ps * sizeof(VagAtr)); // 16 tones per program
 
                         unsigned int fakeProgIdx = 0;
-                        ProgAtr* pProgTable = _svm_vab_pg[vabId];
+                        ProgAtr *pProgTable = _svm_vab_pg[vabId];
                         for (int i = 0; i < progCount; i++)
                         {
                             pProgTable[i].reserved1 = fakeProgIdx;
@@ -226,7 +221,7 @@ extern "C"
                                 {
                                     pProgTable[vagIdx / 2].reserved3 = (spuAllocMem + totalVagSize) >> 3;
                                 }
-                               
+
                                 vagIdx++; // vag counter
                             } while (vagIdx <= pHeader->vs);
 
@@ -256,6 +251,23 @@ extern "C"
         return -1;
     }
 
+    static long _SsVabSpuMallocLoader(unsigned int sizeInBytes, long /*mode*/, short vabId)
+    {
+        long pSpuMem = SpuMalloc(sizeInBytes);
+        if (pSpuMem == -1)
+        {
+            _svm_vab_used[vabId] = 0;
+            _spu_setInTransfer(0);
+            _svm_vab_count--;
+        }
+        return pSpuMem;
+    }
+
+    short SsVabOpenHead(unsigned char *addr, short vabId)
+    {
+        return _SsVabOpenHeadWithMode(addr, vabId, _SsVabSpuMallocLoader, 0);
+    }
+
     void SsVabClose(short vabId)
     {
         if (vabId < 16)
@@ -263,7 +275,7 @@ extern "C"
             if (_svm_vab_used[vabId] < 3 && _svm_vab_used[vabId] != 0)
             {
                 _svm_vab_used[vabId] = 0;
-                
+
                 SpuFree(_svm_vab_start[vabId]);
 
                 _svm_vab_count--;
@@ -283,11 +295,12 @@ extern "C"
             _svm_pg[program]->mvol = vol;
         }
     }
+
     void SsUtReverbOn(void)
     {
         SpuSetReverb(1);
     }
-    
+
     void SsUtReverbOff(void)
     {
         SpuSetReverb(0);
@@ -305,7 +318,7 @@ extern "C"
 
     void _SsSndReplay(short seqNum, short sepNum)
     {
-        SeqStruct* pStruc = &_ss_score[seqNum][sepNum]; // note: 14bit access
+        SeqStruct *pStruc = &_ss_score[seqNum][sepNum]; // note: 14bit access
         pStruc->field_14_play_mode = 1;
         pStruc->field_98_flags &= ~8u;
     }
@@ -348,7 +361,6 @@ extern "C"
         vagAtr.max = keyMax;
         SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
     }
-
 
     void _SsUtResolveADSR(unsigned short adsr1, unsigned short adsr2, unsigned short *pResolvedADSR)
     {
@@ -533,7 +545,7 @@ extern "C"
 
     void _SsInit(void); // TODO: Impl can't link due to redef of global vars
 
-/*
+    /*
     // TODO: Can't link as obj has some globals in there
     void _SsInit(void)
     {
@@ -695,7 +707,7 @@ extern "C"
         printf("_SsNoteOn seq_no=%d sep_no=%d note=%d voll=%d\n", seq_no, sep_no, static_cast<int>(note), static_cast<int>(voll));
 
         int seq_no_promoted = seq_no;
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
         if (voll)
         {
             if (((pStru->field_80 >> pStru->field_17_channel_idx) & 1) == 0)
@@ -728,7 +740,7 @@ extern "C"
     {
         printf("_SsGetMetaEvent\n");
 
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
         pStru->field_0_seq_ptr += 3;
 
         int read = pStru->field_0_seq_ptr[2] | (pStru->field_0_seq_ptr[0] << 16) | (pStru->field_0_seq_ptr[1] << 8);
@@ -736,7 +748,7 @@ extern "C"
         read = 60000000 / read;
 
         pStru->field_94 = read;
-  
+
         const int v6 = read * pStru->field_50;
 
         const int v8 = 15 * VBLANK_MINUS;
@@ -765,7 +777,7 @@ extern "C"
 
     void _SsSetPitchBend(short seq_no, short sep_no)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
         unsigned char midi_byte = *pStru->field_0_seq_ptr;
         pStru->field_0_seq_ptr++;
 
@@ -780,7 +792,7 @@ extern "C"
 
     void _SsContBankChange(short seq_no, short sep_no)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
         pStru->field_26_vab_id = *pStru->field_0_seq_ptr;
         pStru->field_0_seq_ptr++;
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
@@ -788,7 +800,7 @@ extern "C"
 
     void _SsContMainVol(short seq_no, short sep_no, unsigned char vol)
     {
-        SeqStruct* pStruc = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStruc = &_ss_score[seq_no][sep_no];
         _SsVmSetVol(
             seq_no | (sep_no << 8),
             pStruc->field_26_vab_id,
@@ -801,7 +813,7 @@ extern "C"
 
     void _SsContPanpot(short seq_no, short sep_no, unsigned char panpot)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
         _SsVmSetVol(
             seq_no | (sep_no << 8),
             pStru->field_26_vab_id,
@@ -814,7 +826,7 @@ extern "C"
 
     void _SsContExpression(short seq_no, short sep_no, unsigned char progVol)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
         _SsVmSetProgVol(pStru->field_26_vab_id, pStru->field_37_programs[pStru->field_17_channel_idx], progVol);
         _SsVmSetVol(
             seq_no | (sep_no << 8),
@@ -827,14 +839,14 @@ extern "C"
 
     void _SsContExternal(short seq_no, short sep_no, unsigned char reverbDepth)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
         SsUtSetReverbDepth(reverbDepth, reverbDepth);
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
     void _SsContDamper(short seq_no, short sep_no, unsigned char damper)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
         if (damper >= 64)
         {
             _SsVmDamperOn();
@@ -848,7 +860,7 @@ extern "C"
 
     void _SsContNrpn1(short seq_no, short sep_no, unsigned char func_idx)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
 
         if (pStru->field_1B == 40)
         {
@@ -874,7 +886,7 @@ extern "C"
 
     void _SsContNrpn2(short seq_no, short sep_no, unsigned char a3)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
 
         if (a3 == 20)
         {
@@ -925,7 +937,7 @@ extern "C"
 
     void _SsContRpn1(short seq_no, short sep_no, unsigned char a3)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
         pStru->field_18 = a3;
         pStru->field_1E++;
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
@@ -933,7 +945,7 @@ extern "C"
 
     void _SsContRpn2(short seq_no, short sep_no, unsigned char a3)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
         pStru->field_19 = a3;
         pStru->field_1E++;
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
@@ -941,7 +953,7 @@ extern "C"
 
     void _SsContResetAll(short seq_no, short sep_no)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
 
         SsUtReverbOff();
         _SsVmDamperOff();
@@ -953,7 +965,6 @@ extern "C"
         pStru->field_27_panpot[pStru->field_17_channel_idx] = 64;
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
-
 
     // TODO: Can't link till _SsVmSeqKeyOff and _SsVmSetSeqVol impl
     /*
@@ -968,63 +979,63 @@ extern "C"
 
     void _SsSetControlChange(short seq_no, short sep_no, unsigned char control)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
         const unsigned char control_value = *pStru->field_0_seq_ptr++;
 
         switch (control)
         {
-            case 0:
-                pStru->field_26_vab_id = control_value; // or 0
-                pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
-                break;
+        case 0:
+            pStru->field_26_vab_id = control_value; // or 0
+            pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+            break;
 
-            case 6:
-                SsFCALL.control[2](seq_no, sep_no, control_value);
-                break;
+        case 6:
+            SsFCALL.control[2](seq_no, sep_no, control_value);
+            break;
 
-            case 7:
-                SsFCALL.control[3](seq_no, sep_no, control_value);
-                break;
+        case 7:
+            SsFCALL.control[3](seq_no, sep_no, control_value);
+            break;
 
-            case 10:
-                SsFCALL.control[4](seq_no, sep_no, control_value);
-                break;
+        case 10:
+            SsFCALL.control[4](seq_no, sep_no, control_value);
+            break;
 
-            case 11:
-                SsFCALL.control[5](seq_no, sep_no, control_value);
-                break;
+        case 11:
+            SsFCALL.control[5](seq_no, sep_no, control_value);
+            break;
 
-            case 64:
-                SsFCALL.control[6](seq_no, sep_no, control_value);
-                break;
+        case 64:
+            SsFCALL.control[6](seq_no, sep_no, control_value);
+            break;
 
-            case 91:
-                SsFCALL.control[11](seq_no, sep_no, control_value);
-                break;
+        case 91:
+            SsFCALL.control[11](seq_no, sep_no, control_value);
+            break;
 
-            case 98:
-                SsFCALL.control[7](seq_no, sep_no, control_value);
-                break;
+        case 98:
+            SsFCALL.control[7](seq_no, sep_no, control_value);
+            break;
 
-            case 99:
-                SsFCALL.control[8](seq_no, sep_no, control_value);
-                break;
+        case 99:
+            SsFCALL.control[8](seq_no, sep_no, control_value);
+            break;
 
-            case 100:
-                SsFCALL.control[9](seq_no, sep_no, control_value);
-                break;
+        case 100:
+            SsFCALL.control[9](seq_no, sep_no, control_value);
+            break;
 
-            case 101:
-                SsFCALL.control[10](seq_no, sep_no, control_value);
-                break;
-            
-            case 121:
-                SsFCALL.control[12](seq_no, sep_no, control_value);
-                break;
+        case 101:
+            SsFCALL.control[10](seq_no, sep_no, control_value);
+            break;
 
-            default:
-                pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
-                break;
+        case 121:
+            SsFCALL.control[12](seq_no, sep_no, control_value);
+            break;
+
+        default:
+            pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+            break;
         }
     }
 
@@ -1079,7 +1090,7 @@ extern "C"
         SsFCALL.ccentry[DE_PRIORITY] = _SsSetNrpnVabAttr0;
         SsFCALL.ccentry[DE_MODE] = _SsSetNrpnVabAttr1;
         SsFCALL.ccentry[DE_LIMITL] = _SsSetNrpnVabAttr2;
-        SsFCALL.ccentry[DE_LIMITH] =  _SsSetNrpnVabAttr3;
+        SsFCALL.ccentry[DE_LIMITH] = _SsSetNrpnVabAttr3;
         SsFCALL.ccentry[DE_ADSR_AR_L] = _SsSetNrpnVabAttr4;
         SsFCALL.ccentry[DE_ADSR_AR_E] = _SsSetNrpnVabAttr5;
         SsFCALL.ccentry[DE_ADSR_DR] = _SsSetNrpnVabAttr6;
@@ -1122,7 +1133,7 @@ extern "C"
 
     void Snd_SetPlayMode(int seq_sep_num, int idx, char play_mode, char l_count)
     {
-        SeqStruct* pStru = &_ss_score[seq_sep_num][idx]; // TODO: 14bit access
+        SeqStruct *pStru = &_ss_score[seq_sep_num][idx]; // TODO: 14bit access
 
         pStru->field_0_seq_ptr = pStru->field_4;
         pStru->field_8 = pStru->field_4;
@@ -1224,7 +1235,7 @@ extern "C"
 
     void _SsSndNextSep(int seq_no, short sep_no)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no]; // TODO: 14bit access
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no]; // TODO: 14bit access
 
         pStru->field_20_l_count = 1; // TODO: Setting field 21 to 0 or 1 also ??
         pStru->field_21 = 0;
@@ -1240,7 +1251,7 @@ extern "C"
 
     void _SsSndPause(short seq_no, short sep_no)
     {
-        SeqStruct* pStru = &_ss_score[seq_no][sep_no]; // TODO: 14bit access
+        SeqStruct *pStru = &_ss_score[seq_no][sep_no]; // TODO: 14bit access
 
         _SsVmSeqKeyOff(seq_no | (sep_no << 8));
 
@@ -1248,7 +1259,7 @@ extern "C"
         pStru->field_98_flags &= ~2u;
     }
 
-/*
+    /*
     void _SsSeqGetEof(short seq_access_num, short sep_num)
     {
         int seq_access_num_ = seq_access_num; // promote to 32bits
@@ -1517,7 +1528,7 @@ extern "C"
 
     void _SsSndStop(short seq_or_sep_access_num, short seq_num)
     {
-        SeqStruct* pStru = &_ss_score[seq_or_sep_access_num][seq_num]; // TODO: 14bit access
+        SeqStruct *pStru = &_ss_score[seq_or_sep_access_num][seq_num]; // TODO: 14bit access
         pStru->field_98_flags &= ~1u;
         pStru->field_98_flags &= ~2u;
         pStru->field_98_flags &= ~8u;

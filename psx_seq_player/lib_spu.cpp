@@ -15,6 +15,7 @@ extern "C"
     short _spu_getInTransfer(void);
     void _spu_setInTransfer(short);
 
+    long SpuMalloc(long size);
     void SpuFree(unsigned long addr);
 
     void SpuInit(void)
