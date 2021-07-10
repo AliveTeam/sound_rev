@@ -74,10 +74,6 @@ extern "C"
     }
 
     // TODO
-    extern short SsUtSetVagAtr(short, short, short, VagAtr *);
-
-    short SsUtGetVagAtr(short, short, short, VagAtr *);
-
     void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
 
     void _SsVmInit(int); // many unknown globals, inits voice structures
@@ -99,6 +95,91 @@ extern "C"
     void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
     void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
 
+    int _SsVmVSetUp(short vabId, short program)
+    {
+        if (vabId < 16)
+        {
+            if (_svm_vab_used[vabId] != 1)
+            {
+                return -1;
+            }
+
+            if (program < kMaxPrograms)
+            {
+                _svm_cur.field_1_vabId = vabId;
+                _svm_cur.field_6_program = program;
+                _svm_cur.field_7_fake_program = _svm_vab_pg[vabId][program].reserved1; // fake program index
+                _svm_tn = _svm_vab_tn[vabId];
+                _svm_vh = _svm_vab_vh[vabId];
+                _svm_pg = _svm_vab_pg[vabId];
+                return 0;
+            }
+        }
+        return -1;
+    }
+
+    short SsUtSetVagAtr(short vabId, short progNum, short toneNum, VagAtr * pVagAttr)
+    {
+        if (_svm_vab_used[vabId] == 1)
+        {
+            _SsVmVSetUp(vabId, progNum);
+            printf("SsUtSetVagAtr expect crash\n");
+
+            // 0x10 = sizeof(ProgAtr)
+            // TODO FIX ME
+            const int iVar2 = (toneNum + _svm_cur.field_7_fake_program * 0x10) << 16 >> 11;
+            _svm_tn[iVar2].prior = pVagAttr->prior;
+            _svm_tn[iVar2].mode = pVagAttr->mode;
+            _svm_tn[iVar2].vol = pVagAttr->vol;
+            _svm_tn[iVar2].pan = pVagAttr->pan;
+            _svm_tn[iVar2].center = pVagAttr->center;
+            _svm_tn[iVar2].shift = pVagAttr->shift;
+            _svm_tn[iVar2].max = pVagAttr->max;
+            _svm_tn[iVar2].min = pVagAttr->min;
+            _svm_tn[iVar2].vibW = pVagAttr->vibW;
+            _svm_tn[iVar2].vibT = pVagAttr->vibT;
+            _svm_tn[iVar2].porW = pVagAttr->porW;
+            _svm_tn[iVar2].porT = pVagAttr->porT;
+            _svm_tn[iVar2].pbmin = pVagAttr->pbmin;
+            _svm_tn[iVar2].pbmax = pVagAttr->pbmax;
+            _svm_tn[iVar2].adsr1 = pVagAttr->adsr1;
+            _svm_tn[iVar2].adsr2 = pVagAttr->adsr2;
+            _svm_tn[iVar2].prog = pVagAttr->prog;
+            _svm_tn[iVar2].vag = pVagAttr->vag;
+            return 0;
+        }
+        return -1;
+    }
+
+    void SsUtGetVagAtr(short vabId, short progNum, short toneNum, VagAtr * pVagAttr)
+    {
+        if (_svm_vab_used[vabId] == 1)
+        {
+            _SsVmVSetUp(vabId, progNum);
+            printf("SsUtGetVagAtr expect crash\n");
+            // 0x10 = sizeof(ProgAtr)
+            // TODO FIX ME
+            const int iVar2 = (toneNum + _svm_cur.field_7_fake_program * 0x10) << 16 >> 11;
+            pVagAttr->prior = _svm_tn[iVar2].prior;
+            pVagAttr->mode = _svm_tn[iVar2].mode;
+            pVagAttr->vol = _svm_tn[iVar2].vol;
+            pVagAttr->pan = _svm_tn[iVar2].pan;
+            pVagAttr->center = _svm_tn[iVar2].center;
+            pVagAttr->shift = _svm_tn[iVar2].shift;
+            pVagAttr->max = _svm_tn[iVar2].max;
+            pVagAttr->min = _svm_tn[iVar2].min;
+            pVagAttr->vibW = _svm_tn[iVar2].vibW;
+            pVagAttr->vibT = _svm_tn[iVar2].vibT;
+            pVagAttr->porW = _svm_tn[iVar2].porW;
+            pVagAttr->porT = _svm_tn[iVar2].porT;
+            pVagAttr->pbmin = _svm_tn[iVar2].pbmin;
+            pVagAttr->pbmax = _svm_tn[iVar2].pbmax;
+            pVagAttr->adsr1 = _svm_tn[iVar2].adsr1;
+            pVagAttr->adsr2 = _svm_tn[iVar2].adsr2;
+            pVagAttr->prog = _svm_tn[iVar2].prog;
+            pVagAttr->vag = _svm_tn[iVar2].vag;
+        }
+    }
     void SsUtSetReverbDepth(short leftDepth, short rightDepth)
     {
         _svm_rattr.mask = SPU_REV_DEPTHL | SPU_REV_DEPTHR;
@@ -152,29 +233,6 @@ extern "C"
             type = -1;
         }
         return type;
-    }
-
-    int _SsVmVSetUp(short vabId, short program)
-    {
-        if (vabId < 16)
-        {
-            if (_svm_vab_used[vabId] != 1)
-            {
-                return -1;
-            }
-
-            if (program < kMaxPrograms)
-            {
-                _svm_cur.field_1_vabId = vabId;
-                _svm_cur.field_6_program = program;
-                _svm_cur.field_7_fake_program = _svm_vab_pg[vabId][program].reserved1; // fake program index
-                _svm_tn = _svm_vab_tn[vabId];
-                _svm_vh = _svm_vab_vh[vabId];
-                _svm_pg = _svm_vab_pg[vabId];
-                return 0;
-            }
-        }
-        return -1;
     }
 
     short SsVabTransBody(unsigned char* pVbData, short vabId)
