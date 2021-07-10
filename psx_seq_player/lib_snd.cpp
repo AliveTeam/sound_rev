@@ -74,8 +74,6 @@ extern "C"
     }
 
     // TODO
-    void SsUtSetReverbFeedback(short);
-
     extern void SsUtSetReverbDelay(short);
     extern short SsUtSetVagAtr(short, short, short, VagAtr *);
 
@@ -103,6 +101,13 @@ extern "C"
     void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
     void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
     void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
+
+    void SsUtSetReverbFeedback(short feedback)
+    {
+        _svm_rattr.feedback = feedback;
+        _svm_rattr.mask = SPU_REV_FEEDBACK;
+        SpuSetReverbModeParam(&_svm_rattr);
+    }
 
     short SsUtSetReverbType(short type)
     {
