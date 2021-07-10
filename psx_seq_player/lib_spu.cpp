@@ -22,6 +22,8 @@ extern "C"
     unsigned long SpuSetTransferStartAddr (unsigned long addr);
     unsigned long SpuWrite (unsigned char *addr, unsigned long size);
 
+    extern long SpuSetReverbModeParam (SpuReverbAttr *attr);
+
     void SpuInit(void)
     {
         _SpuInit(0);

@@ -36,6 +36,8 @@ extern "C"
     extern int _svm_vab_not_send_size;
     extern short kMaxPrograms;
 
+    extern SpuReverbAttr _svm_rattr;
+
     struct struct_svm
     {
         unsigned char field_0_sep_sep_no;
@@ -72,7 +74,6 @@ extern "C"
     }
 
     // TODO
-    short SsUtSetReverbType(short);
     void SsUtSetReverbFeedback(short);
 
     extern void SsUtSetReverbDelay(short);
@@ -103,6 +104,38 @@ extern "C"
     void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
     void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
 
+    short SsUtSetReverbType(short type)
+    {
+        const bool bNegativeMode = type < 0;
+        if (bNegativeMode)
+        {
+            type = -type;
+        }
+
+        if (type < 10)
+        {
+            _svm_rattr.mask = SPU_REV_MODE;
+            int reverbMode = type;
+            if (bNegativeMode)
+            {
+                reverbMode = type | SPU_REV_MODE_CLEAR_WA; // clear work area
+            }
+            
+            _svm_rattr.mode = reverbMode;
+
+            if (type == SPU_REV_MODE_OFF)
+            {
+                SpuSetReverb(0);
+            }
+            
+            SpuSetReverbModeParam(&_svm_rattr);
+        }
+        else
+        {
+            type = -1;
+        }
+        return type;
+    }
 
     int _SsVmVSetUp(short vabId, short program)
     {
