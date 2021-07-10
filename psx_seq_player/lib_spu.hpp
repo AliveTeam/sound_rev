@@ -3,6 +3,9 @@
 
 extern "C"
 {
+    #define SPU_TRANSFER_BY_DMA 0L
+    #define SPU_TRANSFER_BY_IO 1L
+
     #define	SPU_COMMON_MVOLL		(0x01 <<  0) /* master volume (left) */
     #define	SPU_COMMON_MVOLR		(0x01 <<  1) /* master volume (right) */
 
@@ -39,7 +42,12 @@ extern "C"
     short _spu_getInTransfer(void);
     void _spu_setInTransfer(short);
 
+    long SpuMalloc(long size);
     void SpuFree(unsigned long addr);
+
+    long SpuSetTransferMode(long mode);
+    unsigned long SpuSetTransferStartAddr (unsigned long addr);
+    unsigned long SpuWrite (unsigned char *addr, unsigned long size);
 }
 
 #endif // _LIB_SPU_HPP_

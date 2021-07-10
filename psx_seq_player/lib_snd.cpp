@@ -73,7 +73,9 @@ extern "C"
 
     extern void SsUtSetReverbDelay(short);
     extern short SsUtSetVagAtr(short, short, short, VagAtr *);
-    extern short SsUtGetVagAtr(short, short, short, VagAtr *);
+
+    short SsUtGetVagAtr(short, short, short, VagAtr *);
+
     extern void SsUtSetReverbDepth(short, short);
 
     void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
@@ -1034,7 +1036,7 @@ extern "C"
     void _SsVmGetSeqVol(short seq_sep_no, short *pVolL, short *pVolR)
     {
         SeqStruct* pStru = &_ss_score[seq_sep_no & 0xFF][(seq_sep_no & 0xFF00) >> 8];
-        _svm_cur = seq_sep_no;
+        _svm_cur.field_0_sep_sep_no = seq_sep_no;
         *pVolL = pStru->field_58_voll;
         *pVolR = pStru->field_5A_volr;
     }
