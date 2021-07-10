@@ -5,11 +5,15 @@
 #include <sys/types.h>
 #include <libetc.h> // ResetCallback
 
+#define AddBytes(T, ptr, bytes)  reinterpret_cast<T *>(reinterpret_cast<unsigned char *>(ptr) + bytes)
+
+/*
 template <class T, class Y>
 static inline T *AddBytes(Y ptr, int bytes)
 {
     return reinterpret_cast<T *>(reinterpret_cast<unsigned char *>(ptr) + bytes);
 }
+*/
 
 extern "C"
 {
@@ -224,11 +228,11 @@ extern "C"
                     }
                     else
                     {
-                        _svm_vab_pg[vabId] = AddBytes<ProgAtr>(pAddr, sizeof(VabHdr));
+                        _svm_vab_pg[vabId] = AddBytes(ProgAtr, pAddr, sizeof(VabHdr));
 
-                        _svm_vab_tn[vabId] = AddBytes<VagAtr>(_svm_vab_pg[vabId], progCount * sizeof(ProgAtr)); // 128 program attributes
+                        _svm_vab_tn[vabId] = AddBytes(VagAtr, _svm_vab_pg[vabId], progCount * sizeof(ProgAtr)); // 128 program attributes
 
-                        unsigned short *pVagOffTable = AddBytes<unsigned short>(_svm_vab_tn[vabId], 16 * pHeader->ps * sizeof(VagAtr)); // 16 tones per program
+                        unsigned short *pVagOffTable = AddBytes(unsigned short, _svm_vab_tn[vabId], 16 * pHeader->ps * sizeof(VagAtr)); // 16 tones per program
 
                         unsigned int fakeProgIdx = 0;
                         ProgAtr *pProgTable = _svm_vab_pg[vabId];
@@ -583,27 +587,27 @@ extern "C"
         SsUtSetVagAtr(vab_id, prog_no, tone_no, &vagAtr);
     }
 
-    void _SsSetNrpnVabAttr15(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char attr)
+    void _SsSetNrpnVabAttr15(short /*vab_id*/, short /*prog_no*/, short /*tone_no*/, VagAtr /*vagAtr*/, short /*fn_idx*/, unsigned char attr)
     {
         SsUtSetReverbType(attr);
     }
 
-    void _SsSetNrpnVabAttr16(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char attr)
+    void _SsSetNrpnVabAttr16(short /*vab_id*/, short /*prog_no*/, short /*tone_no*/, VagAtr /*vagAtr*/, short /*fn_idx*/, unsigned char attr)
     {
         SsUtSetReverbDepth(attr, attr);
     }
 
-    void _SsSetNrpnVabAttr17(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char attr)
+    void _SsSetNrpnVabAttr17(short /*vab_id*/, short /*prog_no*/, short /*tone_no*/, VagAtr /*vagAtr*/, short /*fn_idx*/, unsigned char attr)
     {
         SsUtSetReverbFeedback(attr);
     }
 
-    void _SsSetNrpnVabAttr18(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char attr)
+    void _SsSetNrpnVabAttr18(short /*vab_id*/, short /*prog_no*/, short /*tone_no*/, VagAtr /*vagAtr*/, short /*fn_idx*/, unsigned char attr)
     {
         SsUtSetReverbDelay(attr);
     }
 
-    void _SsSetNrpnVabAttr19(short vab_id, short prog_no, short tone_no, VagAtr vagAtr, short fn_idx, unsigned char attr)
+    void _SsSetNrpnVabAttr19(short /*vab_id*/, short /*prog_no*/, short /*tone_no*/, VagAtr /*vagAtr*/, short /*fn_idx*/, unsigned char attr)
     {
         SsUtSetReverbDelay(attr);
     }
@@ -656,7 +660,7 @@ extern "C"
     }
 
     // TODO
-    void SsSetTickMode(long tick_mode)
+    void SsSetTickMode(long /*tick_mode*/)
     {
         // Seems fine to do nothing, probably because we call
         // SsSeqCalledTbyT manually.
@@ -713,33 +717,6 @@ extern "C"
         attr.mvol.left = 129 * voll;
         attr.mvol.right = 129 * volr;
         SpuSetCommonAttr(&attr);
-    }
-
-    short SsVabTransfer(unsigned char *vh_addr, unsigned char *vb_addr, short vabid, short i_flag)
-    {
-        vabid = SsVabOpenHead(vh_addr, vabid); // when vabid is -1 a new one is allocated
-        if (vabid == -1)
-        {
-            return -1;
-        }
-
-        const int trans_body_result = SsVabTransBody(vb_addr, vabid);
-        if (trans_body_result == -1)
-        {
-            return -2;
-        }
-
-        if (i_flag == SS_WAIT_COMPLETED) // OG checked i_flag << 16 ??
-        {
-            SsVabTransCompleted(SS_WAIT_COMPLETED);
-        }
-
-        return trans_body_result;
-    }
-
-    short SsVabTransCompleted(short immediateFlag)
-    {
-        return SpuIsTransferCompleted(immediateFlag);
     }
 
     int _SsReadDeltaValue(short seq_access_num, short seq_num)

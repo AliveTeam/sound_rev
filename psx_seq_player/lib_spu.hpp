@@ -1,8 +1,10 @@
 #ifndef _LIB_SPU_HPP_
 #define _LIB_SPU_HPP_
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
     #define SPU_TRANSFER_BY_DMA 0L
     #define SPU_TRANSFER_BY_IO 1L
 
@@ -48,6 +50,8 @@ extern "C"
     long SpuSetTransferMode(long mode);
     unsigned long SpuSetTransferStartAddr (unsigned long addr);
     unsigned long SpuWrite (unsigned char *addr, unsigned long size);
+#ifdef __cplusplus
 }
+#endif
 
 #endif // _LIB_SPU_HPP_

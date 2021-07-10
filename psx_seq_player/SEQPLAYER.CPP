@@ -1,5 +1,3 @@
-#define _STRING_H
-
 #include <STDLIB.H>
 #include <LIBGTE.H>
 #include <LIBGPU.H>
@@ -7,7 +5,7 @@
 #include <LIBDS.H>
 #include <STDIO.H>
 #include <LIBETC.H>
-#include <STRINGS.H>
+#include <STRING.H>
 #include <KERNEL.H>
 
 #include "lib_spu.hpp"
@@ -312,9 +310,9 @@ typedef signed short int Sint16;
 typedef unsigned char Uint8;
 typedef signed char Sint8;
 
-const static Uint32 KMaxLvlArchiveFileNameLength = 12;
-const static Uint32 kSectorSize = 2048;
-const static Uint32 kMaxFiles = 500;
+static const Uint32 KMaxLvlArchiveFileNameLength = 12;
+static const Uint32 kSectorSize = 2048;
+static const Uint32 kMaxFiles = 500;
 
 enum ePads
 {
@@ -881,7 +879,7 @@ private:
     const char *mMenuTitle;
     const char **mStrings;
     int mNumStrings;
-    const static int kXSize;
+    static const int kXSize;
     int mYSize;
     int mSelectedY;
     int mSelectedX;
@@ -1399,7 +1397,7 @@ const SfxDefinition sSligGameSpeakEntries_560868[16] = {
     {0u, 0u, 36u, 70u, 0, 0},
 };
 
-const static char *kSligSfx[] =
+static const char *kSligSfx[] =
     {
         "Hi",
         "HereBoy",

@@ -1,9 +1,10 @@
 #ifndef _LIB_SND_HPP_
 #define _LIB_SND_HPP_
 
-
+#ifdef __cplusplus
 extern "C"
 {
+#endif
     #define SS_WAIT_COMPLETED   1
 
     #define SS_REV_TYPE_OFF        0
@@ -193,11 +194,11 @@ extern "C"
     extern _SsFCALL SsFCALL;
 
     struct SeqStruct;
-    extern SeqMarker _SsMarkCallback[32];
+    extern struct SeqMarker _SsMarkCallback[32];
     extern int VBLANK_MINUS;
     extern unsigned long _snd_openflag;
     extern int _snd_ev_flag;
-    extern SeqStruct *_ss_score[32];
+    extern struct SeqStruct *_ss_score[32];
     extern short _snd_seq_s_max;
     extern short _snd_seq_t_max;
 
@@ -226,10 +227,13 @@ extern "C"
 
     short SsUtSetReverbType(short);
     void SsUtSetReverbFeedback(short);
+    short SsVabOpenHead(unsigned char *addr, short vabId);
+    short SsVabTransBody(unsigned char* pVbData, short vabId);
 
     // Debugging
     void debug_dump_vh(unsigned long *pAddr, short vabId);
-
+#ifdef __cplusplus
 }
+#endif
 
 #endif // _LIB_SND_HPP_

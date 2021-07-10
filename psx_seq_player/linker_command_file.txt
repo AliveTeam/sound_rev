@@ -4,6 +4,8 @@
 	include "seqplayer.obj"
 	include "lib_snd.obj"
 	include "lib_spu.obj"
+	include "vs_vtc.obj"
+	include "vs_vt.obj"
 
 	inclib libsn.lib
 	inclib libds.lib
