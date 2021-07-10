@@ -26,8 +26,6 @@ extern "C"
     extern VabHdr *_svm_vab_vh[16];
     extern int _svm_vab_not_send_size;
 
-    // TODO
-
     void debug_dump_vh(unsigned long *pAddr, short vabId)
     {
         VabHdr *pHeader = (VabHdr *)pAddr;
@@ -50,10 +48,10 @@ extern "C"
         printf("Tone start %p\n", _svm_vab_tn[vabId]); // ok
     }
 
+    // TODO
     short SsUtSetReverbType(short);
     void SsUtSetReverbFeedback(short);
 
-    extern short SsVabTransBody(unsigned char *, short);
     extern short SsVabTransCompleted(short);
 
     extern void SsUtSetReverbDelay(short);
@@ -83,6 +81,32 @@ extern "C"
     void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
     void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
     void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
+
+    short SsVabTransBody(unsigned char* pVbData, short vabId)
+    {
+        if (vabId <= 16)
+        {
+            if (_svm_vab_used[vabId] == 2)
+            {
+                long spuUploadAddress = _svm_vab_start[vabId];
+
+                // Use DMA
+                SpuSetTransferMode(SPU_TRANSFER_BY_DMA);
+
+                // Set DMA src
+                spuUploadAddress = SpuSetTransferStartAddr(spuUploadAddress);
+                if (spuUploadAddress != 0)
+                {
+                    // DMA from RAM to SPU
+                    SpuWrite(pVbData, _svm_vab_total[vabId]);
+                    _svm_vab_used[vabId] = 1;
+                    return vabId;
+                }
+            }
+        }
+        _spu_setInTransfer(0);
+        return -1;
+    }
 
     typedef long (*VabAllocateCallBack)(unsigned int sizeInBytes, long mode, short vabId);
 

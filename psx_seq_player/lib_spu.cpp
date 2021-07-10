@@ -18,6 +18,10 @@ extern "C"
     long SpuMalloc(long size);
     void SpuFree(unsigned long addr);
 
+    long SpuSetTransferMode(long mode);
+    unsigned long SpuSetTransferStartAddr (unsigned long addr);
+    unsigned long SpuWrite (unsigned char *addr, unsigned long size);
+
     void SpuInit(void)
     {
         _SpuInit(0);
