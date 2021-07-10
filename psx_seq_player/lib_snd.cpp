@@ -16,15 +16,34 @@ extern "C"
 
     extern short note2pitch2;
     extern short _svm_damper;
-    extern ProgAtr **_svm_pg;
+    extern VagAtr* _svm_tn;
+    extern VabHdr* _svm_vh;
+    extern ProgAtr *_svm_pg;
+
+    extern short _svm_vab_count;
+
     extern ProgAtr *_svm_vab_pg[16];
     extern unsigned char _svm_vab_used[16];
-    extern short _svm_vab_count;
     extern long _svm_vab_start[16];
     extern VagAtr *_svm_vab_tn[16];
     extern int _svm_vab_total[16];
     extern VabHdr *_svm_vab_vh[16];
+
     extern int _svm_vab_not_send_size;
+    extern short kMaxPrograms;
+
+    struct struct_svm
+    {
+        unsigned char field_0_sep_sep_no;
+        unsigned char field_1_vabId;
+        short field_2_unknown; // maybe pad
+        short field_4_unknown;
+        unsigned char field_6_program;
+        unsigned char field_7_fake_program;
+        unsigned char field_8_unknown; // maybe pad
+    }; // NOTE: up to 32bytes in size
+
+    extern struct_svm _svm_cur;
 
     void debug_dump_vh(unsigned long *pAddr, short vabId)
     {
@@ -52,16 +71,12 @@ extern "C"
     short SsUtSetReverbType(short);
     void SsUtSetReverbFeedback(short);
 
-    extern short SsVabTransCompleted(short);
-
     extern void SsUtSetReverbDelay(short);
     extern short SsUtSetVagAtr(short, short, short, VagAtr *);
     extern short SsUtGetVagAtr(short, short, short, VagAtr *);
     extern void SsUtSetReverbDepth(short, short);
 
     void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
-
-    int _SsVmVSetUp(short vabId, short program);
 
     void _SsVmInit(int); // many unknown globals, inits voice structures
     short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData);
@@ -82,9 +97,33 @@ extern "C"
     void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
     void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
 
+
+    int _SsVmVSetUp(short vabId, short program)
+    {
+        if (vabId < 16)
+        {
+            if (_svm_vab_used[vabId] != 1)
+            {
+                return -1;
+            }
+
+            if (program < kMaxPrograms)
+            {
+                _svm_cur.field_1_vabId = vabId;
+                _svm_cur.field_6_program = program;
+                _svm_cur.field_7_fake_program = _svm_vab_pg[vabId][program].reserved1; // fake program index
+                _svm_tn = _svm_vab_tn[vabId];
+                _svm_vh = _svm_vab_vh[vabId];
+                _svm_pg = _svm_vab_pg[vabId];
+                return 0;
+            }
+        }
+        return -1;
+    }
+
     short SsVabTransBody(unsigned char* pVbData, short vabId)
     {
-        if (vabId <= 16)
+        if (vabId < 16)
         {
             if (_svm_vab_used[vabId] == 2)
             {
@@ -316,7 +355,7 @@ extern "C"
     {
         if (!_SsVmVSetUp(vabId, program))
         {
-            _svm_pg[program]->mvol = vol;
+            _svm_pg[program].mvol = vol;
         }
     }
 

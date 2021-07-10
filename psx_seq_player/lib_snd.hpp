@@ -201,7 +201,6 @@ extern "C"
     extern short _snd_seq_s_max;
     extern short _snd_seq_t_max;
 
-    extern short _svm_cur;
 
     void SsStart(void);
     void SsInit(void);
