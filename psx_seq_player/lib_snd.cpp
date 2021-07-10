@@ -78,8 +78,6 @@ extern "C"
 
     short SsUtGetVagAtr(short, short, short, VagAtr *);
 
-    extern void SsUtSetReverbDepth(short, short);
-
     void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
 
     void _SsVmInit(int); // many unknown globals, inits voice structures
@@ -100,6 +98,14 @@ extern "C"
     void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
     void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
     void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
+
+    void SsUtSetReverbDepth(short leftDepth, short rightDepth)
+    {
+        _svm_rattr.mask = SPU_REV_DEPTHL | SPU_REV_DEPTHR;
+        _svm_rattr.depth.left = (leftDepth * 0x7fff) / 127;
+        _svm_rattr.depth.right = (rightDepth * 0x7fff) / 127;
+        SpuSetReverbModeParam(&_svm_rattr);
+    }
 
     void SsUtSetReverbDelay(short delay)
     {
