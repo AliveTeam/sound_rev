@@ -38,16 +38,77 @@ extern "C"
 
     extern SpuReverbAttr _svm_rattr;
 
+    extern char _SsVmMaxVoice;
+
+    extern short _svm_okon1;
+    extern short _svm_okon2;
+    extern short _svm_okof1;
+    extern short _svm_orev1;
+    extern short _svm_orev2;
+    extern short _svm_onos1;
+    extern short _svm_onos2;
+
+    extern unsigned char _svm_auto_kof_mode;
+
+    extern short _svm_stereo_mono;
+
+    extern short _svm_sreg_buf[192];
+    extern char _svm_sreg_dirty[24];
+
+    struct SpuVoice
+    {
+        short field_0x0;
+        short field_0x2;
+        short field_0x4;
+        short field_0x6;
+        short field_0x8;
+        char field_0xa;
+        char pad5;
+        short field_0xc;
+        short pad6;
+        short field_0x10;
+        short field_0x12;
+        short field_0x14;
+        short field_0x16;
+        int pad7;
+        char pad8;
+        char field_0x1d;
+        short field_0x1e;
+        short field_0x20;
+        short field_0x22;
+        short field_0x24;
+        short field_0x26;
+        short pad3;
+        short field_0x2a;
+        short field_0x2c;
+        short field_0x2e;
+        short field_0x30;
+        short field_0x32;
+        short pad1;
+        short field_0x36;
+    };
+
+    extern SpuVoice _svm_voice[24];
+
     struct struct_svm
     {
-        unsigned char field_0_sep_sep_no;
-        unsigned char field_1_vabId;
-        short field_2_unknown; // maybe pad
-        short field_4_unknown;
-        unsigned char field_6_program;
-        unsigned char field_7_fake_program;
-        unsigned char field_8_unknown; // maybe pad
-    }; // NOTE: up to 32bytes in size
+        char field_0_sep_sep_no;
+        char field_1_vabId;
+        short field_0x2;
+        short field_0x4;
+        char field_6_program;
+        char field_7_fake_program;
+        char field_8_unknown;
+        char field_0x9;
+        char field_0xa;
+        char field_0xb;
+        short field_0xc;
+        int field_0xe;
+        int field_0x12;
+        short field_0x16;
+        short field_0x18;
+        int field_0x1a;
+    }; // 26 bytes, can't be bigger than 28 ?
 
     extern struct_svm _svm_cur;
 
@@ -74,9 +135,6 @@ extern "C"
     }
 
     // TODO
-    void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
-
-    void _SsVmInit(int); // many unknown globals, inits voice structures
     short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData);
     void _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
     void _SsVmKeyOff(int seq_sep_no, short vabId, short unknown37, short note);
@@ -87,13 +145,172 @@ extern "C"
     void _SsVmSeqKeyOff(short seq_idx);                                                                                                             // unknown var/struct (voice struct?)
     void _SsVmKeyOffNow(void);                                                                                                                      // many vars
     long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR); // low
-    void _SsVmFlush(void);                                                                                                                          // many vars
     void _SsSndCrescendo(short seqNum, short sepNum);
     void _SsSndTempo(short seqNum, short sepNum);
 
     void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
     void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
     void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
+
+    void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
+    void _SsVmKeyOffNow(void);
+    void _SsVmFlush(void);    // many vars
+
+    static char spuHeapBookKeeping[264]; // (8*(32+1))
+
+    void debug_dump_ssinit()
+    {
+        printf("_SsVmMaxVoice = %d\n", _SsVmMaxVoice);
+        for (unsigned int i = 0; i < _SsVmMaxVoice; i++)
+        {
+            printf("idx = %d\n", i);
+            printf("field_0x2 = %d\n", _svm_voice[i].field_0x2);
+            printf("field_0x0 = %d\n",_svm_voice[i].field_0x0);
+            printf("field_0x1d = %d\n",_svm_voice[i].field_0x1d);
+            printf("field_0x4 = %d\n", _svm_voice[i].field_0x4);
+            printf("field_0x6 = %d\n", _svm_voice[i].field_0x6);
+            printf("field_0x10 = %d\n", _svm_voice[i].field_0x10);
+            printf("field_0x12 = %d\n", _svm_voice[i].field_0x12);
+            printf("field_0x14 = %d\n", _svm_voice[i].field_0x14);
+            printf("field_0x16 = %d\n", _svm_voice[i].field_0x16);
+            printf("field_0x8 = %d\n", _svm_voice[i].field_0x8);
+            printf("field_0xc = %d\n", _svm_voice[i].field_0xc);
+            printf("field_0xa = %d\n", _svm_voice[i].field_0xa);
+            printf("field_0x36 = %d\n", _svm_voice[i].field_0x36);
+            printf("field_0x1e = %d\n", _svm_voice[i].field_0x1e);
+            printf("field_0x20 = %d\n", _svm_voice[i].field_0x20);
+            printf("field_0x22 = %d\n", _svm_voice[i].field_0x22);
+            printf("field_0x24 = %d\n", _svm_voice[i].field_0x24);
+            printf("field_0x2a = %d\n", _svm_voice[i].field_0x2a);
+            printf("field_0x2c = %d\n", _svm_voice[i].field_0x2c);
+            printf("field_0x2e = %d\n", _svm_voice[i].field_0x2e);
+            printf("field_0x30 = %d\n", _svm_voice[i].field_0x30);
+            printf("field_0x32 = %d\n", _svm_voice[i].field_0x32);
+            printf("field_0x26 = %d\n", _svm_voice[i].field_0x26);
+            printf("\n");
+        }
+
+        printf("_svm_rattr.mask %d\n", _svm_rattr.mask);
+        printf("_svm_rattr.depth.left %d\n", _svm_rattr.depth.left);
+        printf("_svm_rattr.depth.right %d\n", _svm_rattr.depth.right);
+        printf("_svm_rattr.mode %d\n", _svm_rattr.mode);
+
+        printf("_svm_okon1 %d\n", _svm_okon1);
+        printf("_svm_okon2 %d\n", _svm_okon2);
+        printf("_svm_okof1 %d\n", _svm_okof1);
+        printf("_svm_orev1 %d\n", _svm_orev1);
+        printf("_svm_orev2 %d\n", _svm_orev2);
+        printf("_svm_onos1 %d\n", _svm_onos1);
+        printf("_svm_onos2 %d\n", _svm_onos2);
+
+        printf("_svm_auto_kof_mode %d\n", _svm_auto_kof_mode);
+
+        printf("_svm_stereo_mono %d\n", _svm_stereo_mono);
+        printf("_svm_vab_not_send_size %d\n", _svm_vab_not_send_size);
+
+        printf("kMaxPrograms %d\n", kMaxPrograms);
+    }
+
+    //void _SsVmInit(int voiceCount);
+
+    void _SsVmInit(int voiceCount)
+    {
+        // TODO: Duckstation warns about 2 bad spu reg writes that comes from this func
+        _spu_setInTransfer(0);
+        
+        _svm_damper = 0;
+
+        SpuInitMalloc(32, spuHeapBookKeeping);
+
+        for (int i = 0; i < 192; i++)
+        {
+            _svm_sreg_buf[i] = 0;
+        }
+
+        for (int i = 0; i < 24; i++)
+        {
+            _svm_sreg_dirty[i] = 0;
+        }
+
+        _svm_vab_count = 0;
+
+        for (int i = 0; i < 16; i++)
+        {
+            _svm_vab_used[i] = 0;
+        }
+
+        _SsVmMaxVoice = voiceCount;
+
+        if (voiceCount > 24)
+        {
+            _SsVmMaxVoice = 24;
+        }
+
+        SpuVoiceAttr voiceAttr;
+        voiceAttr.mask = 0x60093; // TODO: Flags constants
+        voiceAttr.pitch = 0x1000;
+        voiceAttr.addr = 0x1000;
+
+        voiceAttr.volume.left = 0;
+        voiceAttr.volume.right = 0;
+
+        voiceAttr.adsr1 = 0x80FF;
+        voiceAttr.adsr2 = 0x4000;
+
+        for (short i = 0; i < _SsVmMaxVoice; i++)
+        {
+            voiceAttr.voice = 1 << (i & 0x1f);
+            _svm_voice[i].field_0x2 = 24;
+            _svm_voice[i].field_0x0 = 255;
+            _svm_voice[i].field_0x1d = 0;
+            _svm_voice[i].field_0x4 = 0;
+            _svm_voice[i].field_0x6 = 0;
+            _svm_voice[i].field_0x10 = -1;
+            _svm_voice[i].field_0x12 = 0;
+            _svm_voice[i].field_0x14 = 0;
+            _svm_voice[i].field_0x16 = 255;
+            _svm_voice[i].field_0x8 = 0;
+            _svm_voice[i].field_0xc = 0;
+            _svm_voice[i].field_0xa = 64;
+            _svm_voice[i].field_0x36 = 0;
+            _svm_voice[i].field_0x1e = 0;
+            _svm_voice[i].field_0x20 = 0;
+            _svm_voice[i].field_0x22 = 0;
+            _svm_voice[i].field_0x24 = 0;
+            _svm_voice[i].field_0x2a = 0;
+            _svm_voice[i].field_0x2c = 0;
+            _svm_voice[i].field_0x2e = 0;
+            _svm_voice[i].field_0x30 = 0;
+            _svm_voice[i].field_0x32 = 0;
+            _svm_voice[i].field_0x26 = 0;
+            SpuSetVoiceAttr(&voiceAttr);
+            _svm_cur.field_0x18 = i;
+            _SsVmKeyOffNow();
+        }
+
+        _svm_rattr.mask = 0;
+        _svm_rattr.depth.left = 0x3fff;
+        _svm_rattr.depth.right = 0x3fff;
+        _svm_rattr.mode = 0;
+
+        _svm_okon1 = 0;
+        _svm_okon2 = 0;
+        _svm_okof1 = 0;
+        _svm_orev1 = 0;
+        _svm_orev2 = 0;
+        _svm_onos1 = 0;
+        _svm_onos2 = 0;
+
+        _svm_auto_kof_mode = 0;
+
+        _svm_stereo_mono = 0;
+        _svm_vab_not_send_size = 0;
+
+        kMaxPrograms = 128;
+
+        _SsVmFlush();
+    }
+
 
     int _SsVmVSetUp(short vabId, short program)
     {
@@ -759,6 +976,7 @@ extern "C"
         SpuInit();
         SpuClearReverbWorkArea(SS_REV_TYPE_ECHO); // 7
         _SsInit();
+        debug_dump_ssinit();
     }
 
     // TODO

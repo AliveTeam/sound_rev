@@ -61,6 +61,32 @@ extern "C"
         long            feedback; /* Feedback    (ECHO only)          */
     } SpuReverbAttr;
 
+    typedef struct {
+        unsigned long	voice;		/* set voice:
+                                SpuSetVoiceAttr: each voice is a bit array
+                                SpuGetVoiceAttr: voice is a bit value */
+        unsigned long	mask;		/* settings attribute bit (invalid with Get) */
+        SpuVolume		volume;		/* volume                         */
+        SpuVolume		volmode;	/* volume mode                    */
+        SpuVolume		volumex;	/* current volume (invalid with Set) */
+        unsigned short	pitch;		/* tone (pitch setting) */
+        unsigned short	note;		/* tone (note setting) */
+        unsigned short	sample_note;	/* tone (note setting) */
+        short		envx;		/* current envelope value (invalid with Set) */
+        unsigned long	addr;		/* waveform data start address */
+        unsigned long	loop_addr;	/* loop start address */
+        long		a_mode;		/* Attack rate mode			*/
+        long		s_mode;		/* Sustain rate mode			*/
+        long		r_mode;		/* Release rate mode			*/
+        unsigned short	ar;		/* Attack rate				*/
+        unsigned short	dr;		/* Decay rate				*/
+        unsigned short	sr;		/* Sustain rate				*/
+        unsigned short	rr;		/* Release rate				*/
+        unsigned short	sl;		/* Sustain level			*/
+        unsigned short	adsr1;		/* adsr1 for `VagAtr' */
+        unsigned short	adsr2;		/* adsr2 for `VagAtr' */
+    } SpuVoiceAttr;
+
     extern long SpuClearReverbWorkArea (long mode);
 
     extern void SpuSetCommonAttr (SpuCommonAttr *attr);
@@ -81,6 +107,10 @@ extern "C"
     unsigned long SpuWrite (unsigned char *addr, unsigned long size);
 
     extern long SpuSetReverbModeParam (SpuReverbAttr *attr);
+    extern long SpuInitMalloc (long num, char *top);
+    
+    extern void SpuSetVoiceAttr (SpuVoiceAttr *arg);
+
 #ifdef __cplusplus
 }
 #endif

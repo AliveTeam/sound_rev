@@ -23,6 +23,10 @@ extern "C"
     unsigned long SpuWrite (unsigned char *addr, unsigned long size);
 
     extern long SpuSetReverbModeParam (SpuReverbAttr *attr);
+    extern long SpuInitMalloc (long num, char *top);
+
+
+    extern void SpuSetVoiceAttr (SpuVoiceAttr *arg);
 
     void SpuInit(void)
     {

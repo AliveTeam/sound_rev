@@ -74,4 +74,4 @@ del iso.bin -ea silentlycontinue
 copy main.exe iso\main.exe
 psxbuild -c iso.cat
 
-invoke-expression 'cmd /c start powershell -Command { Start-Process "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)\duckstation-qt-x64-ReleaseLTCG.exe" -WorkingDirectory "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)" -ArgumentList "-batch", "E:\Data\alive\reversing\sound_rev\psx_seq_player\iso.cue" }'
+invoke-expression 'cmd /c start powershell -Command { Start-Process "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)\duckstation-nogui-x64-ReleaseLTCG.exe" -WorkingDirectory "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)" -ArgumentList "-batch", "E:\Data\alive\reversing\sound_rev\psx_seq_player\iso.cue" }'
