@@ -52,7 +52,21 @@ extern "C"
 
     extern short _svm_stereo_mono;
 
-    extern short _svm_sreg_buf[192];
+    extern unsigned int _snd_vmask;
+
+    struct RegBufStruct
+    {
+        short field_0_vol_left;
+        short field_2_vol_right;
+        short field_4_pitch;
+        short field_6_vagAddr;
+        short field_8_adsr1;
+        short field_A_adsr2;
+        short field_0xc;
+        short field_0xe;
+        int pad;
+    };
+    extern RegBufStruct _svm_sreg_buf[24];
     extern char _svm_sreg_dirty[24];
 
     struct SpuVoice
@@ -60,32 +74,35 @@ extern "C"
         short field_0x0;
         short field_0x2;
         short field_0x4;
-        short field_0x6;
+        short field_6_keyStat;
         short field_0x8;
         char field_0xa;
         char pad5;
         short field_0xc;
         short pad6;
-        short field_0x10;
+        short field_10_seq_sep_no;
         short field_0x12;
-        short field_0x14;
+        short field_14_program;
         short field_0x16;
-        int pad7;
+        short field_18_vabId;
+        short field_0x1a;
         char pad8;
         char field_0x1d;
-        short field_0x1e;
-        short field_0x20;
-        short field_0x22;
-        short field_0x24;
-        short field_0x26;
-        short pad3;
-        short field_0x2a;
-        short field_0x2c;
-        short field_0x2e;
-        short field_0x30;
-        short field_0x32;
-        short pad1;
-        short field_0x36;
+
+        short field_1E_bAutoVol;
+        short field_20_autoVolAmount;
+        short field_22_autoVol_dt1;
+        short field_24_autoVol_dt2;
+        short field_26_autoVol_Start;
+        short field_28_autoVol_End;
+        short field_2A_bAutoPan;
+
+        short field_0x2c; // amount ?
+        short field_0x2e; // dt1?
+        short field_0x30; // dt2?
+        short field_0x32; // start ?
+        short pad1;       // end ?
+        short field_0x36; // pad ?
     };
 
     extern SpuVoice _svm_voice[24];
@@ -103,14 +120,19 @@ extern "C"
         char field_0xa;
         char field_0xb;
         short field_0xc;
-        int field_0xe;
-        int field_0x12;
+        short field_0xe;
+        short field_0x10;
+        short field_0x12;
+        short field_0x14;
         short field_0x16;
         short field_0x18;
         int field_0x1a;
     }; // 26 bytes, can't be bigger than 28 ?
 
     extern struct_svm _svm_cur;
+
+    // protos
+    int _SsVmVSetUp(short vabId, short program);
 
     void debug_dump_vh(unsigned long *pAddr, short vabId)
     {
@@ -152,9 +174,92 @@ extern "C"
     void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
     void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
 
-    void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr);
-    void _SsVmKeyOffNow(void);
     void _SsVmFlush(void);    // many vars
+
+    void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr)
+    {
+        SeqStruct* pSeq = &_ss_score[seq_sep_no & 0xff][(seq_sep_no & 0xff00) >> 8];
+        _SsVmVSetUp(vabId, program);
+
+        if (volr == 0)
+        {
+            volr = 1;
+        }
+
+        if (voll == 0)
+        {
+            voll = 1;
+        }
+
+        _svm_cur.field_0x14 = seq_sep_no;
+
+        for (int i = 0; i < _SsVmMaxVoice; i++)
+        {
+            SpuVoice &voice = _svm_voice[i];
+            if ((_snd_vmask & 1 << (i & 31)) == 0 &&
+                voice.field_10_seq_sep_no == seq_sep_no &&
+                voice.field_14_program == program &&
+                voice.field_18_vabId == vabId)
+            {
+                if ((pSeq->field_60_vol[pSeq->field_17_channel_idx] != voll) && (pSeq->field_60_vol[pSeq->field_17_channel_idx] == 0))
+                {
+                    pSeq->field_60_vol[pSeq->field_17_channel_idx] = 1;
+                }
+
+
+                VagAtr& vagAtr = _svm_tn[voice.field_0x12 /* * 0x10*/ + voice.field_0x16];   // TODO: field_0x12 an array of more VagAtr ??
+                int v1 = ((voice.field_0x8 * voll / 127) * _svm_vh->mvol * 0x3fff) / 0x3f01;
+                v1 = (v1 * _svm_pg[program].mvol * vagAtr.vol) / 0x3f01;
+
+                const int vagPan = vagAtr.pan;
+
+                int left = (v1 * pSeq->field_58_voll) / 127;
+                int right = (v1 * pSeq->field_5A_volr) / 127;
+
+                if (vagPan < 64)
+                {
+                    right = (right * vagPan) / 63;
+                }
+                else
+                {
+                    left = (left * (127 - vagPan)) / 63;
+                }
+
+                const int progPan = _svm_pg[_svm_voice[seq_sep_no].field_14_program].mpan;
+                if (progPan < 64)
+                {
+                    right = (right * progPan) / 63;
+                }
+                else
+                {
+                    left = (left * (127 - progPan)) / 63;
+                }
+
+                int tmp = volr & 0xff;
+                if (tmp < 64)
+                {
+                    right = (right * tmp) / 63;
+                }
+                else
+                {
+                    left = (left * (127 - tmp)) / 63;
+                }
+
+                if (_svm_stereo_mono == 1)
+                {
+                    if (left < right)
+                    {
+                        left = right;
+                    }
+                    right = left;
+                }
+
+                _svm_sreg_buf[i].field_0_vol_left = (short)((left * left) / 0x3fff);
+                _svm_sreg_buf[i].field_2_vol_right = (short)((right * right) / 0x3fff);
+                _svm_sreg_dirty[i] |= 3;
+            }
+        }
+    }
 
     static char spuHeapBookKeeping[264]; // (8*(32+1))
 
@@ -164,6 +269,7 @@ extern "C"
         for (unsigned int i = 0; i < _SsVmMaxVoice; i++)
         {
             printf("idx = %d\n", i);
+            /*
             printf("field_0x2 = %d\n", _svm_voice[i].field_0x2);
             printf("field_0x0 = %d\n",_svm_voice[i].field_0x0);
             printf("field_0x1d = %d\n",_svm_voice[i].field_0x1d);
@@ -187,6 +293,7 @@ extern "C"
             printf("field_0x30 = %d\n", _svm_voice[i].field_0x30);
             printf("field_0x32 = %d\n", _svm_voice[i].field_0x32);
             printf("field_0x26 = %d\n", _svm_voice[i].field_0x26);
+            */
             printf("\n");
         }
 
@@ -222,9 +329,17 @@ extern "C"
 
         SpuInitMalloc(32, spuHeapBookKeeping);
 
-        for (int i = 0; i < 192; i++)
+        for (int i = 0; i < 24; i++)
         {
-            _svm_sreg_buf[i] = 0;
+            _svm_sreg_buf[i].field_0_vol_left = 0;
+            _svm_sreg_buf[i].field_2_vol_right = 0;
+            _svm_sreg_buf[i].field_4_pitch = 0;
+            _svm_sreg_buf[i].field_6_vagAddr = 0;
+            _svm_sreg_buf[i].field_8_adsr1 = 0;
+            _svm_sreg_buf[i].field_A_adsr2 = 0;
+            _svm_sreg_buf[i].field_0xc = 0;
+            _svm_sreg_buf[i].field_0xe = 0;
+            _svm_sreg_buf[i].pad = 0;
         }
 
         for (int i = 0; i < 24; i++)
@@ -264,25 +379,28 @@ extern "C"
             _svm_voice[i].field_0x0 = 255;
             _svm_voice[i].field_0x1d = 0;
             _svm_voice[i].field_0x4 = 0;
-            _svm_voice[i].field_0x6 = 0;
-            _svm_voice[i].field_0x10 = -1;
+            _svm_voice[i].field_6_keyStat = 0;
+            _svm_voice[i].field_0x8 = 0;
+            _svm_voice[i].field_10_seq_sep_no = -1;
             _svm_voice[i].field_0x12 = 0;
-            _svm_voice[i].field_0x14 = 0;
+            _svm_voice[i].field_14_program = 0;
             _svm_voice[i].field_0x16 = 255;
             _svm_voice[i].field_0x8 = 0;
             _svm_voice[i].field_0xc = 0;
             _svm_voice[i].field_0xa = 64;
             _svm_voice[i].field_0x36 = 0;
-            _svm_voice[i].field_0x1e = 0;
-            _svm_voice[i].field_0x20 = 0;
-            _svm_voice[i].field_0x22 = 0;
-            _svm_voice[i].field_0x24 = 0;
-            _svm_voice[i].field_0x2a = 0;
+            
+            _svm_voice[i].field_1E_bAutoVol = 0;
+            _svm_voice[i].field_20_autoVolAmount = 0;
+            _svm_voice[i].field_22_autoVol_dt1 = 0;
+            _svm_voice[i].field_24_autoVol_dt2 = 0;
+
+            _svm_voice[i].field_2A_bAutoPan = 0;
             _svm_voice[i].field_0x2c = 0;
             _svm_voice[i].field_0x2e = 0;
             _svm_voice[i].field_0x30 = 0;
             _svm_voice[i].field_0x32 = 0;
-            _svm_voice[i].field_0x26 = 0;
+            _svm_voice[i].field_26_autoVol_Start = 0;
             SpuSetVoiceAttr(&voiceAttr);
             _svm_cur.field_0x18 = i;
             _SsVmKeyOffNow();
