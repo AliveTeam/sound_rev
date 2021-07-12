@@ -110,6 +110,12 @@ extern "C"
     extern long SpuInitMalloc (long num, char *top);
     
     extern void SpuSetVoiceAttr (SpuVoiceAttr *arg);
+    extern void SpuGetVoiceEnvelope (int vNum, short *envx);
+    extern unsigned long SpuSetNoiseVoice (long on_off, unsigned long voice_bit);
+    extern unsigned long SpuSetReverbVoice (long on_off, unsigned long voice_bit);
+    extern void SpuSetKey (long on_off, unsigned long voice_bit);
+    extern unsigned long SpuGetReverbVoice (void);
+    extern unsigned long SpuGetNoiseVoice (void);
 
 #ifdef __cplusplus
 }

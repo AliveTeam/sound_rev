@@ -40,13 +40,14 @@ extern "C"
 
     extern char _SsVmMaxVoice;
 
-    extern short _svm_okon1;
-    extern short _svm_okon2;
-    extern short _svm_okof1;
-    extern short _svm_orev1;
-    extern short _svm_orev2;
-    extern short _svm_onos1;
-    extern short _svm_onos2;
+    extern unsigned short _svm_okon1;
+    extern unsigned short _svm_okon2;
+    extern unsigned short _svm_okof1;
+    extern unsigned short _svm_okof2;
+    extern unsigned short _svm_orev1;
+    extern unsigned short _svm_orev2;
+    extern unsigned short _svm_onos1;
+    extern unsigned short _svm_onos2;
 
     extern unsigned char _svm_auto_kof_mode;
 
@@ -68,6 +69,9 @@ extern "C"
     };
     extern RegBufStruct _svm_sreg_buf[24];
     extern char _svm_sreg_dirty[24];
+
+    extern int _svm_envx_ptr;
+    extern int _svm_envx_hist[16];
 
     struct SpuVoice
     {
@@ -130,6 +134,10 @@ extern "C"
     }; // 26 bytes, can't be bigger than 28 ?
 
     extern struct_svm _svm_cur;
+    
+    typedef void (*AutoVolPanCallBack)(unsigned int voiceNum);
+    extern AutoVolPanCallBack _autovol;
+    extern AutoVolPanCallBack _autopan;
 
     // protos
     int _SsVmVSetUp(short vabId, short program);
@@ -174,7 +182,123 @@ extern "C"
     void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
     void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
 
-    void _SsVmFlush(void);    // many vars
+    void _SsVmFlush(void); // TODO: Can't link due to other globals being required
+    /*
+    void _SsVmFlush(void)
+    {
+        _svm_envx_ptr = (_svm_envx_ptr + 1) & 15;
+        _svm_envx_hist[_svm_envx_ptr] = 0;
+        for (int i = 0; i < _SsVmMaxVoice; i++)
+        {
+            SpuGetVoiceEnvelope(i, &_svm_voice[i].field_6_keyStat);
+            if (_svm_voice[i].field_6_keyStat == 0)
+            {
+                _svm_envx_hist[_svm_envx_ptr] |= 1 << (i & 31);
+            }
+        }
+
+        if (_svm_auto_kof_mode == 0)
+        {
+            unsigned int voiceBits = 0xffffffff;
+            for (int i = 0; i < 15; i++)
+            {
+                voiceBits &= _svm_envx_hist[i];
+            }
+
+            for (int i = 0; i < _SsVmMaxVoice; i++)
+            {
+                unsigned int mask = 1 << (i & 31);
+                if ((voiceBits & mask) != 0)
+                {
+                    if (_svm_voice[i].field_0x1d == 2)
+                    {
+                        unsigned int mask2 = 0;
+                        if (15 < i)
+                        {
+                            mask = 0;
+                            mask2 = 1 << (i - 0x10 & 31);
+                        }
+                        SpuSetNoiseVoice(0, (mask2 & 0xff) << 0x10 | mask);
+                    }
+                    _svm_voice[i].field_0x1d = 0;
+                }
+            }
+        }
+
+        _svm_okon1 = _svm_okon1 & ~_svm_okof1;
+        _svm_okon2 = _svm_okon2 & ~_svm_okof2;
+
+        for (int i = 0; i < 24; i++)
+        {
+            if (_svm_voice[i].field_1E_bAutoVol != 0)
+            {
+                _autovol(i);
+            }
+            if (_svm_voice[i].field_2A_bAutoPan != 0)
+            {
+                _autopan(i);
+            }
+        }
+
+        for (int i = 0; i < 24; i++)
+        {
+            SpuVoiceAttr voiceAttr;
+            voiceAttr.voice = 1 << (i & 31);
+            voiceAttr.mask = 0;
+
+            if ((_svm_sreg_dirty[i] & 1) != 0)
+            {
+                voiceAttr.mask |= 3;
+                voiceAttr.volume.left = _svm_sreg_buf[i].field_0_vol_left;
+                voiceAttr.volume.right = _svm_sreg_buf[i].field_2_vol_right;
+            }
+
+            if ((_svm_sreg_dirty[i] & 4) != 0)
+            {
+                voiceAttr.mask |= 0x10;
+                voiceAttr.pitch = _svm_sreg_buf[i].field_4_pitch;
+            }
+
+            if ((_svm_sreg_dirty[i] & 8) != 0)
+            {
+                voiceAttr.mask |= 0x80;
+                voiceAttr.addr = (_svm_sreg_buf[i].field_6_vagAddr) << 3;
+            }
+
+            if ((_svm_sreg_dirty[i] & 0x10) != 0)
+            {
+                voiceAttr.mask |= 0x60000;
+                voiceAttr.adsr1 = _svm_sreg_buf[i].field_8_adsr1;
+                voiceAttr.adsr2 = _svm_sreg_buf[i].field_A_adsr2;
+            }
+
+            if (voiceAttr.mask != 0)
+            {
+                SpuSetVoiceAttr(&voiceAttr);
+            }
+
+            _svm_sreg_dirty[i] = 0;
+        }
+
+        SpuSetKey(0, (_svm_okof2 << 16) | _svm_okof1); // TODO: Check is correct
+        SpuSetKey(1, (_svm_okon2 << 16) | _svm_okon1);
+
+        const int mask = 0xFFFFFF >> (24 - _SsVmMaxVoice);
+
+        const int v21 = ((_svm_orev2 << 16) | _svm_orev1) & mask;
+        SpuSetReverbVoice(8, v21 | SpuGetReverbVoice() & ~mask);
+
+        const int v22 = ((_svm_onos2 << 16) | _svm_onos1) & mask;
+        SpuSetNoiseVoice(8, v22 | SpuGetNoiseVoice() & ~mask);
+
+        _svm_okof1 = 0;
+        _svm_okon1 = 0;
+        _svm_okof2 = 0;
+        _svm_okon2 = 0;
+        _svm_onos2 = 0;
+        _svm_onos1 = 0;
+    }
+    */
 
     void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr)
     {
