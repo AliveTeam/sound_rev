@@ -171,16 +171,18 @@ extern "C"
         printf("Tone start %p\n", _svm_vab_tn[vabId]); // ok
     }
 
-    short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData); // todo
-    void vmNoiseOn(short voiceNum); // todo
-    void vmNoiseOff(void); // todo
-    short note2pitch(void);                          // TODO: Check proto
-    void _SsVmKeyOnNow(short vagCount, short pitch); // TODO: leaf func
-    void _SsSndCrescendo(short seqNum, short sepNum); // todo
-    void _SsSndTempo(short seqNum, short sepNum); // todo
-    short _SsVmAlloc(void); // todo
-    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch); // todo
-    extern void _SsContDataEntry(short, short, unsigned char);  // todo
+    short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData); // todo: leaf
+    void vmNoiseOn(short voiceNum); // todo: leaf + SpuSetNoiseClock
+    void vmNoiseOff(void); // todo: leaf
+    short note2pitch(void); // todo: leaf (ish - needs 1 more leaf func)
+
+    void _SsVmKeyOnNow(short vagCount, short pitch); // todo: leaf func
+    void _SsSndCrescendo(short seqNum, short sepNum); // todo: leaf func
+    void _SsSndTempo(short seqNum, short sepNum); // todo: leaf func
+    short _SsVmAlloc(void); // todo: leaf
+    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch); // todo: leaf
+    extern short SsUtGetProgAtr(short, short, ProgAtr*); // todo: leaf
+    extern void _SsContDataEntry(short, short, unsigned char);  // todo: leaf
 
     void _SsVmSetSeqVol(short seq_sep_num, short volL, short volR)
     {
