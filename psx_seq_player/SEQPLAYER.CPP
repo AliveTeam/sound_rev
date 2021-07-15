@@ -5,7 +5,9 @@
 #include <LIBDS.H>
 #include <STDIO.H>
 #include <LIBETC.H>
-#include <STRING.H>
+#define strlen strlen_hack
+#include <STRINGs.H>
+#undef strlen
 #include <KERNEL.H>
 
 #include "lib_spu.hpp"

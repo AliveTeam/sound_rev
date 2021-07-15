@@ -76,7 +76,7 @@ extern "C"
     {
         short field_0_vag_idx;
         short field_0x2;
-        short field_0x4;
+        short field_4_pitch;
         short field_6_keyStat;
         short field_8_voll;
         char field_0xa;
@@ -171,23 +171,102 @@ extern "C"
         printf("Tone start %p\n", _svm_vab_tn[vabId]); // ok
     }
 
-    // TODO
-    short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData);
-    void vmNoiseOn(short voiceNum);
-    void vmNoiseOff(void);
+    short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData); // todo
+    void vmNoiseOn(short voiceNum); // todo
+    void vmNoiseOff(void); // todo
     short note2pitch(void);                          // TODO: Check proto
-    void _SsVmKeyOnNow(short vagCount, short pitch); // TODO: Check proto
+    void _SsVmKeyOnNow(short vagCount, short pitch); // TODO: leaf func
+    void _SsSndCrescendo(short seqNum, short sepNum); // todo
+    void _SsSndTempo(short seqNum, short sepNum); // todo
+    short _SsVmAlloc(void); // todo
+    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch); // todo
+    extern void _SsContDataEntry(short, short, unsigned char);  // todo
 
-    short _SsVmAlloc(void);
+    void _SsVmSetSeqVol(short seq_sep_num, short volL, short volR)
+    {
+        SeqStruct *pSeq = &_ss_score[seq_sep_num & 0xff][(seq_sep_num & 0xff00) >> 8];
 
-    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch); // unknown func + globals
-    extern void _SsContDataEntry(short, short, unsigned char);                                      // med
+        pSeq->field_58_voll = volL;
+        pSeq->field_5A_volr = volR;
 
-    //_SsVmGetSeqVol(short seq_sep_num, short* pLeft, short* pRight)
-    void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr);                                                                                 // high
-    void _SsVmSeqKeyOff(short seq_idx);                                                                                                             // unknown var/struct (voice struct?)
-    void _SsSndCrescendo(short seqNum, short sepNum);
-    void _SsSndTempo(short seqNum, short sepNum);
+        if (pSeq->field_58_voll > 127)
+        {
+            pSeq->field_58_voll = 127;
+        }
+
+        if (pSeq->field_5A_volr > 127)
+        {
+            pSeq->field_5A_volr = 127;
+        }
+
+        for (int i = 0; i < _SsVmMaxVoice; i++)
+        {
+            SpuVoice& voice = _svm_voice[i];
+
+            if ((_snd_vmask & 1 << (i & 31)) == 0 &&
+                 voice.field_10_seq_sep_no == seq_sep_num &&
+                 voice.field_18_vabId == pSeq->field_26_vab_id)
+            {
+                _SsVmVSetUp(voice.field_18_vabId, voice.field_12_fake_program);
+                const short vol_factor = (((_svm_vh->mvol *
+                                     ((voice.field_8_voll * pSeq->field_60_vol[voice.field_C_channel_idx]) /
+                                      127) *
+                                     0x3fff) / 0x3f01) *
+                              _svm_pg[voice.field_14_program].mvol *
+                              _svm_tn[voice.field_12_fake_program * 16 + voice.field_16_vag_num].vol) / 0x3f01;
+
+                short voll_val = (vol_factor * pSeq->field_58_voll) / 127;
+                const short pan = _svm_tn[(voice.field_12_fake_program * 16) + voice.field_16_vag_num].pan;
+
+                short volr_val = (vol_factor * pSeq->field_5A_volr) / 127;
+                if (pan < 64)
+                {
+                    volr_val = (volr_val * pan) / 63;
+                }
+                else
+                {
+                    voll_val = (voll_val * (127 - pan)) / 63;
+                }
+
+                const short mpan = _svm_pg[voice.field_14_program].mpan;
+                if (mpan < 64)
+                {
+                    //volr_val = (uint)((ulonglong)((longlong)(int)((volr_val) * mpan) * 0x82082083) >> 0x25);
+                    volr_val = (volr_val * mpan) / 63;
+                }
+                else
+                {
+                    voll_val = ((voll_val) * (127 - mpan)) / 63;
+                }
+
+                const short voice_field_A = voice.field_0xa;
+                if (voice_field_A < 64)
+                {
+                    //volr_val = (uint)((ulonglong)((longlong)(int)((volr_val) * voice_field_A) * 0x82082083) >> 0x25);
+                    volr_val = (volr_val * voice_field_A) / 63;
+                }
+                else
+                {
+                    voll_val = ((voll_val) * (127 - voice_field_A)) / 63;
+                }
+
+                short left_final = voll_val;
+                if (_svm_stereo_mono == 1)
+                {
+                    if (left_final < (volr_val))
+                    {
+                        voll_val = volr_val;
+                    }
+                    left_final = voll_val;
+                    volr_val = voll_val;
+                }
+
+                _svm_sreg_buf[i].field_0_vol_left = (left_final * left_final) / 0x3fff;
+                _svm_sreg_buf[i].field_2_vol_right = (volr_val * volr_val) / 0x3fff;
+                _svm_sreg_dirty[i] |= 3;
+            }
+        }
+    }
 
     void _SsVmKeyOffNow(void)
     {
@@ -206,7 +285,7 @@ extern "C"
         }
 
         _svm_voice[_svm_cur.field_18_voice_idx].field_0x1d = 0;
-        _svm_voice[_svm_cur.field_18_voice_idx].field_0x4 = 0;
+        _svm_voice[_svm_cur.field_18_voice_idx].field_4_pitch = 0;
         _svm_voice[_svm_cur.field_18_voice_idx].field_0_vag_idx = 0;
 
         _svm_okof1 = _svm_okof1 | bitsLower;
@@ -214,6 +293,26 @@ extern "C"
 
         _svm_okon1 = _svm_okon1 & ~_svm_okof1;
         _svm_okon2 = _svm_okon2 & ~_svm_okof2;
+    }
+
+    void _SsVmSeqKeyOff(short seq_sep_no)
+    {
+        for (int i = 0; i < _SsVmMaxVoice; i++)
+        {
+            if ((_snd_vmask & 1 << (i & 31)) == 0 && _svm_voice[i].field_10_seq_sep_no == seq_sep_no)
+            {
+                _svm_cur.field_18_voice_idx = i;
+                _SsVmKeyOffNow();
+            }
+        }
+    }
+
+    void _SsVmGetSeqVol(short seq_sep_no, short *pVolL, short *pVolR)
+    {
+        SeqStruct* pStru = &_ss_score[seq_sep_no & 0xFF][(seq_sep_no & 0xFF00) >> 8];
+        _svm_cur.field_0_sep_sep_no_tonecount = seq_sep_no;
+        *pVolL = pStru->field_58_voll;
+        *pVolR = pStru->field_5A_volr;
     }
 
     void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
@@ -462,10 +561,10 @@ extern "C"
             printf("\n");
         }
 
-        printf("_svm_rattr.mask %d\n", _svm_rattr.mask);
+        //printf("_svm_rattr.mask %d\n", _svm_rattr.mask);
         printf("_svm_rattr.depth.left %d\n", _svm_rattr.depth.left);
         printf("_svm_rattr.depth.right %d\n", _svm_rattr.depth.right);
-        printf("_svm_rattr.mode %d\n", _svm_rattr.mode);
+        //printf("_svm_rattr.mode %d\n", _svm_rattr.mode);
 
         printf("_svm_okon1 %d\n", _svm_okon1);
         printf("_svm_okon2 %d\n", _svm_okon2);
@@ -542,7 +641,7 @@ extern "C"
             _svm_voice[i].field_0x2 = 24;
             _svm_voice[i].field_0_vag_idx = 255;
             _svm_voice[i].field_0x1d = 0;
-            _svm_voice[i].field_0x4 = 0;
+            _svm_voice[i].field_4_pitch = 0;
             _svm_voice[i].field_6_keyStat = 0;
             _svm_voice[i].field_8_voll = 0;
             _svm_voice[i].field_10_seq_sep_no = -1;
@@ -1614,17 +1713,6 @@ extern "C"
         pStru->field_27_panpot[pStru->field_17_channel_idx] = 64;
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
-
-    // TODO: Can't link till _SsVmSeqKeyOff and _SsVmSetSeqVol impl
-    /*
-    void _SsVmGetSeqVol(short seq_sep_no, short *pVolL, short *pVolR)
-    {
-        SeqStruct* pStru = &_ss_score[seq_sep_no & 0xFF][(seq_sep_no & 0xFF00) >> 8];
-        _svm_cur.field_0_sep_sep_no_tonecount = seq_sep_no;
-        *pVolL = pStru->field_58_voll;
-        *pVolR = pStru->field_5A_volr;
-    }
-    */
 
     void _SsSetControlChange(short seq_no, short sep_no, unsigned char control)
     {
