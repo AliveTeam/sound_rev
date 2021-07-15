@@ -175,28 +175,54 @@ extern "C"
     short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData);
     void vmNoiseOn(short voiceNum);
     void vmNoiseOff(void);
-    short note2pitch(void);                          // TODO: Check
-    void _SsVmKeyOnNow(short vagCount, short pitch); // TODO: Check
+    short note2pitch(void);                          // TODO: Check proto
+    void _SsVmKeyOnNow(short vagCount, short pitch); // TODO: Check proto
 
     short _SsVmAlloc(void);
 
-    // do _SsVmAlloc first
-    int _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
     void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch); // unknown func + globals
     extern void _SsContDataEntry(short, short, unsigned char);                                      // med
 
     //_SsVmGetSeqVol(short seq_sep_num, short* pLeft, short* pRight)
     void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr);                                                                                 // high
     void _SsVmSeqKeyOff(short seq_idx);                                                                                                             // unknown var/struct (voice struct?)
-    void _SsVmKeyOffNow(void);                                                                                                                      // many vars
-    long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR); // done
-    void _SsVmKeyOff(int seq_sep_no, short vabId, short program, short note); // done
     void _SsSndCrescendo(short seqNum, short sepNum);
     void _SsSndTempo(short seqNum, short sepNum);
+
+    void _SsVmKeyOffNow(void)
+    {
+        unsigned short bitsUpper = 0;
+        unsigned short bitsLower = 0;
+
+        if (_svm_cur.field_18_voice_idx < 16)
+        {
+            bitsLower = (1 << (_svm_cur.field_18_voice_idx & 31));
+            bitsUpper = 0;
+        }
+        else
+        {
+            bitsLower = 0;
+            bitsUpper = (1 << ((_svm_cur.field_18_voice_idx - 16) & 31));
+        }
+
+        _svm_voice[_svm_cur.field_18_voice_idx].field_0x1d = 0;
+        _svm_voice[_svm_cur.field_18_voice_idx].field_0x4 = 0;
+        _svm_voice[_svm_cur.field_18_voice_idx].field_0_vag_idx = 0;
+
+        _svm_okof1 = _svm_okof1 | bitsLower;
+        _svm_okof2 = _svm_okof2 | bitsUpper;
+
+        _svm_okon1 = _svm_okon1 & ~_svm_okof1;
+        _svm_okon2 = _svm_okon2 & ~_svm_okof2;
+    }
 
     void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
     void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
     void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
+
+    long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR); // done
+    void _SsVmKeyOff(int seq_sep_no, short vabId, short program, short note); // done
+    int _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27); // done
 
     void _SsVmFlush(void); // TODO: Can't link due to other globals being required
     /*
