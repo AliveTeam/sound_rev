@@ -60,36 +60,36 @@ extern "C"
         short field_0_vol_left;
         short field_2_vol_right;
         short field_4_pitch;
-        short field_6_vagAddr;
-        short field_8_adsr1;
-        short field_A_adsr2;
+        unsigned short field_6_vagAddr;
+        unsigned short field_8_adsr1;
+        unsigned short field_A_adsr2;
         short field_0xc;
         short field_0xe;
-        int pad;
     };
     extern RegBufStruct _svm_sreg_buf[24];
-    extern char _svm_sreg_dirty[24];
+    extern unsigned char _svm_sreg_dirty[24];
 
     extern int _svm_envx_ptr;
-    extern int _svm_envx_hist[16];
+    extern unsigned int _svm_envx_hist[16];
 
     struct SpuVoice
     {
-        short field_0x0;
+        short field_0_vag_idx;
         short field_0x2;
         short field_0x4;
         short field_6_keyStat;
-        short field_0x8;
+        short field_8_voll;
         char field_0xa;
         char pad5;
-        short field_0xc;
-        short pad6;
+        short field_C_channel_idx;
+        short field_E_note;
         short field_10_seq_sep_no;
-        short field_0x12;
+        short field_12_fake_program;
         short field_14_program;
-        short field_0x16;
+        short field_16_vag_num;
         short field_18_vabId;
-        short field_0x1a;
+        short field_1A_priority;
+
         char pad8;
         char field_0x1d;
 
@@ -106,7 +106,8 @@ extern "C"
         short field_0x30; // dt2?
         short field_0x32; // start ?
         short pad1;       // end ?
-        short field_0x36; // pad ?
+
+        short field_36_voll;
     };
 
     extern SpuVoice _svm_voice[24];
@@ -115,21 +116,27 @@ extern "C"
     {
         char field_0_sep_sep_no_tonecount;
         char field_1_vabId;
-        short field_2_note;
-        short field_0x4;
+        char field_2_note;
+        char field_0x3;
+        char field_4_voll;
+        char field_0x5;
         char field_6_program;
         char field_7_fake_program;
         char field_8_unknown;
         char field_0x9;
-        char field_0xa;
-        char field_0xb;
-        short field_0xc;
-        short field_0xe;
-        short field_0x10;
-        short field_0x12;
-        short field_0x14;
-        short field_0x16;
-        short field_0x18;
+        char field_A_mvol;
+        char field_B_mpan;
+        char field_C_vag_idx;
+        char field_D_vol;
+        char field_E_pan;
+        char field_F_prior;
+        char field_10_centre;
+        char field_11_shift;
+        char field_12_mode;
+        char field_0x13;
+        short field_14_seq_sep_no;
+        short field_16_vag_idx;
+        short field_18_voice_idx;
         int field_0x1a;
     }; // 26 bytes, can't be bigger than 28 ?
 
@@ -166,10 +173,15 @@ extern "C"
 
     // TODO
     short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData);
+    void vmNoiseOn(short voiceNum);
+    void vmNoiseOff(void);
+    short note2pitch(void);                          // TODO: Check
+    void _SsVmKeyOnNow(short vagCount, short pitch); // TODO: Check
+
+    short _SsVmAlloc(void);
 
     // do _SsVmAlloc first
     int _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
-    void _SsVmKeyOff(int seq_sep_no, short vabId, short unknown37, short note);
     void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch); // unknown func + globals
     extern void _SsContDataEntry(short, short, unsigned char);                                      // med
 
@@ -177,7 +189,8 @@ extern "C"
     void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr);                                                                                 // high
     void _SsVmSeqKeyOff(short seq_idx);                                                                                                             // unknown var/struct (voice struct?)
     void _SsVmKeyOffNow(void);                                                                                                                      // many vars
-    long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR); // low
+    long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR); // done
+    void _SsVmKeyOff(int seq_sep_no, short vabId, short program, short note); // done
     void _SsSndCrescendo(short seqNum, short sepNum);
     void _SsSndTempo(short seqNum, short sepNum);
 
@@ -318,7 +331,7 @@ extern "C"
             voll = 1;
         }
 
-        _svm_cur.field_0x14 = seq_sep_no;
+        _svm_cur.field_14_seq_sep_no = seq_sep_no;
 
         for (int i = 0; i < _SsVmMaxVoice; i++)
         {
@@ -333,8 +346,8 @@ extern "C"
                     pSeq->field_60_vol[pSeq->field_17_channel_idx] = 1;
                 }
 
-                VagAtr &vagAtr = _svm_tn[voice.field_0x12 /* * 0x10*/ + voice.field_0x16]; // TODO: field_0x12 an array of more VagAtr ??
-                int v1 = ((voice.field_0x8 * voll / 127) * _svm_vh->mvol * 0x3fff) / 0x3f01;
+                VagAtr &vagAtr = _svm_tn[(voice.field_12_fake_program * 16) + voice.field_16_vag_num];
+                int v1 = ((voice.field_8_voll * voll / 127) * _svm_vh->mvol * 0x3fff) / 0x3f01;
                 v1 = (v1 * _svm_pg[program].mvol * vagAtr.vol) / 0x3f01;
 
                 const int vagPan = vagAtr.pan;
@@ -465,7 +478,6 @@ extern "C"
             _svm_sreg_buf[i].field_A_adsr2 = 0;
             _svm_sreg_buf[i].field_0xc = 0;
             _svm_sreg_buf[i].field_0xe = 0;
-            _svm_sreg_buf[i].pad = 0;
         }
 
         for (int i = 0; i < 24; i++)
@@ -502,19 +514,19 @@ extern "C"
         {
             voiceAttr.voice = 1 << (i & 0x1f);
             _svm_voice[i].field_0x2 = 24;
-            _svm_voice[i].field_0x0 = 255;
+            _svm_voice[i].field_0_vag_idx = 255;
             _svm_voice[i].field_0x1d = 0;
             _svm_voice[i].field_0x4 = 0;
             _svm_voice[i].field_6_keyStat = 0;
-            _svm_voice[i].field_0x8 = 0;
+            _svm_voice[i].field_8_voll = 0;
             _svm_voice[i].field_10_seq_sep_no = -1;
-            _svm_voice[i].field_0x12 = 0;
+            _svm_voice[i].field_12_fake_program = 0;
             _svm_voice[i].field_14_program = 0;
-            _svm_voice[i].field_0x16 = 255;
-            _svm_voice[i].field_0x8 = 0;
-            _svm_voice[i].field_0xc = 0;
+            _svm_voice[i].field_16_vag_num = 255;
+            _svm_voice[i].field_8_voll = 0; // BUG: Already set ??
+            _svm_voice[i].field_C_channel_idx = 0;
             _svm_voice[i].field_0xa = 64;
-            _svm_voice[i].field_0x36 = 0;
+            _svm_voice[i].field_36_voll = 0;
 
             _svm_voice[i].field_1E_bAutoVol = 0;
             _svm_voice[i].field_20_autoVolAmount = 0;
@@ -528,7 +540,7 @@ extern "C"
             _svm_voice[i].field_0x32 = 0;
             _svm_voice[i].field_26_autoVol_Start = 0;
             SpuSetVoiceAttr(&voiceAttr);
-            _svm_cur.field_0x18 = i;
+            _svm_cur.field_18_voice_idx = i;
             _SsVmKeyOffNow();
         }
 
@@ -2274,15 +2286,211 @@ extern "C"
         return idx;
     }
 
+    void _SsVmDoAllocate(void)
+    {
+        _svm_voice[_svm_cur.field_18_voice_idx].field_6_keyStat = 0x7fff;
+
+        for (int i = 0; i < 16; i++)
+        {
+            _svm_envx_hist[i] &= ~(1 << (_svm_cur.field_18_voice_idx & 31));
+        }
+
+        unsigned short vag_spu_addr = 0;
+        if ((_svm_cur.field_16_vag_idx & 1) == 0)
+        {
+            vag_spu_addr = _svm_pg[(_svm_cur.field_16_vag_idx + -1) / 2].reserved3;
+        }
+        else
+        {
+            vag_spu_addr = _svm_pg[(_svm_cur.field_16_vag_idx + -1) / 2].reserved2;
+        }
+
+        _svm_sreg_buf[_svm_cur.field_18_voice_idx].field_6_vagAddr = vag_spu_addr;
+        _svm_sreg_dirty[_svm_cur.field_18_voice_idx] |= 8;
+
+        VagAtr *pVag = _svm_tn + (_svm_cur.field_7_fake_program * 16) + _svm_cur.field_C_vag_idx;
+        _svm_sreg_buf[_svm_cur.field_18_voice_idx].field_8_adsr1 = pVag->adsr1;
+        unsigned short damper = _svm_damper + (pVag->adsr2 & 0x1f);
+        if (31 < damper)
+        {
+            damper = 31;
+        }
+        _svm_sreg_buf[_svm_cur.field_18_voice_idx].field_A_adsr2 = damper | pVag->adsr2 & 0xffe0;
+        _svm_sreg_dirty[_svm_cur.field_18_voice_idx] |= 0x30;
+    }
+
+    void _SsVmKeyOff(int seq_sep_no, short vabId, short program, short note)
+    {
+        for (int i = 0; i < _SsVmMaxVoice; i++)
+        {
+            if ((_snd_vmask & 1) << (i & 31) == 0 &&
+                 _svm_voice[i].field_E_note == note &&
+                 _svm_voice[i].field_14_program == program &&
+                 _svm_voice[i].field_10_seq_sep_no == seq_sep_no &&
+                 _svm_voice[i].field_18_vabId == vabId)
+            {
+                if (_svm_voice[i].field_0_vag_idx == 0xff)
+                {
+                    vmNoiseOff();
+                }
+                else
+                {
+                    _svm_cur.field_18_voice_idx = i;
+                    _SsVmKeyOffNow();
+                }
+            }
+        }
+    }
+
+    void _SsVmSeKeyOff(short vabId, short program, short note)
+    {
+        _SsVmKeyOff(0x21, vabId, program, note);
+    }
+
+    int _SsVmKeyOn(int seq_sep_no, short vabId, short program, short note, short voll, short unknown27)
+    {
+        SeqStruct *pSeq = &_ss_score[seq_sep_no & 0xff][(seq_sep_no & 0xff00) >> 8];
+        int onKeysMask = -1;
+
+        if (_SsVmVSetUp(vabId, program) == 0)
+        {
+            _svm_cur.field_2_note = note;
+            _svm_cur.field_0x3 = 0;
+
+            if (seq_sep_no == 0x21)
+            {
+                _svm_cur.field_4_voll = voll;
+            }
+            else
+            {
+                _svm_cur.field_4_voll = (voll * pSeq->field_60_vol[pSeq->field_17_channel_idx]) / 127;
+            }
+
+            ProgAtr *pProgram = _svm_pg + program;
+            _svm_cur.field_0x5 = unknown27;
+            _svm_cur.field_A_mvol = pProgram->mvol;
+            _svm_cur.field_B_mpan = pProgram->mpan;
+            _svm_cur.field_0_sep_sep_no_tonecount = pProgram->tones;
+            _svm_cur.field_14_seq_sep_no = seq_sep_no;
+
+            if (_svm_cur.field_7_fake_program < _svm_vh->ps)
+            {
+                if (voll == 0)
+                {
+                    _SsVmKeyOff(seq_sep_no, vabId, program, note);
+                }
+                else
+                {
+                    // Get all the VAGs for this key
+                    unsigned char vagIndexNums[256];
+                    unsigned char vagNums[256];
+                    const int selectedVagCount = _SsVmSelectToneAndVag(vagIndexNums, vagNums);
+
+                    onKeysMask = 0;
+
+                    for (int i = 0; i < selectedVagCount; i++)
+                    {
+                        _svm_cur.field_16_vag_idx = vagNums[i];
+                        _svm_cur.field_C_vag_idx = vagIndexNums[i];
+                        VagAtr *pVag = _svm_tn + (_svm_cur.field_C_vag_idx + (_svm_cur.field_7_fake_program * 16));
+
+                        _svm_cur.field_F_prior = pVag->prior;
+                        _svm_cur.field_D_vol = pVag->vol;
+                        _svm_cur.field_E_pan = pVag->pan;
+                        _svm_cur.field_10_centre = pVag->center;
+                        _svm_cur.field_11_shift = pVag->shift;
+                        _svm_cur.field_12_mode = pVag->mode;
+
+                        // Allocate a voice
+                        _svm_cur.field_18_voice_idx = _SsVmAlloc();
+
+                        if (_svm_cur.field_18_voice_idx < _SsVmMaxVoice)
+                        {
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_0x1d = 1;
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_0x2 = 0;
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_10_seq_sep_no = seq_sep_no;
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_18_vabId = _svm_cur.field_1_vabId;
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_12_fake_program = _svm_cur.field_7_fake_program;
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_14_program = program;
+
+                            if (seq_sep_no != 0x21)
+                            {
+                                _svm_voice[_svm_cur.field_18_voice_idx].field_8_voll = voll;
+                                _svm_voice[_svm_cur.field_18_voice_idx].field_C_channel_idx = pSeq->field_17_channel_idx;
+                            }
+
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_0xa = unknown27;
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_36_voll = _svm_cur.field_4_voll;
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_16_vag_num = _svm_cur.field_C_vag_idx;
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_E_note = note;
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_1A_priority = _svm_cur.field_F_prior;
+                            _svm_voice[_svm_cur.field_18_voice_idx].field_0_vag_idx = _svm_cur.field_16_vag_idx;
+
+                            _SsVmDoAllocate();
+
+                            // Key the allocated voice on
+                            if (_svm_cur.field_16_vag_idx == 0xff)
+                            {
+                                vmNoiseOn(_svm_cur.field_18_voice_idx);
+                            }
+                            else
+                            {
+                                _SsVmKeyOnNow(selectedVagCount, note2pitch());
+                            }
+                            onKeysMask |= 1 << (_svm_cur.field_18_voice_idx & 31);
+                        }
+                        else
+                        {
+                            onKeysMask = -1;
+                        }
+                    }
+                }
+            }
+        }
+        return onKeysMask;
+    }
+
+    long _SsVmSeKeyOn(unsigned char vabId, unsigned char program, unsigned char note, unsigned char /*pitch*/, unsigned short voll, unsigned short param_6)
+    {
+        char unknown27;
+        unsigned int volr_;
+        unsigned int voll_;
+
+        voll_ = voll;
+        volr_ = param_6;
+        if (voll_ == volr_)
+        {
+            unknown27 = 64;
+        }
+        else
+        {
+            if (volr_ < voll_)
+            {
+                unknown27 = (char)((volr_ << 6) / voll_);
+            }
+            else
+            {
+                unknown27 = 127 - (char)((voll_ << 6) / volr_);
+                voll = param_6;
+            }
+        }
+        return _SsVmKeyOn(0x21, vabId, program, note, voll, unknown27);
+    }
+
 } // extern "C"
 
 static void PcsxReduxExit(short exitCode)
 {
     printf("Exiting with code %d\n", exitCode);
-    (*(volatile unsigned short*)0x1f802082) = exitCode;
+    (*(volatile unsigned short *)0x1f802082) = exitCode;
 }
 
-#define ASSERT_EQ(value1, value2) if (value1 != value2) { printf("%d != %d in %s %s:%d\n", value1, value2, __FUNCTION__, __FILE__, __LINE__); PcsxReduxExit(1); }
+#define ASSERT_EQ(value1, value2)                                                           \
+    if ((value1) != (value2))                                                               \
+    {                                                                                       \
+        printf("%d != %d in %s %s:%d\n", value1, value2, __FUNCTION__, __FILE__, __LINE__); \
+        PcsxReduxExit(1);                                                                   \
+    }
 
 static void Test_SsVmSelectToneAndVag()
 {
@@ -2291,23 +2499,22 @@ static void Test_SsVmSelectToneAndVag()
     _svm_cur.field_7_fake_program = 3;
     _svm_cur.field_2_note = 4;
 
-    VagAtr testVags[(3*16)+16] = {};
-    testVags[(3*16)+0].min = 4;
-    testVags[(3*16)+0].max = 4;
-    testVags[(3*16)+0].vag = 55;
+    VagAtr testVags[(3 * 16) + 16] = {};
+    testVags[(3 * 16) + 0].min = 4;
+    testVags[(3 * 16) + 0].max = 4;
+    testVags[(3 * 16) + 0].vag = 55;
 
-    testVags[(3*16)+3].min = 5;
-    testVags[(3*16)+3].max = 6;
-    testVags[(3*16)+3].vag = 11;
+    testVags[(3 * 16) + 3].min = 5;
+    testVags[(3 * 16) + 3].max = 6;
+    testVags[(3 * 16) + 3].vag = 11;
 
-    testVags[(3*16)+3].min = 2;
-    testVags[(3*16)+3].max = 3;
-    testVags[(3*16)+3].vag = 33;
+    testVags[(3 * 16) + 3].min = 2;
+    testVags[(3 * 16) + 3].max = 3;
+    testVags[(3 * 16) + 3].vag = 33;
 
-
-    testVags[(3*16)+4].min = 4;
-    testVags[(3*16)+4].max = 5;
-    testVags[(3*16)+4].vag = 22;
+    testVags[(3 * 16) + 4].min = 4;
+    testVags[(3 * 16) + 4].max = 5;
+    testVags[(3 * 16) + 4].vag = 22;
 
     _svm_tn = testVags;
 
@@ -2324,10 +2531,56 @@ static void Test_SsVmSelectToneAndVag()
     ASSERT_EQ(22, vagNums[1]);
 }
 
+static void Test_SsVmDoAllocate()
+{
+    SpuVoice voiceBuffer[24] = {};
+    _svm_voice = voiceBuffer;
+
+    _svm_cur.field_18_voice_idx = 3;
+    _svm_cur.field_C_vag_idx = 0;
+    _svm_cur.field_7_fake_program = 0;
+
+    for (int i = 0; i < 16; i++)
+    {
+        _svm_envx_hist[i] = 0xFFFFFFFF;
+    }
+
+    ProgAtr progs[16] = {};
+    _svm_pg = progs;
+    _svm_pg[(_svm_cur.field_16_vag_idx - 1) / 2].reserved3 = 1234;
+    for (int i = 0; i < 24; i++)
+    {
+        _svm_sreg_dirty[i] = 0;
+    }
+
+    VagAtr vags[16 * 5] = {};
+    _svm_tn = vags;
+    VagAtr *pVag = _svm_tn + (_svm_cur.field_7_fake_program * 16) + _svm_cur.field_C_vag_idx;
+    pVag->adsr1 = 4455;
+    pVag->adsr2 = 0xFFe1;
+
+    _svm_damper = 31;
+
+    _SsVmDoAllocate();
+
+    ASSERT_EQ(_svm_voice[_svm_cur.field_18_voice_idx].field_6_keyStat, 0x7fff);
+    for (int i = 0; i < 16; i++)
+    {
+        ASSERT_EQ(_svm_envx_hist[i], 0xFFFFFFF7); // check voice bit is cleared
+    }
+
+    ASSERT_EQ(_svm_sreg_buf[_svm_cur.field_18_voice_idx].field_6_vagAddr, 1234); // check vagAddr is copied as is
+    ASSERT_EQ(_svm_sreg_buf[_svm_cur.field_18_voice_idx].field_8_adsr1, 4455);   // check adsr1 is copied as is
+    ASSERT_EQ(_svm_sreg_buf[_svm_cur.field_18_voice_idx].field_A_adsr2, 0xFFFF);
+
+    ASSERT_EQ(_svm_sreg_dirty[_svm_cur.field_18_voice_idx], 0x30 | 0x8); // check correct regs are set
+}
+
 void DoTests()
 {
     printf("Tests start\n");
     Test_SsVmSelectToneAndVag();
+    Test_SsVmDoAllocate();
     printf("Tests end\n");
     PcsxReduxExit(0);
 }
