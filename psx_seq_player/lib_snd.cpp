@@ -2257,8 +2257,6 @@ extern "C"
         }
     }
 
-    short _SsVmSelectToneAndVag(unsigned char *pVagAttrIdx, unsigned char *pVagNums);
-
     short _SsVmSelectToneAndVag(unsigned char *pVagAttrIdx, unsigned char *pVagNums)
     {
         short idx = 0;
@@ -2268,34 +2266,12 @@ extern "C"
             // Get all the vags that are within this note range
             if (pVagAttr->min <= _svm_cur.field_2_note && _svm_cur.field_2_note <= pVagAttr->max)
             {
-                pVagNums[idx] = *(unsigned char*)&pVagAttr->vag;
+                pVagNums[idx] = pVagAttr->vag;
                 pVagAttrIdx[idx] = i;
                 idx++;
             }
         }
         return idx;
-
-        /*
-        if (0 < _svm_cur.field_0_sep_sep_no_tonecount)
-        {
-            idx_shifted = 0;
-            uVar1 = 0;
-            do
-            {
-                pVagAttr = _svm_tn + _svm_cur.field_7_fake_program * 0x10 + (idx_shifted >> 0x18);
-                uVar2 = uVar1;
-                if (((int)(uint)pVagAttr->min <= (int)_svm_cur.field_2_note) &&
-                    ((int)_svm_cur.field_2_note <= (int)(uint)pVagAttr->max))
-                {
-                    uVar2 = uVar1 + 1;
-                    pVagNums[uVar1 & 0xff] = *(byte *)&pVagAttr->vag;
-                    pVagAttrIdx[uVar1 & 0xff] = counter;
-                }
-                counter = counter + 1;
-                idx_shifted = (uint)counter << 0x18;
-                uVar1 = uVar2;
-            } while ((char)counter < _svm_cur.field_0_sep_sep_no_tonecount);
-        }*/
     }
 
 } // extern "C"
