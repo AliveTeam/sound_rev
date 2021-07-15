@@ -236,4 +236,6 @@ extern "C"
 }
 #endif
 
+void DoTests();
+
 #endif // _LIB_SND_HPP_

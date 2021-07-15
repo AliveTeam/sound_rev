@@ -57,21 +57,54 @@ del main.exe -ea silentlycontinue
 del main.cpe -ea silentlycontinue
 del *.obj -ea silentlycontinue
 
-ccpsx -O2 -G 8 -g -c -Wall "seqplayer.cpp" "-oseqplayer.obj" -I $Env:C_INCLUDE_PATH
-ccpsx -O2 -G 8 -g -c -Wall "lib_snd.cpp" "-olib_snd.obj" -I $Env:C_INCLUDE_PATH
-ccpsx -O2 -G 8 -g -c -Wall "lib_spu.cpp" "-olib_spu.obj" -I $Env:C_INCLUDE_PATH
-ccpsx -O2 -c -Wall "vs_vtc.c" "-oVS_VTC.obj" -I $Env:C_INCLUDE_PATH
-ccpsx -O2 -c -Wall "vs_vt.c" "-oVS_VT.obj" -I $Env:C_INCLUDE_PATH
+$testOnly = $false
 
-pause
+$defineTest = ""
+if ($testOnly -eq $true)
+{
+    $defineTest = "-DTEST_ONLY"
+}
+
+ccpsx -O2 -G 8 -g -c -Wall $defineTest "seqplayer.cpp" "-oseqplayer.obj" -I $Env:C_INCLUDE_PATH
+if ($lastExitCode -ne 0) {Write-Error "Command exited with code " $lastExitCode}
+
+ccpsx -O2 -G 8 -g -c -Wall $defineTest "lib_snd.cpp" "-olib_snd.obj" -I $Env:C_INCLUDE_PATH
+if ($lastExitCode -ne 0) {Write-Error "Command exited with code " $lastExitCode}
+
+ccpsx -O2 -G 8 -g -c -Wall $defineTest "lib_spu.cpp" "-olib_spu.obj" -I $Env:C_INCLUDE_PATH
+if ($lastExitCode -ne 0) {Write-Error "Command exited with code " $lastExitCode}
+
+ccpsx -O2 -c -Wall $defineTest "vs_vtc.c" "-oVS_VTC.obj" -I $Env:C_INCLUDE_PATH
+if ($lastExitCode -ne 0) {Write-Error "Command exited with code " $lastExitCode}
+
+ccpsx -O2 -c -Wall $defineTest "vs_vt.c" "-oVS_VT.obj" -I $Env:C_INCLUDE_PATH
+if ($lastExitCode -ne 0) {Write-Error "Command exited with code " $lastExitCode}
+
+#pause
 
 psylink.exe /m /wl /wm /c /l $Env:LIBRARY_PATH "@$PSScriptRoot\linker_command_file.txt",$PSScriptRoot\main.cpe,$PSScriptRoot\main.sym,$PSScriptRoot\main.map
+if ($lastExitCode -ne 0) {Write-Error "Command exited with code " $lastExitCode}
 
 cpe2exe main.cpe
+if ($lastExitCode -ne 0) {Write-Error "Command exited with code " $lastExitCode}
+
 del iso\main.exe -ea silentlycontinue
 del iso.cue -ea silentlycontinue
 del iso.bin -ea silentlycontinue
 copy main.exe iso\main.exe
-psxbuild -c iso.cat
 
-invoke-expression 'cmd /c start powershell -Command { Start-Process "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)\duckstation-nogui-x64-ReleaseLTCG.exe" -WorkingDirectory "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)" -ArgumentList "-batch", "E:\Data\alive\reversing\sound_rev\psx_seq_player\iso.cue" }'
+if ($testOnly -eq $false)
+{
+    Write-Host "Build iso..."
+    psxbuild -c iso.cat
+}
+
+Write-Host "Emu boot.."
+if ($testOnly -eq $false)
+{
+    invoke-expression 'cmd /c start powershell -Command { Start-Process "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)\duckstation-nogui-x64-ReleaseLTCG.exe" -WorkingDirectory "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)" -ArgumentList "-batch", "E:\Data\alive\reversing\sound_rev\psx_seq_player\iso.cue" }'
+}
+else
+{
+    C:\Users\paul\Downloads\pcsx-redux-nightly-4530.20210713.2-x64\pcsx-redux.exe -run -bios "C:\Users\paul\Downloads\pcsx-redux-nightly-4530.20210713.2-x64\openbios.bin" -stdout -testmode -loadexe E:\Data\alive\reversing\sound_rev\psx_seq_player\main.exe
+}

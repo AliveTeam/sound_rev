@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <libetc.h> // ResetCallback
 
-#define AddBytes(T, ptr, bytes)  reinterpret_cast<T *>(reinterpret_cast<unsigned char *>(ptr) + bytes)
+#define AddBytes(T, ptr, bytes) reinterpret_cast<T *>(reinterpret_cast<unsigned char *>(ptr) + bytes)
 
 /*
 template <class T, class Y>
@@ -20,8 +20,8 @@ extern "C"
 
     extern short note2pitch2;
     extern short _svm_damper;
-    extern VagAtr* _svm_tn;
-    extern VabHdr* _svm_vh;
+    extern VagAtr *_svm_tn;
+    extern VabHdr *_svm_vh;
     extern ProgAtr *_svm_pg;
 
     extern short _svm_vab_count;
@@ -113,9 +113,9 @@ extern "C"
 
     struct struct_svm
     {
-        char field_0_sep_sep_no;
+        char field_0_sep_sep_no_tonecount;
         char field_1_vabId;
-        short field_0x2;
+        short field_2_note;
         short field_0x4;
         char field_6_program;
         char field_7_fake_program;
@@ -134,7 +134,7 @@ extern "C"
     }; // 26 bytes, can't be bigger than 28 ?
 
     extern struct_svm _svm_cur;
-    
+
     typedef void (*AutoVolPanCallBack)(unsigned int voiceNum);
     extern AutoVolPanCallBack _autovol;
     extern AutoVolPanCallBack _autopan;
@@ -166,11 +166,14 @@ extern "C"
 
     // TODO
     short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData);
-    void _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
+
+    // do _SsVmAlloc first
+    int _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27);
     void _SsVmKeyOff(int seq_sep_no, short vabId, short unknown37, short note);
     void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch); // unknown func + globals
     extern void _SsContDataEntry(short, short, unsigned char);                                      // med
 
+    //_SsVmGetSeqVol(short seq_sep_num, short* pLeft, short* pRight)
     void _SsVmSetSeqVol(short seq_sep_num, short voll, short volr);                                                                                 // high
     void _SsVmSeqKeyOff(short seq_idx);                                                                                                             // unknown var/struct (voice struct?)
     void _SsVmKeyOffNow(void);                                                                                                                      // many vars
@@ -302,7 +305,7 @@ extern "C"
 
     void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr)
     {
-        SeqStruct* pSeq = &_ss_score[seq_sep_no & 0xff][(seq_sep_no & 0xff00) >> 8];
+        SeqStruct *pSeq = &_ss_score[seq_sep_no & 0xff][(seq_sep_no & 0xff00) >> 8];
         _SsVmVSetUp(vabId, program);
 
         if (volr == 0)
@@ -330,8 +333,7 @@ extern "C"
                     pSeq->field_60_vol[pSeq->field_17_channel_idx] = 1;
                 }
 
-
-                VagAtr& vagAtr = _svm_tn[voice.field_0x12 /* * 0x10*/ + voice.field_0x16];   // TODO: field_0x12 an array of more VagAtr ??
+                VagAtr &vagAtr = _svm_tn[voice.field_0x12 /* * 0x10*/ + voice.field_0x16]; // TODO: field_0x12 an array of more VagAtr ??
                 int v1 = ((voice.field_0x8 * voll / 127) * _svm_vh->mvol * 0x3fff) / 0x3f01;
                 v1 = (v1 * _svm_pg[program].mvol * vagAtr.vol) / 0x3f01;
 
@@ -448,7 +450,7 @@ extern "C"
     {
         // TODO: Duckstation warns about 2 bad spu reg writes that comes from this func
         _spu_setInTransfer(0);
-        
+
         _svm_damper = 0;
 
         SpuInitMalloc(32, spuHeapBookKeeping);
@@ -513,7 +515,7 @@ extern "C"
             _svm_voice[i].field_0xc = 0;
             _svm_voice[i].field_0xa = 64;
             _svm_voice[i].field_0x36 = 0;
-            
+
             _svm_voice[i].field_1E_bAutoVol = 0;
             _svm_voice[i].field_20_autoVolAmount = 0;
             _svm_voice[i].field_22_autoVol_dt1 = 0;
@@ -553,7 +555,6 @@ extern "C"
         _SsVmFlush();
     }
 
-
     int _SsVmVSetUp(short vabId, short program)
     {
         if (vabId < 16)
@@ -577,7 +578,7 @@ extern "C"
         return -1;
     }
 
-    short SsUtSetVagAtr(short vabId, short progNum, short toneNum, VagAtr * pVagAttr)
+    short SsUtSetVagAtr(short vabId, short progNum, short toneNum, VagAtr *pVagAttr)
     {
         if (_svm_vab_used[vabId] == 1)
         {
@@ -610,7 +611,7 @@ extern "C"
         return -1;
     }
 
-    void SsUtGetVagAtr(short vabId, short progNum, short toneNum, VagAtr * pVagAttr)
+    void SsUtGetVagAtr(short vabId, short progNum, short toneNum, VagAtr *pVagAttr)
     {
         if (_svm_vab_used[vabId] == 1)
         {
@@ -677,14 +678,14 @@ extern "C"
             {
                 reverbMode = type | SPU_REV_MODE_CLEAR_WA; // clear work area
             }
-            
+
             _svm_rattr.mode = reverbMode;
 
             if (type == SPU_REV_MODE_OFF)
             {
                 SpuSetReverb(0);
             }
-            
+
             SpuSetReverbModeParam(&_svm_rattr);
         }
         else
@@ -694,7 +695,7 @@ extern "C"
         return type;
     }
 
-    short SsVabTransBody(unsigned char* pVbData, short vabId)
+    short SsVabTransBody(unsigned char *pVbData, short vabId)
     {
         if (vabId < 16)
         {
@@ -1581,7 +1582,7 @@ extern "C"
     void _SsVmGetSeqVol(short seq_sep_no, short *pVolL, short *pVolR)
     {
         SeqStruct* pStru = &_ss_score[seq_sep_no & 0xFF][(seq_sep_no & 0xFF00) >> 8];
-        _svm_cur.field_0_sep_sep_no = seq_sep_no;
+        _svm_cur.field_0_sep_sep_no_tonecount = seq_sep_no;
         *pVolL = pStru->field_58_voll;
         *pVolR = pStru->field_5A_volr;
     }
@@ -2256,4 +2257,101 @@ extern "C"
         }
     }
 
+    short _SsVmSelectToneAndVag(unsigned char *pVagAttrIdx, unsigned char *pVagNums);
+
+    short _SsVmSelectToneAndVag(unsigned char *pVagAttrIdx, unsigned char *pVagNums)
+    {
+        short idx = 0;
+        for (unsigned int i = 0; i < _svm_cur.field_0_sep_sep_no_tonecount; i++)
+        {
+            VagAtr *pVagAttr = &_svm_tn[(_svm_cur.field_7_fake_program * 16) + i];
+            // Get all the vags that are within this note range
+            if (pVagAttr->min <= _svm_cur.field_2_note && _svm_cur.field_2_note <= pVagAttr->max)
+            {
+                pVagNums[idx] = *(unsigned char*)&pVagAttr->vag;
+                pVagAttrIdx[idx] = i;
+                idx++;
+            }
+        }
+        return idx;
+
+        /*
+        if (0 < _svm_cur.field_0_sep_sep_no_tonecount)
+        {
+            idx_shifted = 0;
+            uVar1 = 0;
+            do
+            {
+                pVagAttr = _svm_tn + _svm_cur.field_7_fake_program * 0x10 + (idx_shifted >> 0x18);
+                uVar2 = uVar1;
+                if (((int)(uint)pVagAttr->min <= (int)_svm_cur.field_2_note) &&
+                    ((int)_svm_cur.field_2_note <= (int)(uint)pVagAttr->max))
+                {
+                    uVar2 = uVar1 + 1;
+                    pVagNums[uVar1 & 0xff] = *(byte *)&pVagAttr->vag;
+                    pVagAttrIdx[uVar1 & 0xff] = counter;
+                }
+                counter = counter + 1;
+                idx_shifted = (uint)counter << 0x18;
+                uVar1 = uVar2;
+            } while ((char)counter < _svm_cur.field_0_sep_sep_no_tonecount);
+        }*/
+    }
+
 } // extern "C"
+
+static void PcsxReduxExit(short exitCode)
+{
+    printf("Exiting with code %d\n", exitCode);
+    (*(volatile unsigned short*)0x1f802082) = exitCode;
+}
+
+#define ASSERT_EQ(value1, value2) if (value1 != value2) { printf("%d != %d in %s %s:%d\n", value1, value2, __FUNCTION__, __FILE__, __LINE__); PcsxReduxExit(1); }
+
+static void Test_SsVmSelectToneAndVag()
+{
+    // Set up
+    _svm_cur.field_0_sep_sep_no_tonecount = 5;
+    _svm_cur.field_7_fake_program = 3;
+    _svm_cur.field_2_note = 4;
+
+    VagAtr testVags[(3*16)+16] = {};
+    testVags[(3*16)+0].min = 4;
+    testVags[(3*16)+0].max = 4;
+    testVags[(3*16)+0].vag = 55;
+
+    testVags[(3*16)+3].min = 5;
+    testVags[(3*16)+3].max = 6;
+    testVags[(3*16)+3].vag = 11;
+
+    testVags[(3*16)+3].min = 2;
+    testVags[(3*16)+3].max = 3;
+    testVags[(3*16)+3].vag = 33;
+
+
+    testVags[(3*16)+4].min = 4;
+    testVags[(3*16)+4].max = 5;
+    testVags[(3*16)+4].vag = 22;
+
+    _svm_tn = testVags;
+
+    unsigned char vags[256] = {};
+    unsigned char vagNums[256] = {};
+    const short ret = _SsVmSelectToneAndVag(vags, vagNums);
+
+    ASSERT_EQ(ret, 2);
+
+    ASSERT_EQ(0, vags[0]);
+    ASSERT_EQ(4, vags[1]);
+
+    ASSERT_EQ(55, vagNums[0]);
+    ASSERT_EQ(22, vagNums[1]);
+}
+
+void DoTests()
+{
+    printf("Tests start\n");
+    Test_SsVmSelectToneAndVag();
+    printf("Tests end\n");
+    PcsxReduxExit(0);
+}

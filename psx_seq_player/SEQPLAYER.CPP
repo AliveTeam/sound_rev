@@ -1469,6 +1469,11 @@ static SfxPlayer gSfxPlayer;
 
 int main()
 {
+    #ifdef TEST_ONLY
+    printf("Build time %s\n", __TIME__);
+    DoTests();
+    #endif
+
     //STATIC_ASSERT(1,sizeof(SeqStruct)==0xB0);
 
     ::ResetCallback();
