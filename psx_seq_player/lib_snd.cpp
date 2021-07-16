@@ -14,46 +14,64 @@ static inline T *AddBytes(Y ptr, int bytes)
     return reinterpret_cast<T *>(reinterpret_cast<unsigned char *>(ptr) + bytes);
 }
 */
+//#define REPLACE_LIB
+#ifdef REPLACE_LIB
+#define LIBVAR
+#define VOID_STUB { }
+#define INT_STUB { return 0;}
+#else
+#define LIBVAR extern
+#define VOID_STUB ;
+#define INT_STUB ;
+#endif
 
 extern "C"
 {
+    LIBVAR _SsFCALL SsFCALL;
+    LIBVAR struct SeqMarker _SsMarkCallback[32];
+    LIBVAR int VBLANK_MINUS;
+    LIBVAR unsigned long _snd_openflag;
+    LIBVAR int _snd_ev_flag;
+    LIBVAR struct SeqStruct *_ss_score[32];
+    LIBVAR short _snd_seq_s_max;
+    LIBVAR short _snd_seq_t_max;
 
-    extern short note2pitch2;
-    extern short _svm_damper;
-    extern VagAtr *_svm_tn;
-    extern VabHdr *_svm_vh;
-    extern ProgAtr *_svm_pg;
+    LIBVAR short note2pitch2;
+    LIBVAR short _svm_damper;
+    LIBVAR VagAtr *_svm_tn;
+    LIBVAR VabHdr *_svm_vh;
+    LIBVAR ProgAtr *_svm_pg;
 
-    extern short _svm_vab_count;
+    LIBVAR short _svm_vab_count;
 
-    extern ProgAtr *_svm_vab_pg[16];
-    extern unsigned char _svm_vab_used[16];
-    extern long _svm_vab_start[16];
-    extern VagAtr *_svm_vab_tn[16];
-    extern int _svm_vab_total[16];
-    extern VabHdr *_svm_vab_vh[16];
+    LIBVAR ProgAtr *_svm_vab_pg[16];
+    LIBVAR unsigned char _svm_vab_used[16];
+    LIBVAR long _svm_vab_start[16];
+    LIBVAR VagAtr *_svm_vab_tn[16];
+    LIBVAR int _svm_vab_total[16];
+    LIBVAR VabHdr *_svm_vab_vh[16];
 
-    extern int _svm_vab_not_send_size;
-    extern short kMaxPrograms;
+    LIBVAR int _svm_vab_not_send_size;
+    LIBVAR short kMaxPrograms;
 
-    extern SpuReverbAttr _svm_rattr;
+    LIBVAR SpuReverbAttr _svm_rattr;
 
-    extern char _SsVmMaxVoice;
+    LIBVAR char _SsVmMaxVoice;
 
-    extern unsigned short _svm_okon1;
-    extern unsigned short _svm_okon2;
-    extern unsigned short _svm_okof1;
-    extern unsigned short _svm_okof2;
-    extern unsigned short _svm_orev1;
-    extern unsigned short _svm_orev2;
-    extern unsigned short _svm_onos1;
-    extern unsigned short _svm_onos2;
+    LIBVAR unsigned short _svm_okon1;
+    LIBVAR unsigned short _svm_okon2;
+    LIBVAR unsigned short _svm_okof1;
+    LIBVAR unsigned short _svm_okof2;
+    LIBVAR unsigned short _svm_orev1;
+    LIBVAR unsigned short _svm_orev2;
+    LIBVAR unsigned short _svm_onos1;
+    LIBVAR unsigned short _svm_onos2;
 
-    extern unsigned char _svm_auto_kof_mode;
+    LIBVAR unsigned char _svm_auto_kof_mode;
 
-    extern short _svm_stereo_mono;
+    LIBVAR short _svm_stereo_mono;
 
-    extern unsigned int _snd_vmask;
+    LIBVAR unsigned int _snd_vmask;
 
     struct RegBufStruct
     {
@@ -66,11 +84,11 @@ extern "C"
         short field_0xc;
         short field_0xe;
     };
-    extern RegBufStruct _svm_sreg_buf[24];
-    extern unsigned char _svm_sreg_dirty[24];
+    LIBVAR RegBufStruct _svm_sreg_buf[24];
+    LIBVAR unsigned char _svm_sreg_dirty[24];
 
-    extern int _svm_envx_ptr;
-    extern unsigned int _svm_envx_hist[16];
+    LIBVAR int _svm_envx_ptr;
+    LIBVAR unsigned int _svm_envx_hist[16];
 
     struct SpuVoice
     {
@@ -110,7 +128,7 @@ extern "C"
         short field_36_voll;
     };
 
-    extern SpuVoice _svm_voice[24];
+    LIBVAR SpuVoice _svm_voice[24];
 
     struct struct_svm
     {
@@ -140,11 +158,11 @@ extern "C"
         int field_0x1a;
     }; // 26 bytes, can't be bigger than 28 ?
 
-    extern struct_svm _svm_cur;
+    LIBVAR struct_svm _svm_cur;
 
     typedef void (*AutoVolPanCallBack)(unsigned int voiceNum);
-    extern AutoVolPanCallBack _autovol;
-    extern AutoVolPanCallBack _autopan;
+    LIBVAR AutoVolPanCallBack _autovol;
+    LIBVAR AutoVolPanCallBack _autopan;
 
     // protos
     int _SsVmVSetUp(short vabId, short program);
@@ -171,18 +189,18 @@ extern "C"
         printf("Tone start %p\n", _svm_vab_tn[vabId]); // ok
     }
 
-    short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData); // todo: leaf
-    void vmNoiseOn(short voiceNum); // todo: leaf + SpuSetNoiseClock
-    void vmNoiseOff(void); // todo: leaf
-    short note2pitch(void); // todo: leaf (ish - needs 1 more leaf func)
+    short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData) INT_STUB // todo: leaf
+    void vmNoiseOn(short voiceNum) VOID_STUB // todo: leaf + SpuSetNoiseClock
+    void vmNoiseOff(void) VOID_STUB // todo: leaf
+    short note2pitch(void) INT_STUB // todo: leaf (ish - needs 1 more leaf func)
 
-    void _SsVmKeyOnNow(short vagCount, short pitch); // todo: leaf func
-    void _SsSndCrescendo(short seqNum, short sepNum); // todo: leaf func
-    void _SsSndTempo(short seqNum, short sepNum); // todo: leaf func
-    short _SsVmAlloc(void); // todo: leaf
-    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch); // todo: leaf
-    extern short SsUtGetProgAtr(short, short, ProgAtr*); // todo: leaf
-    extern void _SsContDataEntry(short, short, unsigned char);  // todo: leaf
+    void _SsVmKeyOnNow(short vagCount, short pitch) VOID_STUB // todo: leaf func
+    void _SsSndCrescendo(short seqNum, short sepNum) VOID_STUB // todo: leaf func
+    void _SsSndTempo(short seqNum, short sepNum) VOID_STUB // todo: leaf func
+    short _SsVmAlloc(void) INT_STUB // todo: leaf
+    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch) VOID_STUB // todo: leaf
+    short SsUtGetProgAtr(short, short, ProgAtr*) INT_STUB // todo: leaf
+    void _SsContDataEntry(short, short, unsigned char) VOID_STUB  // todo: leaf
 
     void _SsVmSetSeqVol(short seq_sep_num, short volL, short volR)
     {
@@ -317,15 +335,15 @@ extern "C"
         *pVolR = pStru->field_5A_volr;
     }
 
-    void _SsSeqGetEof(short seq_access_num, short sep_num); // wip
-    void _SsGetSeqData(short seq_idx, short sep_idx);       // wip
-    void _SsSeqPlay(short seq_access_num, short seq_num);   // wip
+    void _SsSeqGetEof(short seq_access_num, short sep_num) VOID_STUB // wip
+    void _SsGetSeqData(short seq_idx, short sep_idx) VOID_STUB       // wip
+    void _SsSeqPlay(short seq_access_num, short seq_num) VOID_STUB   // wip
 
     long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR); // done
     void _SsVmKeyOff(int seq_sep_no, short vabId, short program, short note); // done
     int _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27); // done
 
-    void _SsVmFlush(void); // TODO: Can't link due to other globals being required
+    void _SsVmFlush(void) VOID_STUB // TODO: Can't link due to other globals being required
     /*
     void _SsVmFlush(void)
     {
@@ -1319,7 +1337,7 @@ extern "C"
         SsUtSetReverbDelay(attr);
     }
 
-    void _SsInit(void); // TODO: Impl can't link due to redef of global vars
+    void _SsInit(void) VOID_STUB // TODO: Impl can't link due to redef of global vars
 
     /*
     // TODO: Can't link as obj has some globals in there
@@ -1997,8 +2015,7 @@ extern "C"
         pStru->field_14_play_mode = 0;
         pStru->field_98_flags &= ~2u;
     }
-
-    /*
+/*
     void _SsSeqGetEof(short seq_access_num, short sep_num)
     {
         int seq_access_num_ = seq_access_num; // promote to 32bits
