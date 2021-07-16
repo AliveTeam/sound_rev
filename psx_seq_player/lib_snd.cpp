@@ -166,6 +166,7 @@ extern "C"
 
     // protos
     int _SsVmVSetUp(short vabId, short program);
+    int _SsReadDeltaValue(short seq_access_num, short seq_num);
 
     void debug_dump_vh(unsigned long *pAddr, short vabId)
     {
@@ -189,7 +190,109 @@ extern "C"
         printf("Tone start %p\n", _svm_vab_tn[vabId]); // ok
     }
 
-    short _SsInitSoundSeq(int seqId, int vabId, unsigned long *pSeqData) INT_STUB // todo: leaf
+    int _SsInitSoundSeq(int seqId, int vabId, unsigned char *pSeqData)
+    {
+        SeqStruct *pSeq = &_ss_score[seqId][0];
+        pSeq->field_26_vab_id = vabId;
+        pSeq->field_50_res_of_quarter_note = 0;
+        pSeq->field_18 = 0;
+        pSeq->field_19 = 0;
+        pSeq->field_1E = 0;
+        pSeq->field_1A_fn_idx = 0;
+        pSeq->field_1B = 0;
+        pSeq->field_1F = 0;
+        pSeq->field_17_channel_idx = 0;
+        pSeq->field_84 = 0;
+        pSeq->field_88 = 0;
+        pSeq->field_8C_tempo = 0;
+        pSeq->field_56 = 0;
+        pSeq->field_21 = 0;
+        pSeq->field_20_l_count = 1;
+        pSeq->field_14_play_mode = 0;
+        pSeq->field_90_delta_value = 0;
+        pSeq->field_1C = 0;
+        pSeq->field_1D = 0;
+        pSeq->field_15 = 0;
+        pSeq->field_16_running_status = 0;
+        pSeq->field_80 = 0;
+        pSeq->field_24_rhythm_n = 0;
+        pSeq->field_25_rhythm_d = 0;
+        
+        for (int i=0; i < 16; i++)
+        {
+            pSeq->field_37_programs[i] = i;
+            pSeq->field_27_panpot[i] = 64;
+            pSeq->field_60_vol[i] = 127;
+        }
+
+        pSeq->field_52 = 1;
+        pSeq->field_0_seq_ptr = pSeqData;
+
+        // Magic
+        if ((pSeqData[0] != 'S') && (pSeqData[0] != 'p'))
+        {
+            printf("This is an old SEQ Data Format.\n");
+            return 0;
+        }
+
+        // Version
+        if (pSeqData[7] != 1)
+        {
+            printf("This is not SEQ Data.\n");
+            return -1;
+        }
+
+        // Quarter note
+        pSeq->field_50_res_of_quarter_note = pSeqData[9] | (pSeqData[8] << 8);
+
+        // Tempo
+        const unsigned int tempo = pSeqData[12] | pSeqData[10] << 0x10 | pSeqData[11] << 8;
+        pSeq->field_8C_tempo = tempo;
+        if (tempo >> 1 < 60000000U % tempo)
+        {
+            pSeq->field_8C_tempo = 60000000 / tempo + 1;
+        }
+        else
+        {
+            pSeq->field_8C_tempo = 60000000 / tempo;
+        }
+        
+        pSeq->field_94 = pSeq->field_8C_tempo;
+
+        // Rhythm
+        pSeq->field_24_rhythm_n = pSeqData[13];
+        pSeq->field_25_rhythm_d = pSeqData[14];
+
+        pSeq->field_0_seq_ptr = &pSeqData[15];
+
+        const int iVar4 = _SsReadDeltaValue(seqId, 0);
+        const int uVar8 = pSeq->field_50_res_of_quarter_note * pSeq->field_8C_tempo;
+        pSeq->field_8 = pSeq->field_0_seq_ptr;
+        pSeq->field_84 = iVar4;
+        pSeq->field_90_delta_value = iVar4;
+        pSeq->field_10 = 0;
+        pSeq->field_C = pSeq->field_0_seq_ptr;
+        pSeq->field_4 = pSeq->field_0_seq_ptr;
+
+        const int tmp = VBLANK_MINUS * 60;
+        if (uVar8 * 10 < tmp)
+        {
+            pSeq->field_52 = (VBLANK_MINUS * 600) / uVar8;
+        }
+        else
+        {
+            pSeq->field_52 = -1;
+            pSeq->field_54 = (uVar8 * 10) / tmp;
+            if ((uVar8 * 10) % tmp > (VBLANK_MINUS * 30))
+            {
+                pSeq->field_54++;
+            }
+        }
+
+        pSeq->field_56 = pSeq->field_54;
+        return 0;
+    }
+
     void vmNoiseOn(short voiceNum) VOID_STUB // todo: leaf + SpuSetNoiseClock
     void vmNoiseOff(void) VOID_STUB // todo: leaf
     short note2pitch(void) INT_STUB // todo: leaf (ish - needs 1 more leaf func)
@@ -1517,7 +1620,7 @@ extern "C"
 
         pStru->field_94 = read;
 
-        const int v6 = read * pStru->field_50;
+        const int v6 = read * pStru->field_50_res_of_quarter_note;
 
         const int v8 = 15 * VBLANK_MINUS;
         const int v9 = 60 * VBLANK_MINUS;
@@ -1529,8 +1632,8 @@ extern "C"
         }
         else
         {
-            const int v11 = 10 * pStru->field_50 * pStru->field_94 / v9;
-            const int v12 = 10 * pStru->field_50 * pStru->field_94 % v9;
+            const int v11 = 10 * pStru->field_50_res_of_quarter_note * pStru->field_94 / v9;
+            const int v12 = 10 * pStru->field_50_res_of_quarter_note * pStru->field_94 % v9;
 
             pStru->field_52 = -1;
             pStru->field_54 = v11;
@@ -1823,7 +1926,7 @@ extern "C"
         }
 
         _snd_openflag |= (1 << openSeqId);
-        const short seqInit = _SsInitSoundSeq(openSeqId, vab_id, pSeqData);
+        const int seqInit = _SsInitSoundSeq(openSeqId, vab_id, (unsigned char*)pSeqData);
 
         SsFCALL.noteon = (void (*)())_SsNoteOn;
         SsFCALL.programchange = (void (*)())_SsSetProgramChange;
@@ -2310,7 +2413,7 @@ extern "C"
         pStru->field_15 = 0;
         pStru->field_16_running_status = 0;
         pStru->field_90_delta_value = pStru->field_84;
-        pStru->field_94 = pStru->field_8C;
+        pStru->field_94 = pStru->field_8C_tempo;
         pStru->field_54 = pStru->field_56;
         pStru->field_0_seq_ptr = pStru->field_4;
         pStru->field_8 = pStru->field_4;

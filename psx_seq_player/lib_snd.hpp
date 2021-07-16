@@ -148,8 +148,8 @@ extern "C"
         char field_21;
         signed char field_22_next_seq;
         char field_23_next_sep;
-        char field_24;
-        char field_25;
+        char field_24_rhythm_n;
+        char field_25_rhythm_d;
         char field_26_vab_id;
         char field_27_panpot[16];
         char field_37_programs[16];
@@ -158,7 +158,7 @@ extern "C"
         short field_4A;
         short field_4C;
         short field_4E;
-        short field_50;
+        short field_50_res_of_quarter_note;
         short field_52;
         short field_54;
         short field_56;
@@ -172,7 +172,7 @@ extern "C"
         char field_83;
         int field_84;
         int field_88;
-        int field_8C;
+        int field_8C_tempo;
         int field_90_delta_value;
         int field_94; // tempo?
         unsigned int field_98_flags;
