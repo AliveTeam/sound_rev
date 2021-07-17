@@ -509,11 +509,75 @@ extern "C"
         _SsVmGetSeqVol(seq_idx | (sep_idx << 8), &pStru->field_5C, &pStru->field_5E);
     }
 
+    void _SsSndTempo(short seqNum, short sepNum)
+    {
+        SeqStruct* pSeq = &_ss_score[seqNum][sepNum]; // note: 14bit access
+        pSeq->field_A8--;
+
+        if (pSeq->field_A8 < 0)
+        {
+            pSeq->field_98_flags &= ~0x40u;
+            pSeq->field_98_flags &= ~0x80u;
+            return;
+        }
+
+        if (pSeq->field_4E <= 0)
+        {
+            if (pSeq->field_AC < pSeq->field_94)
+            {
+                pSeq->field_94 -= pSeq->field_4E;
+                if (pSeq->field_AC < pSeq->field_94)
+                {
+                    pSeq->field_94 = pSeq->field_AC;
+                }
+            }
+            else if (pSeq->field_AC > pSeq->field_94)
+            {
+                pSeq->field_94 += pSeq->field_4E;
+                if (pSeq->field_94 < pSeq->field_AC)
+                {
+                    pSeq->field_94 = pSeq->field_AC;
+                }
+            }
+        }
+        else
+        {
+            if (pSeq->field_A8 % pSeq->field_4E)
+            {
+                return;
+            }
+
+            int local_94_dec = pSeq->field_94 - 1;
+            if (pSeq->field_AC < pSeq->field_94 || pSeq->field_94 < pSeq->field_AC)
+            {
+                if (pSeq->field_AC >= pSeq->field_94) // TODO: Logic check
+                {
+                    local_94_dec = pSeq->field_94 + 1;
+                }
+                pSeq->field_94 = local_94_dec;
+            }
+        }
+
+        const int calc = (pSeq->field_50_res_of_quarter_note * pSeq->field_94) / (60 * VBLANK_MINUS);
+        pSeq->field_54 = calc;
+
+        if ((calc << 16) <= 0) // TODO: Is this shifting wrong ?
+        {
+            pSeq->field_54 = 1;
+        }
+
+        if (!pSeq->field_A8 || pSeq->field_94 == pSeq->field_AC)
+        {
+            pSeq->field_98_flags &= ~0x40u;
+            pSeq->field_98_flags &= ~0x80u;
+        }
+    }
+
     short note2pitch2(short note, short fine) INT_STUB         // todo: leaf
+    short note2pitch(void) INT_STUB                            // todo: leaf (ish - needs 1 more leaf func)
+
     void vmNoiseOn(short voiceNum) VOID_STUB                   // todo: leaf + SpuSetNoiseClock
     void vmNoiseOff(void) VOID_STUB                            // todo: leaf
-    short note2pitch(void) INT_STUB                            // todo: leaf (ish - needs 1 more leaf func)
-    void _SsSndTempo(short seqNum, short sepNum) VOID_STUB     // todo: leaf func
     short _SsVmAlloc(void) INT_STUB                            // todo: leaf
     void _SsContDataEntry(short, short, unsigned char) VOID_STUB  // todo: leaf
 
