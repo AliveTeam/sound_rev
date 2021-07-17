@@ -293,11 +293,104 @@ extern "C"
         return 0;
     }
 
+    void _SsVmKeyOnNow(short /*vagCount*/, short pitch)
+    {
+        SeqStruct *pSeq = &_ss_score[_svm_cur.field_14_seq_sep_no & 0xff][(_svm_cur.field_14_seq_sep_no & 0xff00) >> 8];
+
+        int uVar1 = (((_svm_cur.field_4_voll * _svm_vh->mvol * 0x3fff) / 0x3f01) * _svm_cur.field_A_mvol * _svm_cur.field_D_vol) / 0x3f01;
+
+        int left = uVar1;
+        if (_svm_cur.field_14_seq_sep_no != 0x21)
+        {
+            left = (uVar1 * pSeq->field_58_voll) / 127;
+            uVar1 = (uVar1 * pSeq->field_5A_volr) / 127;
+        }
+
+        if (_svm_cur.field_E_pan < 64)
+        {
+            uVar1 = (uVar1 * _svm_cur.field_E_pan) / 63;
+        }
+        else
+        {
+            left = (left * (127 - _svm_cur.field_E_pan)) / 63;
+        }
+
+        if (_svm_cur.field_B_mpan < 64)
+        {
+            uVar1 = (uVar1 * _svm_cur.field_B_mpan) / 63;
+        }
+        else
+        {
+            left = (left * (127 - _svm_cur.field_B_mpan)) / 63;
+        }
+
+        if (_svm_cur.field_0x5 < 64)
+        {
+            uVar1 = (uVar1 * _svm_cur.field_0x5) / 63;
+        }
+        else
+        {
+            left = (left * (127 - _svm_cur.field_0x5)) / 63;
+        }
+
+        int right = uVar1;
+        if (_svm_stereo_mono == 1)
+        {
+            if (left < right)
+            {
+                right = left;
+            }
+            left = uVar1;
+            right = uVar1;
+        }
+
+        if (_svm_cur.field_14_seq_sep_no != 0x21)
+        {
+            left = (left * left) / 0x3fff;
+            right = (right * right) / 0x3fff;
+        }
+
+        _svm_sreg_buf[_svm_cur.field_18_voice_idx].field_4_pitch = pitch;
+        _svm_sreg_buf[_svm_cur.field_18_voice_idx].field_0_vol_left = left;
+        _svm_sreg_buf[_svm_cur.field_18_voice_idx].field_2_vol_right = right;
+        _svm_sreg_dirty[_svm_cur.field_18_voice_idx] |= 7;
+        _svm_voice[_svm_cur.field_18_voice_idx].field_4_pitch = pitch;
+
+        unsigned short bitsLower =0;
+        unsigned short bitsUpper;
+        if (_svm_cur.field_18_voice_idx < 16)
+        {
+            bitsLower = (1 << (_svm_cur.field_18_voice_idx & 31));
+            bitsUpper = 0;
+        }
+        else
+        {
+            bitsLower = 0;
+            bitsUpper = (1 << (_svm_cur.field_18_voice_idx - 16 & 31));
+        }
+
+        if ((_svm_cur.field_12_mode & 4) == 0)
+        {
+            _svm_orev1 = _svm_orev1 & ~bitsLower;
+            _svm_orev2 = _svm_orev2 & ~bitsUpper;
+        }
+        else
+        {
+            _svm_orev1 = _svm_orev1 | bitsLower;
+            _svm_orev2 = _svm_orev2 | bitsUpper;
+        }
+
+        _svm_okon2 = _svm_okon2 | bitsUpper;
+        _svm_okon1 = _svm_okon1 | bitsLower;
+        _svm_onos1 = _svm_onos1 & ~bitsLower;
+        _svm_onos2 = _svm_onos2 & ~bitsUpper;
+        _svm_okof1 = _svm_okof1 & ~_svm_okon1;
+        _svm_okof2 = _svm_okof2 & ~_svm_okon2;
+    }
+
     void vmNoiseOn(short voiceNum) VOID_STUB // todo: leaf + SpuSetNoiseClock
     void vmNoiseOff(void) VOID_STUB // todo: leaf
     short note2pitch(void) INT_STUB // todo: leaf (ish - needs 1 more leaf func)
-
-    void _SsVmKeyOnNow(short vagCount, short pitch) VOID_STUB // todo: leaf func
     void _SsSndCrescendo(short seqNum, short sepNum) VOID_STUB // todo: leaf func
     void _SsSndTempo(short seqNum, short sepNum) VOID_STUB // todo: leaf func
     short _SsVmAlloc(void) INT_STUB // todo: leaf
