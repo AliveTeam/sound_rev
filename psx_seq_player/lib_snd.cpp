@@ -171,7 +171,7 @@ extern "C"
     void _SsVmSetSeqVol(short seq_sep_num, short volL, short volR);
     void SsUtGetVagAtr(short vabId, short progNum, short toneNum, VagAtr *pVagAttr);
     short SsUtSetVagAtr(short vabId, short progNum, short toneNum, VagAtr *pVagAttr);
-    
+
     void debug_dump_vh(unsigned long *pAddr, short vabId)
     {
         VabHdr *pHeader = (VabHdr *)pAddr;
@@ -580,7 +580,87 @@ extern "C"
 
     void vmNoiseOn(short voiceNum) VOID_STUB                   // todo: leaf + SpuSetNoiseClock
     void vmNoiseOff(void) VOID_STUB                            // todo: leaf
-    short _SsVmAlloc(void) INT_STUB                            // todo: leaf
+    
+    short _SsVmAlloc(void)
+    {
+        int keyStat = 0xffff;
+        int lowest_match = 99;
+        int cur_prior = _svm_cur.field_F_prior;
+        int match_counter = 0;
+        int voice_field_2_ = 0;
+        int voice_to_alloc_idx = 99;
+
+        if (_SsVmMaxVoice > 0)
+        {
+            int i = 0;
+            do
+            {
+                if ((_snd_vmask & (1 << i)) == 0)
+                {
+                    if (_svm_voice[i].field_0x1d == 0 && _svm_voice[i].field_6_keyStat == 0)
+                    {
+                        voice_to_alloc_idx = i;
+                        break;
+                    }
+
+                    if (_svm_voice[i].field_1A_priority == cur_prior)
+                    {
+                        match_counter++;
+
+                        if (_svm_voice[i].field_6_keyStat == keyStat)
+                        {
+                            if (voice_field_2_ < _svm_voice[i].field_0x2)
+                            {
+                                voice_field_2_ = _svm_voice[i].field_0x2;
+                                lowest_match = i;
+                            }
+                        }
+                        else if (_svm_voice[i].field_6_keyStat < keyStat)
+                        {
+                            voice_field_2_ = _svm_voice[i].field_0x2;
+                            keyStat = _svm_voice[i].field_6_keyStat;
+                            lowest_match = i;
+                        }
+                    }
+                    else if (_svm_voice[i].field_1A_priority < cur_prior)
+                    {
+                        cur_prior = _svm_voice[i].field_1A_priority;
+                        lowest_match = i;
+                        keyStat = _svm_voice[i].field_6_keyStat;
+                        voice_field_2_ = _svm_voice[i].field_0x2;
+                        match_counter = 1;
+                    }
+                }
+                i++;
+            } while (i < _SsVmMaxVoice);
+        }
+
+        if (voice_to_alloc_idx == 99)
+        {
+            voice_to_alloc_idx = lowest_match;
+            if (match_counter == 0)
+            {
+                voice_to_alloc_idx = _SsVmMaxVoice;
+            }
+        }
+
+        if (voice_to_alloc_idx < _SsVmMaxVoice)
+        {
+            for (int i = 0; i < _SsVmMaxVoice; i++)
+            {
+                if ((_snd_vmask & 1 << (i & 31)) == 0)
+                {
+                    _svm_voice[i].field_0x2++;
+                }
+            }
+            _svm_voice[voice_to_alloc_idx].field_0x2 = 0;
+            _svm_voice[voice_to_alloc_idx].field_2A_bAutoPan = 0;
+            _svm_voice[voice_to_alloc_idx].field_1E_bAutoVol = 0;
+            _svm_voice[voice_to_alloc_idx].field_1A_priority = _svm_cur.field_F_prior;
+        }
+
+        return voice_to_alloc_idx;
+    }
 
     void _SsContDataEntry(short seq_no, short sep_no, unsigned char dataEntry)
     {
