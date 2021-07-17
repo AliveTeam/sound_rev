@@ -583,56 +583,51 @@ extern "C"
     
     short _SsVmAlloc(void)
     {
-        int keyStat = 0xffff;
+        int lowest_keyStat = 0xffff;
         int lowest_match = 99;
-        int cur_prior = _svm_cur.field_F_prior;
+        int lowest_prior = _svm_cur.field_F_prior;
+        int lowest_field2 = 0;
+
         int match_counter = 0;
-        int voice_field_2_ = 0;
         int voice_to_alloc_idx = 99;
-
-        if (_SsVmMaxVoice > 0)
+        for (int i = 0; i < _SsVmMaxVoice; i++)
         {
-            int i = 0;
-            do
+            if ((_snd_vmask & (1 << i)) == 0)
             {
-                if ((_snd_vmask & (1 << i)) == 0)
+                if (_svm_voice[i].field_0x1d == 0 && _svm_voice[i].field_6_keyStat == 0)
                 {
-                    if (_svm_voice[i].field_0x1d == 0 && _svm_voice[i].field_6_keyStat == 0)
-                    {
-                        voice_to_alloc_idx = i;
-                        break;
-                    }
+                    voice_to_alloc_idx = i;
+                    break;
+                }
 
-                    if (_svm_voice[i].field_1A_priority == cur_prior)
-                    {
-                        match_counter++;
+                if (_svm_voice[i].field_1A_priority == lowest_prior)
+                {
+                    match_counter++;
 
-                        if (_svm_voice[i].field_6_keyStat == keyStat)
+                    if (_svm_voice[i].field_6_keyStat == lowest_keyStat)
+                    {
+                        if (lowest_field2 < _svm_voice[i].field_0x2)
                         {
-                            if (voice_field_2_ < _svm_voice[i].field_0x2)
-                            {
-                                voice_field_2_ = _svm_voice[i].field_0x2;
-                                lowest_match = i;
-                            }
-                        }
-                        else if (_svm_voice[i].field_6_keyStat < keyStat)
-                        {
-                            voice_field_2_ = _svm_voice[i].field_0x2;
-                            keyStat = _svm_voice[i].field_6_keyStat;
+                            lowest_field2 = _svm_voice[i].field_0x2;
                             lowest_match = i;
                         }
                     }
-                    else if (_svm_voice[i].field_1A_priority < cur_prior)
+                    else if (_svm_voice[i].field_6_keyStat < lowest_keyStat)
                     {
-                        cur_prior = _svm_voice[i].field_1A_priority;
+                        lowest_field2 = _svm_voice[i].field_0x2;
+                        lowest_keyStat = _svm_voice[i].field_6_keyStat;
                         lowest_match = i;
-                        keyStat = _svm_voice[i].field_6_keyStat;
-                        voice_field_2_ = _svm_voice[i].field_0x2;
-                        match_counter = 1;
                     }
                 }
-                i++;
-            } while (i < _SsVmMaxVoice);
+                else if (_svm_voice[i].field_1A_priority < lowest_prior)
+                {
+                    lowest_prior = _svm_voice[i].field_1A_priority;
+                    lowest_keyStat = _svm_voice[i].field_6_keyStat;
+                    lowest_field2 = _svm_voice[i].field_0x2;
+                    match_counter = 1;
+                    lowest_match = i;
+                }
+            }
         }
 
         if (voice_to_alloc_idx == 99)
