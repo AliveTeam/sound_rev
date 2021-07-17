@@ -169,7 +169,9 @@ extern "C"
     short note2pitch2(short note, short fine);
     void _SsVmGetSeqVol(short seq_sep_no, unsigned short *pVolL, unsigned short *pVolR);
     void _SsVmSetSeqVol(short seq_sep_num, short volL, short volR);
-
+    void SsUtGetVagAtr(short vabId, short progNum, short toneNum, VagAtr *pVagAttr);
+    short SsUtSetVagAtr(short vabId, short progNum, short toneNum, VagAtr *pVagAttr);
+    
     void debug_dump_vh(unsigned long *pAddr, short vabId)
     {
         VabHdr *pHeader = (VabHdr *)pAddr;
@@ -579,7 +581,77 @@ extern "C"
     void vmNoiseOn(short voiceNum) VOID_STUB                   // todo: leaf + SpuSetNoiseClock
     void vmNoiseOff(void) VOID_STUB                            // todo: leaf
     short _SsVmAlloc(void) INT_STUB                            // todo: leaf
-    void _SsContDataEntry(short, short, unsigned char) VOID_STUB  // todo: leaf
+
+    void _SsContDataEntry(short seq_no, short sep_no, unsigned char dataEntry)
+    {
+        SeqStruct* pSeq = &_ss_score[seq_no][sep_no];
+
+        // Do this first even though its never used till later
+        ProgAtr progAttr;
+        SsUtGetProgAtr(pSeq->field_26_vab_id, pSeq->field_37_programs[pSeq->field_17_channel_idx], &progAttr);
+
+        if (pSeq->field_1C == 1 && pSeq->field_15 == 0)
+        {
+            pSeq->field_1D = dataEntry;
+            pSeq->field_1C = 0;
+            pSeq->field_15 = 1;
+            pSeq->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+            return;
+        }
+
+        VagAtr oldVagAtr;
+        if (pSeq->field_1E == 2)
+        {
+            if (pSeq->field_19 || progAttr.tones == 0)
+            {
+                pSeq->field_1E = 0;
+                pSeq->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+                return;
+            }
+
+            for (int tone_idx = 0; tone_idx < progAttr.tones; tone_idx++)
+            {
+                SsUtGetVagAtr(pSeq->field_26_vab_id, pSeq->field_37_programs[pSeq->field_17_channel_idx], tone_idx, &oldVagAtr);
+                if (pSeq->field_18 != 1 && pSeq->field_18 < 2 && pSeq->field_18 == 0) // todo: uh.. what ?
+                {
+                    oldVagAtr.pbmax = dataEntry & 127;
+                    oldVagAtr.pbmin = dataEntry & 127;
+                }
+
+                // Redundant unless above we true, oh well
+                SsUtSetVagAtr(pSeq->field_26_vab_id, pSeq->field_37_programs[pSeq->field_17_channel_idx], tone_idx, &oldVagAtr);
+            }
+
+            pSeq->field_1E = 0;
+            pSeq->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+            return;
+        }
+
+        if (pSeq->field_1F == 2)
+        {
+            int tone_no = 0;
+            if (pSeq->field_1B == 16)
+            {
+                tone_no = 0;
+            }
+            else
+            {
+                tone_no = pSeq->field_1B;
+            }
+
+            SsFCALL.ccentry[pSeq->field_1A_fn_idx](
+                pSeq->field_26_vab_id,
+                pSeq->field_37_programs[pSeq->field_17_channel_idx],
+                tone_no,
+                oldVagAtr,
+                pSeq->field_1A_fn_idx,
+                dataEntry);
+
+            pSeq->field_1F = 0;
+        }
+
+        pSeq->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+    }
 
     void _SsVmSetSeqVol(short seq_sep_num, short volL, short volR)
     {
