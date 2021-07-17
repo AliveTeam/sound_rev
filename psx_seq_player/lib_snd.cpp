@@ -387,6 +387,22 @@ extern "C"
         _svm_okof1 = _svm_okof1 & ~_svm_okon1;
         _svm_okof2 = _svm_okof2 & ~_svm_okon2;
     }
+    
+    short SsUtGetProgAtr(short vabId, short programNum, ProgAtr* pProgAttr)
+    {
+        if (_svm_vab_used[vabId] == 1)
+        {
+            _SsVmVSetUp(vabId, programNum);
+            pProgAttr->tones = _svm_pg[programNum].tones;
+            pProgAttr->mvol = _svm_pg[programNum].mvol;
+            pProgAttr->prior = _svm_pg[programNum].prior;
+            pProgAttr->mode = _svm_pg[programNum].mode;
+            pProgAttr->mpan = _svm_pg[programNum].mpan;
+            pProgAttr->attr = _svm_pg[programNum].attr;
+            return 0;
+        }
+        return -1;
+    }
 
     void vmNoiseOn(short voiceNum) VOID_STUB // todo: leaf + SpuSetNoiseClock
     void vmNoiseOff(void) VOID_STUB // todo: leaf
@@ -395,7 +411,6 @@ extern "C"
     void _SsSndTempo(short seqNum, short sepNum) VOID_STUB // todo: leaf func
     short _SsVmAlloc(void) INT_STUB // todo: leaf
     void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch) VOID_STUB // todo: leaf
-    short SsUtGetProgAtr(short, short, ProgAtr*) INT_STUB // todo: leaf
     void _SsContDataEntry(short, short, unsigned char) VOID_STUB  // todo: leaf
 
     void _SsVmSetSeqVol(short seq_sep_num, short volL, short volR)
