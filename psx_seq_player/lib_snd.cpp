@@ -579,7 +579,13 @@ extern "C"
     short note2pitch(void) INT_STUB                            // todo: leaf (ish - needs 1 more leaf func)
 
     void vmNoiseOn(short voiceNum) VOID_STUB                   // todo: leaf + SpuSetNoiseClock
-    void vmNoiseOff(void) VOID_STUB                            // todo: leaf
+
+    void vmNoiseOff(short voiceNum)
+    {
+        _svm_voice[voiceNum].field_0x1d = 0;
+        _svm_voice[voiceNum].field_0_vag_idx = 0;
+        _svm_voice[voiceNum].field_4_pitch = 0;
+    }
     
     short _SsVmAlloc(void)
     {
@@ -2990,7 +2996,7 @@ extern "C"
             {
                 if (_svm_voice[i].field_0_vag_idx == 0xff)
                 {
-                    vmNoiseOff();
+                    vmNoiseOff(i);
                 }
                 else
                 {
