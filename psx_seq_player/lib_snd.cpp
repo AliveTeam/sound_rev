@@ -578,7 +578,108 @@ extern "C"
     short note2pitch2(short note, short fine) INT_STUB         // todo: leaf
     short note2pitch(void) INT_STUB                            // todo: leaf (ish - needs 1 more leaf func)
 
-    void vmNoiseOn(short voiceNum) VOID_STUB                   // todo: leaf + SpuSetNoiseClock
+    void vmNoiseOn(short voiceNum)
+    {
+        int rightVolCalc = (((_svm_cur.field_4_voll * _svm_vh->mvol * 0x3fff) / 0x3f01) * 
+                         _svm_cur.field_A_mvol * _svm_cur.field_D_vol) / 0x3f01;
+
+        SeqStruct *pSeq = &_ss_score[_svm_cur.field_14_seq_sep_no & 0xff][(_svm_cur.field_14_seq_sep_no & 0xff00) >> 8];
+
+        int leftVolCalc = rightVolCalc;
+        if (_svm_cur.field_14_seq_sep_no != 0x21)
+        {
+            leftVolCalc = (rightVolCalc * pSeq->field_58_voll) / 127;
+            rightVolCalc = (rightVolCalc * pSeq->field_5A_volr) / 127;
+        }
+
+        if (_svm_cur.field_E_pan < 64)
+        {
+            rightVolCalc = (rightVolCalc * _svm_cur.field_E_pan) / 63;
+        }
+        else
+        {
+            leftVolCalc = (leftVolCalc * (127 - _svm_cur.field_E_pan)) / 63;
+        }
+
+        if (_svm_cur.field_B_mpan < 64)
+        {
+            rightVolCalc = (rightVolCalc * _svm_cur.field_B_mpan) / 63;
+        }
+        else
+        {
+            leftVolCalc = (leftVolCalc * (127 - _svm_cur.field_B_mpan)) / 63;
+        }
+
+        if (_svm_cur.field_0x5 < 64)
+        {
+            rightVolCalc = (_svm_cur.field_0x5 * rightVolCalc) / 63;
+        }
+        else
+        {
+            leftVolCalc = (leftVolCalc * (127 - _svm_cur.field_0x5)) / 63;
+        }
+
+        int rightVolFinal = rightVolCalc;
+        if (_svm_stereo_mono == 1)
+        {
+            rightVolFinal = leftVolCalc; // TODO: Check logic
+            if (leftVolCalc < rightVolCalc)
+            {
+                rightVolFinal = rightVolCalc;
+                leftVolCalc = rightVolCalc;
+            }
+        }
+
+        if (_svm_cur.field_14_seq_sep_no != 0x21)
+        {
+            leftVolCalc = (leftVolCalc * leftVolCalc) / 0x3fff;
+            rightVolFinal = (rightVolFinal * rightVolFinal) / 0x3fff;
+        }
+
+        SpuSetNoiseClock(_svm_cur.field_2_note - _svm_cur.field_10_centre & 0x3f);
+
+        _svm_sreg_buf[voiceNum].field_2_vol_right = rightVolFinal;
+        _svm_sreg_buf[voiceNum].field_0_vol_left = leftVolCalc;
+        _svm_sreg_dirty[voiceNum] |= 3;
+
+        if (voiceNum < 16)
+        {
+            _svm_onos1 = (1 << (voiceNum & 0x1f));
+            _svm_onos2 = 0;
+        }
+        else
+        {
+            _svm_onos1 = 0;
+            _svm_onos2 = (1 << (voiceNum - 16 & 0x1f));
+        }
+        _svm_voice[voiceNum].field_4_pitch = 10;
+
+        for (int i = 0; i < _SsVmMaxVoice; i++)
+        {
+            if ((_snd_vmask & 1 << (i & 0x1f)) == 0)
+            {
+                _svm_voice[i].field_0x1d &= 1;
+            }
+        }
+        _svm_voice[voiceNum].field_0x1d = 2;
+
+        _svm_okon1 = _svm_okon1 | _svm_onos1;
+        _svm_okon2 = _svm_okon2 | _svm_onos2;
+
+        if ((_svm_cur.field_12_mode & 4) == 0)
+        {
+            _svm_orev1 = _svm_orev1 & ~_svm_onos1;
+            _svm_orev2 = _svm_orev2 & ~_svm_onos2;
+        }
+        else
+        {
+            _svm_orev1 = _svm_orev1 | _svm_onos1;
+            _svm_orev2 = _svm_orev2 | _svm_onos2;
+        }
+
+        _svm_okof1 = _svm_okof1 & ~_svm_okon1;
+        _svm_okof2 = _svm_okof2 & ~_svm_okon2;
+    }
 
     void vmNoiseOff(short voiceNum)
     {

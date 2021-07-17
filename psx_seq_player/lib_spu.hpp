@@ -117,6 +117,8 @@ extern "C"
     extern unsigned long SpuGetReverbVoice (void);
     extern unsigned long SpuGetNoiseVoice (void);
 
+    long SpuSetNoiseClock(long n_clock);
+    
 #ifdef __cplusplus
 }
 #endif

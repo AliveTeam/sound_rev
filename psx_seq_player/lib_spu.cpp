@@ -39,4 +39,6 @@ extern "C"
         _SpuInit(0);
     }
 
+    long SpuSetNoiseClock(long n_clock);
+    
 }
