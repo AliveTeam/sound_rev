@@ -167,6 +167,8 @@ extern "C"
     int _SsVmVSetUp(short vabId, short program);
     int _SsReadDeltaValue(short seq_access_num, short seq_num);
     short note2pitch2(short note, short fine);
+    void _SsVmGetSeqVol(short seq_sep_no, unsigned short *pVolL, unsigned short *pVolR);
+    void _SsVmSetSeqVol(short seq_sep_num, short volL, short volR);
 
     void debug_dump_vh(unsigned long *pAddr, short vabId)
     {
@@ -452,11 +454,65 @@ extern "C"
         }
     }
 
-    short note2pitch2(short note, short fine) INT_STUB // todo: leaf
+    void _SsSndCrescendo(short seq_idx, short sep_idx)
+    {
+        SeqStruct* pStru = &_ss_score[seq_idx][sep_idx]; // note: 14bit access
+        pStru->field_A0++;
+
+        if (pStru->field_9C < pStru->field_A0)
+        {
+            // done ?
+            pStru->field_98_flags &= ~0x10u;
+        }
+        else
+        {
+            const int new_field_4a = (pStru->field_48 * pStru->field_A0) / pStru->field_9C;
+            const int volIncBy = new_field_4a - pStru->field_4A;
+
+            if (new_field_4a != pStru->field_4A)
+            {
+                pStru->field_4A = new_field_4a;
+
+                unsigned short seqLeftVol = 0;
+                unsigned short seqRightVol = 0;
+                _SsVmGetSeqVol(seq_idx | (sep_idx << 8), &seqLeftVol, &seqRightVol);
+                
+                int voll_clamped = seqLeftVol + volIncBy;
+                if (voll_clamped > 127)
+                {
+                    voll_clamped = 127;
+                }
+                if (voll_clamped < 0)
+                {
+                    voll_clamped = 0;
+                }
+
+                int volr_clamped = seqRightVol + volIncBy;
+                if (volr_clamped > 127)
+                {
+                    volr_clamped = 127;
+                }
+                if (volr_clamped < 0)
+                {
+                    volr_clamped = 0;
+                }
+
+                _SsVmSetSeqVol(seq_idx | (sep_idx << 8), voll_clamped, volr_clamped);
+                if (voll_clamped == 127 && volr_clamped == 127 && voll_clamped == 0 && volr_clamped == 0)
+                {
+                    // done ?
+                    pStru->field_98_flags &= ~0x10u;
+                }
+            }
+        }
+
+        _SsVmGetSeqVol(seq_idx | (sep_idx << 8), &pStru->field_5C, &pStru->field_5E);
+    }
+
+    short note2pitch2(short note, short fine) INT_STUB         // todo: leaf
     void vmNoiseOn(short voiceNum) VOID_STUB                   // todo: leaf + SpuSetNoiseClock
     void vmNoiseOff(void) VOID_STUB                            // todo: leaf
     short note2pitch(void) INT_STUB                            // todo: leaf (ish - needs 1 more leaf func)
-    void _SsSndCrescendo(short seqNum, short sepNum) VOID_STUB // todo: leaf func
     void _SsSndTempo(short seqNum, short sepNum) VOID_STUB     // todo: leaf func
     short _SsVmAlloc(void) INT_STUB                            // todo: leaf
     void _SsContDataEntry(short, short, unsigned char) VOID_STUB  // todo: leaf
@@ -586,7 +642,7 @@ extern "C"
         }
     }
 
-    void _SsVmGetSeqVol(short seq_sep_no, short *pVolL, short *pVolR)
+    void _SsVmGetSeqVol(short seq_sep_no, unsigned short *pVolL, unsigned short *pVolR)
     {
         SeqStruct* pStru = &_ss_score[seq_sep_no & 0xFF][(seq_sep_no & 0xFF00) >> 8];
         _svm_cur.field_0_sep_sep_no_tonecount = seq_sep_no;

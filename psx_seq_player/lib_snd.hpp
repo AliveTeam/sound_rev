@@ -162,10 +162,10 @@ extern "C"
         short field_52;
         short field_54;
         short field_56;
-        short field_58_voll;
-        short field_5A_volr;
-        short field_5C;
-        short field_5E;
+        unsigned short field_58_voll;
+        unsigned short field_5A_volr;
+        unsigned short field_5C;
+        unsigned short field_5E;
         short field_60_vol[16];
         short field_80;
         char field_82;
