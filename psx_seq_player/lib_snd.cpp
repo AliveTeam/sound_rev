@@ -36,7 +36,6 @@ extern "C"
     LIBVAR short _snd_seq_s_max;
     LIBVAR short _snd_seq_t_max;
 
-    LIBVAR short note2pitch2;
     LIBVAR short _svm_damper;
     LIBVAR VagAtr *_svm_tn;
     LIBVAR VabHdr *_svm_vh;
@@ -104,7 +103,7 @@ extern "C"
         short field_10_seq_sep_no;
         short field_12_fake_program;
         short field_14_program;
-        short field_16_vag_num;
+        short field_16_vag_num; // TODO: char
         short field_18_vabId;
         short field_1A_priority;
 
@@ -167,6 +166,7 @@ extern "C"
     // protos
     int _SsVmVSetUp(short vabId, short program);
     int _SsReadDeltaValue(short seq_access_num, short seq_num);
+    short note2pitch2(short note, short fine);
 
     void debug_dump_vh(unsigned long *pAddr, short vabId)
     {
@@ -387,7 +387,7 @@ extern "C"
         _svm_okof1 = _svm_okof1 & ~_svm_okon1;
         _svm_okof2 = _svm_okof2 & ~_svm_okon2;
     }
-    
+
     short SsUtGetProgAtr(short vabId, short programNum, ProgAtr* pProgAttr)
     {
         if (_svm_vab_used[vabId] == 1)
@@ -404,13 +404,61 @@ extern "C"
         return -1;
     }
 
-    void vmNoiseOn(short voiceNum) VOID_STUB // todo: leaf + SpuSetNoiseClock
-    void vmNoiseOff(void) VOID_STUB // todo: leaf
-    short note2pitch(void) INT_STUB // todo: leaf (ish - needs 1 more leaf func)
+    void _SsVmPBVoice(short voiceNum, short seq_sep_num, short vabId, short program, int pitch)
+    {
+        if ((_svm_voice[voiceNum].field_10_seq_sep_no == seq_sep_num &&
+             _svm_voice[voiceNum].field_18_vabId == vabId) &&
+            _svm_voice[voiceNum].field_14_program == program)
+        {
+            const short note = _svm_voice[voiceNum].field_E_note;
+            const int vagIdx = _svm_voice[voiceNum].field_16_vag_num + (_svm_cur.field_7_fake_program * 16);
+
+            int bendMin = 0;
+            int bendMax = 0;
+
+            const int pitch_converted = (pitch - 64);
+            if (pitch_converted < 0)
+            {
+                const int pbmin_tmp = pitch_converted * _svm_tn[vagIdx].pbmin;
+                bendMin = (note + (pbmin_tmp / 64)) - 1;
+                bendMax = ((pbmin_tmp % 64) * 2) + 127;
+            }
+            else if (pitch_converted > 0)
+            {
+                const int pbmax_tmp = pitch_converted * _svm_tn[vagIdx].pbmax;
+                bendMin = note + pbmax_tmp / 63;
+                bendMax = (pbmax_tmp % 63) * 2;
+            }
+            else
+            {
+                bendMax = 0;
+            }
+            _svm_cur.field_C_vag_idx = _svm_voice[voiceNum].field_16_vag_num;
+            _svm_cur.field_18_voice_idx = voiceNum;
+            _svm_sreg_buf[voiceNum].field_4_pitch = note2pitch2(bendMin, bendMax);
+            _svm_sreg_dirty[voiceNum] |= 4;
+        }
+    }
+
+    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch)
+    {
+        _SsVmVSetUp(vabId, program);
+
+        _svm_cur.field_14_seq_sep_no = seq_sep_no;
+
+        for (int i = 0; i < _SsVmMaxVoice; i++)
+        {
+            _SsVmPBVoice(i, seq_sep_no, vabId, program, pitch);
+        }
+    }
+
+    short note2pitch2(short note, short fine) INT_STUB // todo: leaf
+    void vmNoiseOn(short voiceNum) VOID_STUB                   // todo: leaf + SpuSetNoiseClock
+    void vmNoiseOff(void) VOID_STUB                            // todo: leaf
+    short note2pitch(void) INT_STUB                            // todo: leaf (ish - needs 1 more leaf func)
     void _SsSndCrescendo(short seqNum, short sepNum) VOID_STUB // todo: leaf func
-    void _SsSndTempo(short seqNum, short sepNum) VOID_STUB // todo: leaf func
-    short _SsVmAlloc(void) INT_STUB // todo: leaf
-    void _SsVmPitchBend(short seq_sep_no, short vabId, unsigned char program, unsigned char pitch) VOID_STUB // todo: leaf
+    void _SsSndTempo(short seqNum, short sepNum) VOID_STUB     // todo: leaf func
+    short _SsVmAlloc(void) INT_STUB                            // todo: leaf
     void _SsContDataEntry(short, short, unsigned char) VOID_STUB  // todo: leaf
 
     void _SsVmSetSeqVol(short seq_sep_num, short volL, short volR)
@@ -2181,7 +2229,7 @@ extern "C"
         short result = -1;
         if (voice < 24)
         {
-            note2pitch2 = voice;
+            _svm_cur.field_18_voice_idx = voice;
             _SsVmKeyOffNow();
             result = 0;
         }
