@@ -17,8 +17,8 @@ static inline T *AddBytes(Y ptr, int bytes)
 //#define REPLACE_LIB
 #ifdef REPLACE_LIB
 #define LIBVAR
-#define VOID_STUB { }
-#define INT_STUB { return 0;}
+#define VOID_STUB {}
+#define INT_STUB { return 0; }
 #else
 #define LIBVAR extern
 #define VOID_STUB ;
@@ -2045,13 +2045,12 @@ extern "C"
     }
 
     void _SsInit(void) VOID_STUB // TODO: Impl can't link due to redef of global vars
-
     /*
     // TODO: Can't link as obj has some globals in there
     void _SsInit(void)
     {
         // Init regs
-        const static short private_8001D0A4[16] = { 0x3FFF, 0x3FFF, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        static const short private_8001D0A4[16] = { 0x3FFF, 0x3FFF, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
         volatile short* pReg = (volatile short*)0x1F801D80;
         for (int i = 0; i < 16; i++)
         {
@@ -2073,7 +2072,7 @@ extern "C"
         _snd_openflag = 0;
         _snd_ev_flag = 0;
     }
-*/
+    */
 
     // TODO: SpuClearReverbWorkArea
 
@@ -2813,6 +2812,7 @@ extern "C"
         pSeqPtr->field_0_seq_ptr = pNext_midi_byte;
 
         unsigned char midi_byte_and_80 = 0;
+        // TODO: flag 0x400 is never set, only cleared ??
         if ((pSeqPtr->field_98_flags & 0x401) == 0x401)
         {
             midi_byte_and_80 = midi_byte & 0x80;
@@ -3416,11 +3416,340 @@ static void Test_SsVmDoAllocate()
     ASSERT_EQ(_svm_sreg_dirty[_svm_cur.field_18_voice_idx], 0x30 | 0x8); // check correct regs are set
 }
 
+struct MidiTest
+{
+    int mNoteOnCalls;
+    int mNoteOnNote;
+    int mNoteOnVol;
+
+    int mProgramChangeCalls;
+    int mProgramChangeValue;
+
+    int mControlChangeCalls;
+    int mControlChangeValue;
+
+    int mPitchBendCalls;
+};
+static MidiTest gMidiTest = {};
+
+static void Test_SsNoteOn(short seq_no, short sep_no, unsigned char note, unsigned char voll)
+{
+    gMidiTest.mNoteOnCalls++;
+    gMidiTest.mNoteOnNote = note;
+    gMidiTest.mNoteOnVol = voll;
+}
+
+static void Test_SsSetProgramChange(short seq_no, short sep_no, unsigned char programNum)
+{
+    gMidiTest.mProgramChangeCalls++;
+    gMidiTest.mProgramChangeValue = programNum;
+}
+
+static void Test_ControlChange(short seq_no, short sep_no, unsigned char change)
+{
+    gMidiTest.mControlChangeCalls++;
+    gMidiTest.mControlChangeValue = change;
+}
+
+static void Test_SsSetPitchBend(short seq_no, short sep_no)
+{
+    gMidiTest.mPitchBendCalls++;
+}
+
+static void ClearTestData()
+{
+    MidiTest cleared = {};
+    gMidiTest = cleared;
+}
+
+static int DvConv(int dv)
+{
+    return 2 * ((dv*4) + dv);
+}
+
+static void Test_SsGetSeqData()
+{
+    SsFCALL.noteon = (void (*)())Test_SsNoteOn;
+    SsFCALL.programchange = (void (*)())Test_SsSetProgramChange;
+    SsFCALL.control[0] = Test_ControlChange;
+    SsFCALL.pitchbend = (void (*)())Test_SsSetPitchBend;
+
+    // Note off test
+    {
+        ClearTestData();
+
+        SeqStruct seq = {};
+        _ss_score[0] = &seq;
+
+        unsigned char midiData[] = 
+        {
+            0x95, // Note on, channel 5
+            0xA, // Note
+            0x0, // Velocity (off)
+            0x2, // Delta value
+        };
+        seq.field_0_seq_ptr = midiData;
+
+        _SsGetSeqData(0, 0);
+
+        ASSERT_EQ(seq.field_17_channel_idx, 5);
+        ASSERT_EQ(gMidiTest.mNoteOnCalls, 1);
+        ASSERT_EQ(gMidiTest.mNoteOnNote, 0xA);
+        ASSERT_EQ(gMidiTest.mNoteOnVol, 0x0);
+        ASSERT_EQ(seq.field_16_running_status, 0x90);
+        ASSERT_EQ(seq.field_90_delta_value, DvConv(0x2));
+    }
+
+    // Note off test running status
+    {
+        ClearTestData();
+
+        SeqStruct seq = {};
+        _ss_score[0] = &seq;
+        seq.field_16_running_status = 0x90;
+        seq.field_17_channel_idx = 5;
+        unsigned char midiData[] = 
+        {
+            0xA, // Note
+            0x0, // Velocity (off)
+            0x2, // Delta value
+        };
+        seq.field_0_seq_ptr = midiData;
+
+        _SsGetSeqData(0, 0);
+
+        ASSERT_EQ(seq.field_17_channel_idx, 5);
+        ASSERT_EQ(gMidiTest.mNoteOnCalls, 1);
+        ASSERT_EQ(gMidiTest.mNoteOnNote, 0xA);
+        ASSERT_EQ(gMidiTest.mNoteOnVol, 0x0);
+        ASSERT_EQ(seq.field_16_running_status, 0x90);
+        ASSERT_EQ(seq.field_90_delta_value, DvConv(0x2));
+    }
+
+    // Note on test
+    {
+        ClearTestData();
+
+        SeqStruct seq = {};
+        _ss_score[0] = &seq;
+        seq.field_16_running_status = 0x90;
+        seq.field_17_channel_idx = 5;
+
+        unsigned char midiData[] = 
+        {
+            0xA, // Note
+            0x22, // Velocity (on)
+            0x2, // Delta value
+        };
+        seq.field_0_seq_ptr = midiData;
+
+        _SsGetSeqData(0, 0);
+
+        ASSERT_EQ(seq.field_17_channel_idx, 5);
+        ASSERT_EQ(gMidiTest.mNoteOnCalls, 1);
+        ASSERT_EQ(gMidiTest.mNoteOnNote, 0xA);
+        ASSERT_EQ(gMidiTest.mNoteOnVol, 0x22);
+        ASSERT_EQ(seq.field_16_running_status, 0x90);
+        ASSERT_EQ(seq.field_90_delta_value, DvConv(0x2));
+    }
+
+    // Running status Note on test
+    {
+        ClearTestData();
+
+        SeqStruct seq = {};
+        _ss_score[0] = &seq;
+
+        unsigned char midiData[] = 
+        {
+            0x95, // Note on, channel 5
+            0xA, // Note
+            0x22, // Velocity (on)
+            0x2, // Delta value
+        };
+        seq.field_0_seq_ptr = midiData;
+
+        _SsGetSeqData(0, 0);
+
+        ASSERT_EQ(seq.field_17_channel_idx, 5);
+        ASSERT_EQ(gMidiTest.mNoteOnCalls, 1);
+        ASSERT_EQ(gMidiTest.mNoteOnNote, 0xA);
+        ASSERT_EQ(gMidiTest.mNoteOnVol, 0x22);
+        ASSERT_EQ(seq.field_16_running_status, 0x90);
+        ASSERT_EQ(seq.field_90_delta_value, DvConv(0x2));
+    }
+
+    // Program change test
+    {
+        ClearTestData();
+
+        SeqStruct seq = {};
+        _ss_score[0] = &seq;
+
+        unsigned char midiData[] = 
+        {
+            0xC5, // Program change channel 5
+            0xA, // Change
+        };
+        seq.field_0_seq_ptr = midiData;
+
+        _SsGetSeqData(0, 0);
+
+        ASSERT_EQ(seq.field_17_channel_idx, 5);
+        ASSERT_EQ(gMidiTest.mProgramChangeCalls, 1);
+        ASSERT_EQ(gMidiTest.mProgramChangeValue, 0xA);
+        ASSERT_EQ(seq.field_16_running_status, 0xC0);
+        ASSERT_EQ(seq.field_90_delta_value, DvConv(0));
+    }
+
+    // Running status program change test
+    {
+        ClearTestData();
+
+        SeqStruct seq = {};
+        _ss_score[0] = &seq;
+        seq.field_16_running_status = 0xC0;
+        seq.field_17_channel_idx = 5;
+
+        unsigned char midiData[] = 
+        {
+            0xA, // Change
+        };
+        seq.field_0_seq_ptr = midiData;
+
+        _SsGetSeqData(0, 0);
+
+        ASSERT_EQ(seq.field_17_channel_idx, 5);
+        ASSERT_EQ(gMidiTest.mProgramChangeCalls, 1);
+        ASSERT_EQ(gMidiTest.mProgramChangeValue, 0xA);
+        ASSERT_EQ(seq.field_16_running_status, 0xC0);
+        ASSERT_EQ(seq.field_90_delta_value, DvConv(0));
+    }
+
+    // Control change test
+    {
+        ClearTestData();
+
+        SeqStruct seq = {};
+        _ss_score[0] = &seq;
+
+        unsigned char midiData[] = 
+        {
+            0xB5, // Control change channel 5
+            0xA, // Change
+        };
+        seq.field_0_seq_ptr = midiData;
+
+        _SsGetSeqData(0, 0);
+
+        ASSERT_EQ(seq.field_17_channel_idx, 5);
+        ASSERT_EQ(gMidiTest.mControlChangeCalls, 1);
+        ASSERT_EQ(gMidiTest.mControlChangeValue, 0xA);
+        ASSERT_EQ(seq.field_16_running_status, 0xB0);
+        ASSERT_EQ(seq.field_90_delta_value, DvConv(0));
+    }
+
+    // Running status Control change test
+    {
+        ClearTestData();
+
+        SeqStruct seq = {};
+        _ss_score[0] = &seq;
+        seq.field_16_running_status = 0xB0;
+        seq.field_17_channel_idx = 5;
+
+        unsigned char midiData[] = 
+        {
+            0xA, // Change
+        };
+        seq.field_0_seq_ptr = midiData;
+
+        _SsGetSeqData(0, 0);
+
+        ASSERT_EQ(seq.field_17_channel_idx, 5);
+        ASSERT_EQ(gMidiTest.mControlChangeCalls, 1);
+        ASSERT_EQ(gMidiTest.mControlChangeValue, 0xA);
+        ASSERT_EQ(seq.field_16_running_status, 0xB0);
+        ASSERT_EQ(seq.field_90_delta_value, DvConv(0));
+    }
+
+    // TODO: Meta event test
+    {
+
+    }
+
+    // TODO: Running status Meta event test
+    {
+
+    }
+
+    // TODO: EOF meta event test
+    {
+
+    }
+
+    // TODO: Running status EOF meta event test
+    {
+
+    }
+
+    // Pitch bend test
+    {
+        ClearTestData();
+
+        SeqStruct seq = {};
+        _ss_score[0] = &seq;
+
+        unsigned char midiData[] = 
+        {
+            0xE5, // Pitch bend channel 5
+            // Bend value read in a helper
+        };
+        seq.field_0_seq_ptr = midiData;
+
+        _SsGetSeqData(0, 0);
+
+        ASSERT_EQ(seq.field_17_channel_idx, 5);
+        ASSERT_EQ(gMidiTest.mPitchBendCalls, 1);
+        ASSERT_EQ(seq.field_16_running_status, 0xE0);
+        ASSERT_EQ(seq.field_90_delta_value, DvConv(0));
+    }
+
+    // Running status Pitch bend test
+    {
+        ClearTestData();
+
+        SeqStruct seq = {};
+        _ss_score[0] = &seq;
+        seq.field_16_running_status = 0xE0;
+        seq.field_17_channel_idx = 5;
+
+        unsigned char midiData[] = 
+        {
+            0x0, // Nothing
+        };
+        seq.field_0_seq_ptr = midiData;
+
+        _SsGetSeqData(0, 0);
+
+        ASSERT_EQ(seq.field_17_channel_idx, 5);
+        ASSERT_EQ(gMidiTest.mPitchBendCalls, 1);
+        ASSERT_EQ(seq.field_16_running_status, 0xE0);
+        ASSERT_EQ(seq.field_90_delta_value, DvConv(0));
+    }
+
+    // TODO: EOF test
+    {
+
+    }
+}
+
 void DoTests()
 {
     printf("Tests start\n");
     Test_SsVmSelectToneAndVag();
     Test_SsVmDoAllocate();
+    Test_SsGetSeqData();
     printf("Tests end\n");
     PcsxReduxExit(0);
 }

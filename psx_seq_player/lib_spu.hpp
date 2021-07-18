@@ -88,10 +88,15 @@ extern "C"
     } SpuVoiceAttr;
 
     extern long SpuClearReverbWorkArea (long mode);
+    // _SpuIsInAllocateArea_
+    // _spu_t
 
     extern void SpuSetCommonAttr (SpuCommonAttr *attr);
-    extern long SpuIsTransferCompleted (long flag);
+    // 
 
+    extern long SpuIsTransferCompleted (long flag);
+    // TestEvent
+    
     void SpuInit(void);
 
     void SpuSetReverb(long on_off);
@@ -99,6 +104,7 @@ extern "C"
     short _spu_getInTransfer(void);
     void _spu_setInTransfer(short);
 
+    extern long SpuInitMalloc (long num, char *top);
     long SpuMalloc(long size);
     void SpuFree(unsigned long addr);
 
@@ -107,7 +113,7 @@ extern "C"
     unsigned long SpuWrite (unsigned char *addr, unsigned long size);
 
     extern long SpuSetReverbModeParam (SpuReverbAttr *attr);
-    extern long SpuInitMalloc (long num, char *top);
+
     
     extern void SpuSetVoiceAttr (SpuVoiceAttr *arg);
     extern void SpuGetVoiceEnvelope (int vNum, short *envx);
@@ -118,7 +124,7 @@ extern "C"
     extern unsigned long SpuGetNoiseVoice (void);
 
     long SpuSetNoiseClock(long n_clock);
-    
+
 #ifdef __cplusplus
 }
 #endif
