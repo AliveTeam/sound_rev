@@ -14,7 +14,7 @@ static inline T *AddBytes(Y ptr, int bytes)
     return reinterpret_cast<T *>(reinterpret_cast<unsigned char *>(ptr) + bytes);
 }
 */
-//#define REPLACE_LIB
+#define REPLACE_LIB
 #ifdef REPLACE_LIB
 #define LIBVAR
 #define VOID_STUB {}
@@ -1041,17 +1041,16 @@ extern "C"
         *pVolL = pStru->field_58_voll;
         *pVolR = pStru->field_5A_volr;
     }
-
+/*
     void _SsSeqGetEof(short seq_access_num, short sep_num) VOID_STUB // wip
     void _SsGetSeqData(short seq_idx, short sep_idx) VOID_STUB       // wip
     void _SsSeqPlay(short seq_access_num, short seq_num) VOID_STUB   // wip
-
+*/
     long _SsVmSeKeyOn(unsigned char vab, unsigned char program, unsigned char note, unsigned char pitch, unsigned short volL, unsigned short volR); // done
     void _SsVmKeyOff(int seq_sep_no, short vabId, short program, short note); // done
     int _SsVmKeyOn(int seq_sep_no, short vabId, short unknown37, short note, short voll, short unknown27); // done
 
-    void _SsVmFlush(void) VOID_STUB // TODO: Can't link due to other globals being required
-    /*
+    //void _SsVmFlush(void) VOID_STUB // TODO: Can't link due to other globals being required
     void _SsVmFlush(void)
     {
         _svm_envx_ptr = (_svm_envx_ptr + 1) & 15;
@@ -1166,7 +1165,6 @@ extern "C"
         _svm_onos2 = 0;
         _svm_onos1 = 0;
     }
-    */
 
     void _SsVmSetVol(short seq_sep_no, short vabId, short program, short voll, short volr)
     {
@@ -2044,8 +2042,7 @@ extern "C"
         SsUtSetReverbDelay(attr);
     }
 
-    void _SsInit(void) VOID_STUB // TODO: Impl can't link due to redef of global vars
-    /*
+    //void _SsInit(void) VOID_STUB // TODO: Impl can't link due to redef of global vars
     // TODO: Can't link as obj has some globals in there
     void _SsInit(void)
     {
@@ -2072,7 +2069,6 @@ extern "C"
         _snd_openflag = 0;
         _snd_ev_flag = 0;
     }
-    */
 
     // TODO: SpuClearReverbWorkArea
 
@@ -2721,7 +2717,7 @@ extern "C"
         pStru->field_14_play_mode = 0;
         pStru->field_98_flags &= ~2u;
     }
-/*
+
     void _SsSeqGetEof(short seq_access_num, short sep_num)
     {
         int seq_access_num_ = seq_access_num; // promote to 32bits
@@ -2835,9 +2831,10 @@ extern "C"
             if (midi_byte_and_F0 == 0xC0)
             {
                 pSeqPtr->field_16_running_status = 0xC0;
+                unsigned char program = *pSeqPtr->field_0_seq_ptr;
                 pSeqPtr->field_0_seq_ptr++;
-                //SsFCALL.programchange(seq_idx);
-                _SsSetProgramChange(seq_idx, sep_idx, midi_byte);
+                SsFCALL.programchange(seq_idx, sep_idx, program);
+                //_SsSetProgramChange(seq_idx, sep_idx, midi_byte);
                 return;
             }
 
@@ -2849,22 +2846,23 @@ extern "C"
                     const unsigned char midi_byte_next_ = *pSeqPtr->field_0_seq_ptr++;
                     const unsigned char midi_byte_ = *pSeqPtr->field_0_seq_ptr++;
                     pSeqPtr->field_90_delta_value = _SsReadDeltaValue(seq_idx, sep_idx);
-                    //SsFCALL.noteon(seq_idx, sep_idx, midi_byte_next_, midi_byte_);
-                    _SsNoteOn(seq_idx, sep_idx, midi_byte_next_, midi_byte_);
+                    SsFCALL.noteon(seq_idx, sep_idx, midi_byte_next_, midi_byte_);
+                    //_SsNoteOn(seq_idx, sep_idx, midi_byte_next_, midi_byte_);
                 }
                 else if (midi_byte_and_F0 == 0xB0)
                 {
                     pSeqPtr->field_16_running_status = 0xB0;
+                    unsigned char controlChange = *pSeqPtr->field_0_seq_ptr;
                     pSeqPtr->field_0_seq_ptr++;
-                    //SsFCALL.control[CC_NUMBER](seq_idx);
-                    _SsSetControlChange(seq_idx, sep_idx, midi_byte);
+                    SsFCALL.control[CC_NUMBER](seq_idx, sep_idx, controlChange);
+                    //_SsSetControlChange(seq_idx, sep_idx, midi_byte);
                 }
                 return;
             }
 
-            if (midi_byte_and_F0 != 0xE0)
+            if (midi_byte_and_F0 != 0xE0) // pitch bend
             {
-                if (midi_byte_and_F0 != 0xF0)
+                if (midi_byte_and_F0 != 0xF0) // meta
                 {
                     return;
                 }
@@ -2879,23 +2877,23 @@ extern "C"
                     return;
                 }
 
-                //SsFCALL.metaevent(seq_idx);
-                _SsGetMetaEvent(seq_idx, sep_idx, midi_byte);
+                SsFCALL.metaevent(seq_idx,  sep_idx, midi_byte);
+                //_SsGetMetaEvent(seq_idx, sep_idx, midi_byte);
                 return;
             }
 
             pSeqPtr->field_16_running_status = 0xE0;
             pSeqPtr->field_0_seq_ptr++;
-            //SsFCALL.pitchbend(seq_idx, sep_idx);
-            _SsSetPitchBend(seq_idx, sep_idx);
+            SsFCALL.pitchbend(seq_idx, sep_idx);
+            //_SsSetPitchBend(seq_idx, sep_idx);
             return;
         }
 
         const unsigned char running_status = pSeqPtr->field_16_running_status;
         if (running_status == 0xC0)
         {
-            //SsFCALL.programchange(seq_idx);
-            _SsSetProgramChange(seq_idx, sep_idx, midi_byte); // short seq_no, short sep_no, unsigned char ch
+            SsFCALL.programchange(seq_idx, sep_idx, midi_byte);
+            //_SsSetProgramChange(seq_idx, sep_idx, midi_byte); // short seq_no, short sep_no, unsigned char ch
             return;
         }
 
@@ -2914,13 +2912,13 @@ extern "C"
                     return;
                 }
 
-                //SsFCALL.metaevent(seq_idx);
-                _SsGetMetaEvent(seq_idx, sep_idx, midi_byte);
+                SsFCALL.metaevent(seq_idx, sep_idx, midi_byte);
+                //_SsGetMetaEvent(seq_idx, sep_idx, midi_byte);
                 return;
             }
 
-            //SsFCALL.pitchbend(seq_idx, sep_idx);
-            _SsSetPitchBend(seq_idx, sep_idx);
+            SsFCALL.pitchbend(seq_idx, sep_idx);
+            //_SsSetPitchBend(seq_idx, sep_idx);
             return;
         }
 
@@ -2928,13 +2926,13 @@ extern "C"
         {
             unsigned char next_midi_byte__ = *pSeqPtr->field_0_seq_ptr++;
             pSeqPtr->field_90_delta_value = _SsReadDeltaValue(seq_idx, sep_idx);
-            //SsFCALL.noteon(seq_idx, sep_idx, midi_byte, next_midi_byte__);
-            _SsNoteOn(seq_idx, sep_idx, midi_byte, next_midi_byte__);
+            SsFCALL.noteon(seq_idx, sep_idx, midi_byte, next_midi_byte__);
+            //_SsNoteOn(seq_idx, sep_idx, midi_byte, next_midi_byte__);
         }
         else if (running_status == 0xB0)
         {
-            //SsFCALL.control[CC_NUMBER](seq_idx);
-            _SsSetControlChange(seq_idx, sep_idx, midi_byte);
+            SsFCALL.control[CC_NUMBER](seq_idx, sep_idx, midi_byte);
+            //_SsSetControlChange(seq_idx, sep_idx, midi_byte);
         }
     }
 
@@ -2982,7 +2980,6 @@ extern "C"
             pSeqStructure->field_90_delta_value--;
         }
     }
-*/
 
     void _SsSndPlay(short seq_access_num, short seq_num)
     {
