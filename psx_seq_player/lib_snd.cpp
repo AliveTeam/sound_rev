@@ -575,8 +575,82 @@ extern "C"
         }
     }
 
-    short note2pitch2(short note, short fine) INT_STUB         // todo: leaf
-    short note2pitch(void) INT_STUB                            // todo: leaf (ish - needs 1 more leaf func)
+    // TODO: Taken from googling SsPitchFromNote along with SsPitchFromNote's impl
+    const unsigned short _svm_ptable[] =
+        {
+            4096, 4110, 4125, 4140, 4155, 4170, 4185, 4200,
+            4216, 4231, 4246, 4261, 4277, 4292, 4308, 4323,
+            4339, 4355, 4371, 4386, 4402, 4418, 4434, 4450,
+            4466, 4482, 4499, 4515, 4531, 4548, 4564, 4581,
+            4597, 4614, 4630, 4647, 4664, 4681, 4698, 4715,
+            4732, 4749, 4766, 4783, 4801, 4818, 4835, 4853,
+            4870, 4888, 4906, 4924, 4941, 4959, 4977, 4995,
+            5013, 5031, 5050, 5068, 5086, 5105, 5123, 5142,
+            5160, 5179, 5198, 5216, 5235, 5254, 5273, 5292,
+            5311, 5331, 5350, 5369, 5389, 5408, 5428, 5447,
+            5467, 5487, 5507, 5527, 5547, 5567, 5587, 5607,
+            5627, 5648, 5668, 5688, 5709, 5730, 5750, 5771,
+            5792, 5813, 5834, 5855, 5876, 5898, 5919, 5940,
+            5962, 5983, 6005, 6027, 6049, 6070, 6092, 6114,
+            6137, 6159, 6181, 6203, 6226, 6248, 6271, 6294,
+            6316, 6339, 6362, 6385, 6408, 6431, 6455, 6478,
+            6501, 6525, 6549, 6572, 6596, 6620, 6644, 6668,
+            6692, 6716, 6741, 6765, 6789, 6814, 6839, 6863,
+            6888, 6913, 6938, 6963, 6988, 7014, 7039, 7064,
+            7090, 7116, 7141, 7167, 7193, 7219, 7245, 7271,
+            7298, 7324, 7351, 7377, 7404, 7431, 7458, 7485,
+            7512, 7539, 7566, 7593, 7621, 7648, 7676, 7704,
+            7732, 7760, 7788, 7816, 7844, 7873, 7901, 7930,
+            7958, 7987, 8016, 8045, 8074, 8103, 8133, 8162,
+            8192};
+
+    short SsPitchFromNote(short note, short fine, unsigned char center, unsigned char shift)
+    {
+
+        unsigned int pitch;
+        short calc, type;
+        signed int add, sfine; //, ret;
+
+        sfine = fine + shift;
+        if (sfine < 0)
+            sfine += 7;
+        sfine >>= 3;
+
+        add = 0;
+        if (sfine > 15)
+        {
+            add = 1;
+            sfine -= 16;
+        }
+
+        calc = add + (note - (center - 60)); //((center + 60) - note) + add;
+        pitch = _svm_ptable[16 * (calc % 12) + (short)sfine];
+        type = calc / 12 - 5;
+
+        // regular shift
+        if (type > 0)
+            return pitch << type;
+        // negative shift
+        if (type < 0)
+            return pitch >> -type;
+
+        return pitch;
+    }
+    short note2pitch2(short note, short fine)
+    {
+        VagAtr* pVag = &_svm_tn[_svm_cur.field_C_vag_idx + (_svm_cur.field_7_fake_program * 16)];
+        return SsPitchFromNote(note, fine, pVag->center, pVag->shift);
+    }
+
+    short note2pitch(void)
+    {
+        short pitchShift = _svm_cur.field_11_shift;
+        if (_svm_cur.field_11_shift > 127)
+        {
+            pitchShift = 127;
+        }
+        return SsPitchFromNote(_svm_cur.field_2_note, 0, _svm_cur.field_10_centre, pitchShift);
+    }
 
     void vmNoiseOn(short voiceNum)
     {
