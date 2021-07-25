@@ -5,6 +5,9 @@
 extern "C"
 {
 #endif
+
+    #define _countof(x) sizeof(x) / sizeof(x[0])
+
     #define SPU_TRANSFER_BY_DMA 0L
     #define SPU_TRANSFER_BY_IO 1L
 
@@ -31,6 +34,20 @@ extern "C"
     #define SPU_REV_MODE_MAX	10
 
     #define SPU_REV_MODE_CLEAR_WA	0x100
+    
+    #define SPU_MAX_TRANS	0x7EFF0		// ~512 KB
+
+    
+    #define SPU_EVENT_KEY      (0x01 << 0)
+    #define SPU_EVENT_PITCHLFO (0x01 << 1)
+    #define SPU_EVENT_NOISE    (0x01 << 2)
+    #define SPU_EVENT_REVERB   (0x01 << 3)
+
+    #define SPU_EVENT_ALL 0
+
+    typedef unsigned int u32;
+    typedef unsigned short int u16;
+    typedef unsigned char u8;
 
     typedef struct {
         short left;	       /* Lch */
@@ -101,16 +118,17 @@ extern "C"
 
     void SpuSetReverb(long on_off);
 
-    short _spu_getInTransfer(void);
-    void _spu_setInTransfer(short);
+    long _spu_getInTransfer(void);
+    void _spu_setInTransfer(int mode);
 
     extern long SpuInitMalloc (long num, char *top);
     long SpuMalloc(long size);
     void SpuFree(unsigned long addr);
 
     long SpuSetTransferMode(long mode);
-    unsigned long SpuSetTransferStartAddr (unsigned long addr);
-    unsigned long SpuWrite (unsigned char *addr, unsigned long size);
+    u32 SpuSetTransferStartAddr(u32 addr);
+
+    u32 SpuWrite(u8* addr, u32 size);
 
     extern long SpuSetReverbModeParam (SpuReverbAttr *attr);
 

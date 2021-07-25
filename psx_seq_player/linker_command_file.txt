@@ -12,57 +12,58 @@
 	inclib libapi.lib
 	inclib libgpu.lib
 
-;	include libspu\S_I.obj ; SpuInit
-	include libspu\S_SNC.obj ; SpuSetNoiseClock
-	include libspu\S_GVEX.obj ; SpuGetVoiceEnvelope
-	include libspu\S_SNV.obj ; SpuSetNoiseVoice
-	include libspu\S_SVA.obj ; SpuSetVoiceAttr
-	include libspu\S_SK.obj ; SpuSetKey
-	include libspu\S_SRV.obj ; SpuSetReverbVoice
-	include libspu\S_GRV.obj ; SpuGetReverbVoice
-	include libspu\S_IT.obj ; _spu_setInTransfer _spu_getInTransfer
-	include libspu\S_SRMP.obj ; SpuSetReverbModeParam
-
-	include libspu\S_GNV.obj ; SpuGetNoiseVoice
-	include libspu\S_M_INIT.obj ; SpuInitMalloc
-	include libspu\S_SR.obj ; SpuSetReverb
-	include libspu\S_STM.obj ; SpuSetTransferMode
-	include libspu\S_STSA.obj ; SpuSetTransferStartAddr
-	include libspu\S_W.obj ; SpuWrite
-	include libspu\S_M_M.obj ; SpuMalloc
-	include libspu\S_M_F.obj ; SpuFree
-	include libspu\S_CRWA.obj ; SpuClearReverbWorkArea
-	include libspu\S_SCA.obj ; SpuSetCommonAttr
-	include libspu\S_ITC.obj ; SpuIsTransferCompleted
+;	include libspu\S_I.obj ; SpuInit (OK)
+	include libspu\S_SK.obj ; SpuSetKey (OK) ??
+;	include libspu\S_IT.obj ; _spu_setInTransfer _spu_getInTransfer (OK)
+;	include libspu\S_STSA.obj ; SpuSetTransferStartAddr (OK)
+;	include libspu\S_M_INIT.obj ; SpuInitMalloc (OK)
+;	include libspu\S_W.obj ; SpuWrite (OK)
+;	include libspu\S_CRWA.obj ; SpuClearReverbWorkArea (OK)
+;	include libspu\S_ITC.obj ; SpuIsTransferCompleted (OK)
+;	include libspu\S_RMP0.obj ; _spu_rev_startaddr (var only OK)
+;	include libspu\S_M_UTIL.obj ; _SpuIsInAllocateArea _SpuIsInAllocateArea_ (OK)
+;	include libspu\ZEROBUF.obj ; _spu_zerobuf (var only, OK)
+;	include libspu\S_DCB.obj ; _SpuDataCallback (OK)
+;	include libspu\S_M.obj ; _spu_AllocBlockNum _spu_AllocLastNum _spu_memList (var only, OK)
 
 	; _spu_EVdma _spu_keystat _spu_trans_mode
     ; _spu_rev_flag _spu_rev_reserve_wa
     ; _spu_rev_offsetaddr _spu_rev_attr _spu_RQvoice
-    ; _spu_RQmask _spu_voice_centerNote _spu_env
-    ; _SpuInit SpuStart _spu_isCalled
-	include libspu\S_INI.obj
+    ; _spu_RQmask _spu_voice_centerNote _spu_env (OK)
+    ; _SpuInit (OK) SpuStart (OK) _spu_isCalled (OK)
+	;include libspu\S_INI.obj ; (OK)
 
- 	; _spu_RXX _spu_tsa _spu_transMode _spu_addrMode
+ 	; _spu_RXX (OK) _spu_tsa _spu_transMode _spu_addrMode
     ; _spu_mem_mode _spu_mem_mode_plus
     ; _spu_mem_mode_unit _spu_mem_mode_unitM
     ; _spu_inTransfer _spu_transferCallback
-    ; _spu_IRQCallback _spu_init _spu_Fw1ts *_spu_RQ
+    ; _spu_IRQCallback _spu_init (OK) _spu_Fw1ts *_spu_RQ
     ; _spu_FiDMA _spu_Fr_ _spu_t _spu_Fw _spu_Fr
     ; _spu_FsetRXX _spu_FsetRXXa _spu_FgetRXXa
     ; _spu_FsetPCR
-	include libspu\SPU.obj
+	;include libspu\SPU.obj ; (OK)
 
-	include libspu\S_N2P.obj ; _spu_note2pitch _spu_pitch2note 
-	include libspu\S_SAV.obj ; _SpuSetAnyVoice
-	include libspu\S_GAV.obj ; _SpuGetAnyVoice
-	include libspu\S_RMP0.obj ; _spu_rev_startaddr
-	include libspu\S_M_UTIL.obj ; _SpuIsInAllocateArea _SpuIsInAllocateArea_ 
-	include libspu\S_RMP2.obj ; _spu_rev_param
-	include libspu\S_SRA.obj ; _spu_setReverbAttr
-	include libspu\S_M.obj ; _spu_AllocBlockNum _spu_AllocLastNum _spu_memList 
-	include libspu\S_M_INT.obj ; _spu_gcSPU
-	include libspu\ZEROBUF.obj ; _spu_zerobuf
-	include libspu\S_DCB.obj ; _SpuDataCallback
+	include libspu\S_SVA.obj ; SpuSetVoiceAttr/SpuSetVoiceAttr (?)
+	include libspu\S_SNC.obj ; SpuSetNoiseClock (S)
+	include libspu\S_GVEX.obj ; SpuGetVoiceEnvelope (S)
+	include libspu\S_SNV.obj ; SpuSetNoiseVoice (S)
+	include libspu\S_SRV.obj ; SpuSetReverbVoice (S)
+	include libspu\S_GRV.obj ; SpuGetReverbVoice (S)
+	include libspu\S_GNV.obj ; SpuGetNoiseVoice (S)
+	include libspu\S_SR.obj ; SpuSetReverb (S)
+	include libspu\S_STM.obj ; SpuSetTransferMode (S)
+	include libspu\S_M_F.obj ; SpuFree (S)
+	include libspu\S_GAV.obj ; _SpuGetAnyVoice (S)
+	include libspu\S_SRA.obj ; _spu_setReverbAttr (S)
+	include libspu\S_RMP2.obj ; _spu_rev_param (var only)
+
+	include libspu\S_SCA.obj ; SpuSetCommonAttr (S-M)
+	include libspu\S_SRMP.obj ; SpuSetReverbModeParam (M)
+	include libspu\S_SAV.obj ; _SpuSetAnyVoice (M)
+	include libspu\S_M_M.obj ; SpuMalloc (M)
+	include libspu\S_M_INT.obj ; _spu_gcSPU (H gc algo)
+	include libspu\S_N2P.obj ; _spu_note2pitch _spu_pitch2note (M-H)
+
 
 	; Fully replaced (at least the bits we use)
 ;	inclib libsnd.lib

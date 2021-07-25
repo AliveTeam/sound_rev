@@ -2527,10 +2527,10 @@ extern "C"
         _snd_openflag |= (1 << openSeqId);
         const int seqInit = _SsInitSoundSeq(openSeqId, vab_id, (unsigned char*)pSeqData);
 
-        SsFCALL.noteon = (void (*)())_SsNoteOn;
-        SsFCALL.programchange = (void (*)())_SsSetProgramChange;
-        SsFCALL.metaevent = (void (*)())_SsGetMetaEvent;
-        SsFCALL.pitchbend = (void (*)())_SsSetPitchBend;
+        SsFCALL.noteon = _SsNoteOn;
+        SsFCALL.programchange = _SsSetProgramChange;
+        SsFCALL.metaevent = _SsGetMetaEvent;
+        SsFCALL.pitchbend = _SsSetPitchBend;
 
         SsFCALL.control[CC_NUMBER] = _SsSetControlChange;
         SsFCALL.control[CC_BANKCHANGE] = (void (*)(short int, short int, unsigned char))_SsContBankChange; // sony lol
@@ -3466,10 +3466,10 @@ static int DvConv(int dv)
 
 static void Test_SsGetSeqData()
 {
-    SsFCALL.noteon = (void (*)())Test_SsNoteOn;
-    SsFCALL.programchange = (void (*)())Test_SsSetProgramChange;
+    SsFCALL.noteon = Test_SsNoteOn;
+    SsFCALL.programchange = Test_SsSetProgramChange;
     SsFCALL.control[0] = Test_ControlChange;
-    SsFCALL.pitchbend = (void (*)())Test_SsSetPitchBend;
+    SsFCALL.pitchbend = Test_SsSetPitchBend;
 
     // Note off test
     {

@@ -184,10 +184,10 @@ extern "C"
     };
 
     typedef struct {
-        void (*noteon) ();
-        void (*programchange) ();
-        void (*pitchbend) ();
-        void (*metaevent) ();
+        void (*noteon) (short seq_no, short sep_no, unsigned char note, unsigned char voll);
+        void (*programchange) (short seq_no, short sep_no, unsigned char programNum);
+        void (*pitchbend) (short seq_no, short sep_no);
+        void (*metaevent) (short seq_no, short sep_no, unsigned char ev);
         void (*control[13]) (short, short, unsigned char);
         void (*ccentry[20]) (short, short, short, VagAtr, short, unsigned char);
     } _SsFCALL;
