@@ -307,7 +307,7 @@ extern "C"
     // S_IT.OBJ
     void _spu_setInTransfer(int mode)
     {
-        if (!mode) _spu_inTransfer = !mode ? 0 : 1;
+        _spu_inTransfer = mode != 1 ? 1 : 0;
     }
 
     // S_IT.OBJ
