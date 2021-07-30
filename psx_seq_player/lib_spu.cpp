@@ -1017,6 +1017,7 @@ extern "C"
         return ret;
     }
 
+    // S_SNC.OBJ
     long SpuSetNoiseClock(long n_clock)
     {
         unsigned char n_clock_fixed = 0;
@@ -1032,6 +1033,12 @@ extern "C"
         return n_clock_fixed;
     }
 
+    // S_GVEX.OBJ
+    void SpuGetVoiceEnvelope(int voiceNum, short *envx)
+    {
+        *envx = _spu_RXX->voice[voiceNum].volumex;
+    }
+
     // TODO
     extern void SpuSetCommonAttr (SpuCommonAttr *attr);
     void SpuSetReverb(long on_off);
@@ -1039,7 +1046,6 @@ extern "C"
     void SpuFree(unsigned long addr);
     long SpuSetTransferMode(long mode);
     extern void SpuSetVoiceAttr (SpuVoiceAttr *arg);
-    extern void SpuGetVoiceEnvelope (int vNum, short *envx);
     extern unsigned long SpuSetNoiseVoice (long on_off, unsigned long voice_bit);
     extern unsigned long SpuSetReverbVoice (long on_off, unsigned long voice_bit);
     extern void SpuSetKey (long on_off, unsigned long voice_bit);
