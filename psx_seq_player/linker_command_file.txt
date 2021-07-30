@@ -44,7 +44,7 @@
 	;include libspu\SPU.obj ; (OK)
 
 	include libspu\S_SVA.obj ; SpuSetVoiceAttr/SpuSetVoiceAttr (?)
-	include libspu\S_SNC.obj ; SpuSetNoiseClock (S)
+;	include libspu\S_SNC.obj ; SpuSetNoiseClock (S)
 	include libspu\S_GVEX.obj ; SpuGetVoiceEnvelope (S)
 	include libspu\S_SNV.obj ; SpuSetNoiseVoice (S)
 	include libspu\S_SRV.obj ; SpuSetReverbVoice (S)

@@ -1017,6 +1017,21 @@ extern "C"
         return ret;
     }
 
+    long SpuSetNoiseClock(long n_clock)
+    {
+        unsigned char n_clock_fixed = 0;
+        if (n_clock >= 0)
+        {
+            n_clock_fixed = n_clock;
+            if (n_clock >= 64)
+            {
+                n_clock_fixed = 63;
+            }
+        }
+        _spu_RXX->spucnt = _spu_RXX->spucnt & 0xC0FF | ((n_clock_fixed & 0x3F) << 8);
+        return n_clock_fixed;
+    }
+
     // TODO
     extern void SpuSetCommonAttr (SpuCommonAttr *attr);
     void SpuSetReverb(long on_off);
@@ -1030,6 +1045,5 @@ extern "C"
     extern void SpuSetKey (long on_off, unsigned long voice_bit);
     extern unsigned long SpuGetReverbVoice (void);
     extern unsigned long SpuGetNoiseVoice (void);
-    long SpuSetNoiseClock(long n_clock);
 
 }
