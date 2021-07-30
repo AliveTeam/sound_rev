@@ -1054,6 +1054,20 @@ extern "C"
         return _SpuSetAnyVoice(on_off_flags, voice_bits, 204, 205);
     }
 
+    unsigned long _SpuGetAnyVoice(int word_idx1, int word_idx2);
+
+    // S_GRV.OBJ
+    unsigned long SpuGetReverbVoice(void)
+    {
+        return _SpuGetAnyVoice(204, 205);
+    }
+
+    // S_GNV.OBJ
+    unsigned long SpuGetNoiseVoice(void)
+    {
+        return _SpuGetAnyVoice(202, 203);
+    }
+
     // TODO
     extern void SpuSetCommonAttr (SpuCommonAttr *attr);
     void SpuSetReverb(long on_off);
@@ -1062,7 +1076,5 @@ extern "C"
     long SpuSetTransferMode(long mode);
     extern void SpuSetVoiceAttr (SpuVoiceAttr *arg);
     extern void SpuSetKey (long on_off, unsigned long voice_bit);
-    extern unsigned long SpuGetReverbVoice (void);
-    extern unsigned long SpuGetNoiseVoice (void);
 
 }
