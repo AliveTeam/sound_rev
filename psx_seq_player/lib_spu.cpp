@@ -1092,11 +1092,27 @@ extern "C"
         }
     }
 
+    // S_STM.OBJ
+    long SpuSetTransferMode(long mode)
+    {
+        if (mode)
+        {
+            _spu_transMode = mode == 1 ? 1 : 0;
+        }
+        else
+        {
+            _spu_transMode = 0;
+        }
+
+        _spu_trans_mode = mode;
+
+        return _spu_transMode;
+    }
+
     // TODO
     extern void SpuSetCommonAttr (SpuCommonAttr *attr);
     long SpuMalloc(long size);
     void SpuFree(unsigned long addr);
-    long SpuSetTransferMode(long mode);
     extern void SpuSetVoiceAttr (SpuVoiceAttr *arg);
     extern void SpuSetKey (long on_off, unsigned long voice_bit);
 
