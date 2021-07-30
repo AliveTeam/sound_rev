@@ -52,7 +52,7 @@
 ;	include libspu\S_GNV.obj ; SpuGetNoiseVoice (S)
 ;	include libspu\S_SR.obj ; SpuSetReverb (S)
 ;	include libspu\S_STM.obj ; SpuSetTransferMode (S)
-	include libspu\S_M_F.obj ; SpuFree (S)
+;	include libspu\S_M_F.obj ; SpuFree (S)
 	include libspu\S_GAV.obj ; _SpuGetAnyVoice (S)
 	include libspu\S_SRA.obj ; _spu_setReverbAttr (S)
 	include libspu\S_RMP2.obj ; _spu_rev_param (var only)

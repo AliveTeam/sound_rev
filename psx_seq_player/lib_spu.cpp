@@ -134,7 +134,8 @@ extern "C"
 
     typedef struct tagSpuMalloc
     {
-        u32 v0, v1;
+        u32 field_0_addr;
+        u32 v1;
     } SPU_MALLOC;
 
     // Forward declares
@@ -415,7 +416,7 @@ extern "C"
         _spu_memList = pTop;
         _spu_AllocLastNum = 0;
         _spu_AllocBlockNum = num;
-        pTop->v0 = 0x40001010;
+        pTop->field_0_addr = 0x40001010;
         pTop->v1 = (0x10000 << _spu_mem_mode_plus) - 0x1010;
 
         return num;
@@ -431,7 +432,7 @@ extern "C"
 
         for (;; pA++)
         {
-            ptr = pA->v0;
+            ptr = pA->field_0_addr;
             // hit last entry
             if (ptr & 0x40000000) break;
             // hit unused entry, skip it
@@ -448,7 +449,8 @@ extern "C"
     // S_M_UTIL.OBJ
     int _SpuIsInAllocateArea_(u32 addr)
     {
-        u32 pos, ptr;
+        u32 pos;
+        u32 ptr;
         SPU_MALLOC *pA = _spu_memList;
 
         if (!pA) return 0;
@@ -457,15 +459,25 @@ extern "C"
 
         for (;; pA++)
         {
-            ptr = pA->v0;
+            ptr = pA->field_0_addr;
+
             // hit last entry
-            if (ptr & 0x40000000) break;
+            if (ptr & 0x40000000)
+            {
+                break;
+            }
+
             // hit unused entry, skip it
-            if (ptr & 0x80000000) continue;
+            if (ptr & 0x80000000)
+            {
+                continue;
+            }
 
             ptr &= 0xFFFFFF;
             if (pos > ptr && pos < pA->v1 + ptr)
+            {
                 return 1;
+            }
         }
 
         return 0;
@@ -1107,6 +1119,37 @@ extern "C"
         _spu_trans_mode = mode;
 
         return _spu_transMode;
+    }
+
+    // TODO:
+    void _spu_gcSPU(void);
+
+    // S_M_F.OBJ
+    void SpuFree(unsigned long addr)
+    {
+        u32 blockCounter = 0;
+        if (_spu_AllocBlockNum > 0)
+        {
+            SPU_MALLOC* pAllocIter = _spu_memList;
+            while ((pAllocIter->field_0_addr & 0x40000000) == 0)
+            {
+                blockCounter++;
+
+                if (pAllocIter->field_0_addr == addr)
+                {
+                    pAllocIter->field_0_addr = addr | 0x80000000;
+                    break;
+                }
+
+                pAllocIter++;
+                if (blockCounter >= _spu_AllocBlockNum)
+                {
+                    break;
+                }
+            }
+        }
+
+        _spu_gcSPU();
     }
 
     // TODO
