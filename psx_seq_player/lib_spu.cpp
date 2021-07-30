@@ -1039,6 +1039,21 @@ extern "C"
         *envx = _spu_RXX->voice[voiceNum].volumex;
     }
 
+    // TODO:
+    unsigned long _SpuSetAnyVoice(long on_off_flags, unsigned long voice_bits, int word_idx1, int word_idx2);
+
+    // S_SNV.OBJ
+    unsigned long SpuSetNoiseVoice(long on_off_flags, unsigned long voice_bits)
+    {
+        return _SpuSetAnyVoice(on_off_flags, voice_bits, 202, 203);
+    }
+
+    // S_SRV.OBJ
+    unsigned long SpuSetReverbVoice(long on_off_flags, unsigned long voice_bits)
+    {
+        return _SpuSetAnyVoice(on_off_flags, voice_bits, 204, 205);
+    }
+
     // TODO
     extern void SpuSetCommonAttr (SpuCommonAttr *attr);
     void SpuSetReverb(long on_off);
@@ -1046,8 +1061,6 @@ extern "C"
     void SpuFree(unsigned long addr);
     long SpuSetTransferMode(long mode);
     extern void SpuSetVoiceAttr (SpuVoiceAttr *arg);
-    extern unsigned long SpuSetNoiseVoice (long on_off, unsigned long voice_bit);
-    extern unsigned long SpuSetReverbVoice (long on_off, unsigned long voice_bit);
     extern void SpuSetKey (long on_off, unsigned long voice_bit);
     extern unsigned long SpuGetReverbVoice (void);
     extern unsigned long SpuGetNoiseVoice (void);
