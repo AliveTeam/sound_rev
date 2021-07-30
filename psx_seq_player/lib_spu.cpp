@@ -1054,6 +1054,7 @@ extern "C"
         return _SpuSetAnyVoice(on_off_flags, voice_bits, 204, 205);
     }
 
+    // TODO:
     unsigned long _SpuGetAnyVoice(int word_idx1, int word_idx2);
 
     // S_GRV.OBJ
@@ -1068,9 +1069,31 @@ extern "C"
         return _SpuGetAnyVoice(202, 203);
     }
 
+    // S_SR.OBJ
+    void SpuSetReverb(long on_off)
+    {
+        if (on_off == 0)
+        {
+            _spu_rev_flag = 0;
+            _spu_RXX->spucnt &= ~0x80;
+        }
+        else if (on_off == 1)
+        {
+            if (_spu_rev_reserve_wa == 1 || !_SpuIsInAllocateArea(_spu_rev_offsetaddr))
+            {
+                _spu_rev_flag = 1;
+                _spu_RXX->spucnt |= 0x80;
+            }
+            else
+            {
+                _spu_rev_flag = 0;
+                _spu_RXX->spucnt &= ~0x80;
+            }
+        }
+    }
+
     // TODO
     extern void SpuSetCommonAttr (SpuCommonAttr *attr);
-    void SpuSetReverb(long on_off);
     long SpuMalloc(long size);
     void SpuFree(unsigned long addr);
     long SpuSetTransferMode(long mode);
