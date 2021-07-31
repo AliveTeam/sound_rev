@@ -1157,150 +1157,145 @@ extern "C"
     {
         short mvol_left;              // $a2
         short mvol_right_local_1;     // $t0
-        int mov_left_part1;             // $a1
+        int mov_left_part1;           // $a1
         short mov_left_part2;         // $v0
-        int mvol_left_local;            // $a3
+        int mvol_left_local;          // $a3
         short mvol_left_clamped;      // $a2
-        int mov_right_part1;            // $a1
+        int mov_right_part1;          // $a1
         short mov_right_part2;        // $v0
-        int mvol_right_local;           // $a2
+        int mvol_right_local;         // $a2
         short mvol_right_clamped;     // $t0
 
         mvol_left = 0;
-        mvol_right_local_1 = 0;
-
-        if (!pAttr->mask)
+        if (pAttr->mask == 0)
         {
             goto LABEL_4;
         }
 
-        if ((pAttr->mask & 1) != 0)
+        if (pAttr->mask & 1)
         {
-            if ((pAttr->mask & 4) == 0)
+            if (pAttr->mask & 4)
             {
-
-            LABEL_12:
+            LABEL_4:
+                switch (pAttr->mvolmode.left)
+                {
+                case 1:
+                    mov_left_part1 = 0x8000;
+                    break;
+                case 2:
+                    mov_left_part1 = 0x9000;
+                    break;
+                case 3:
+                    mov_left_part1 = 0xA000;
+                    break;
+                case 4:
+                    mov_left_part1 = 0xB000;
+                    break;
+                case 5:
+                    mov_left_part1 = 0xC000;
+                    break;
+                case 6:
+                    mov_left_part1 = 0xD000;
+                    break;
+                case 7:
+                    mov_left_part1 = 0xE000;
+                    break;
+                default:
+                    mvol_left = pAttr->mvol.left;
+                    mov_left_part1 = 0;
+                    break;
+                }
+            }
+            else
+            {
                 mvol_left = pAttr->mvol.left;
                 mov_left_part1 = 0;
-
-            LABEL_13:
-                mov_left_part2 = mvol_left & 0x7FFF;
-                if (mov_left_part1)
-                {
-                    mvol_left_local = pAttr->mvol.left;
-                    mvol_left_clamped = 127;
-                    if (mvol_left_local < 128)
-                    {
-                        mvol_left_clamped = 0;
-                        if (mvol_left_local >= 0)
-                        {
-                            mvol_left_clamped = pAttr->mvol.left;
-                        }
-                    }
-                    mov_left_part2 = mvol_left_clamped & 0x7FFF;
-                }
-                _spu_RXX->main_vol.left = mov_left_part2 | mov_left_part1;
-                goto LABEL_19;
             }
 
-        LABEL_4:
-            switch (pAttr->mvolmode.left)
+            mov_left_part2 = mvol_left & 0x7FFF;
+            if (mov_left_part1)
             {
-            case 1:
-                mov_left_part1 = 0x8000;
-                break;
-            case 2:
-                mov_left_part1 = 0x9000;
-                break;
-            case 3:
-                mov_left_part1 = 0xA000;
-                break;
-            case 4:
-                mov_left_part1 = 0xB000;
-                break;
-            case 5:
-                mov_left_part1 = 0xC000;
-                break;
-            case 6:
-                mov_left_part1 = 0xD000;
-                break;
-            case 7:
-                mov_left_part1 = 0xE000;
-                break;
-            default:
-                goto LABEL_12;
+                mvol_left_local = pAttr->mvol.left;
+                mvol_left_clamped = 127;
+                if (mvol_left_local < 128)
+                {
+                    mvol_left_clamped = 0;
+                    if (mvol_left_local >= 0)
+                    {
+                        mvol_left_clamped = pAttr->mvol.left;
+                    }
+                }
+                mov_left_part2 = mvol_left_clamped & 0x7FFF;
             }
-            goto LABEL_13;
+            _spu_RXX->main_vol.left = mov_left_part2 | mov_left_part1;
         }
 
-    LABEL_19:
+        mvol_right_local_1 = 0;
         if (pAttr->mask == 0)
         {
             goto LABEL_22;
         }
         
-        if ((pAttr->mask & 2) == 0)
+        if (pAttr->mask & 2)
         {
-            goto LABEL_37;
-        }
-
-        if ((pAttr->mask & 8) != 0)
-        {
-        LABEL_22:
-            switch (pAttr->mvolmode.right)
+            if (pAttr->mask & 8)
             {
-            case 1:
-                mov_right_part1 = 0x8000;
-                break;
-            case 2:
-                mov_right_part1 = 0x9000;
-                break;
-            case 3:
-                mov_right_part1 = 0xA000;
-                break;
-            case 4:
-                mov_right_part1 = 0xB000;
-                break;
-            case 5:
-                mov_right_part1 = 0xC000;
-                break;
-            case 6:
-                mov_right_part1 = 0xD000;
-                break;
-            case 7:
-                mov_right_part1 = 0xE000;
-                break;
-            default:
-                goto LABEL_30;
-            }
-        }
-        else
-        {
-        LABEL_30:
-            mvol_right_local_1 = pAttr->mvol.right;
-            mov_right_part1 = 0;
-        }
-        
-        mov_right_part2 = mvol_right_local_1 & ~0x8000;
-
-        if (mov_right_part1)
-        {
-            mvol_right_local = pAttr->mvol.right;
-            mvol_right_clamped = 127;
-            if (mvol_right_local < 128)
-            {
-                mvol_right_clamped = 0;
-                if (mvol_right_local >= 0)
+            LABEL_22:
+                switch (pAttr->mvolmode.right)
                 {
-                    mvol_right_clamped = pAttr->mvol.right;
+                case 1:
+                    mov_right_part1 = 0x8000;
+                    break;
+                case 2:
+                    mov_right_part1 = 0x9000;
+                    break;
+                case 3:
+                    mov_right_part1 = 0xA000;
+                    break;
+                case 4:
+                    mov_right_part1 = 0xB000;
+                    break;
+                case 5:
+                    mov_right_part1 = 0xC000;
+                    break;
+                case 6:
+                    mov_right_part1 = 0xD000;
+                    break;
+                case 7:
+                    mov_right_part1 = 0xE000;
+                    break;
+                default:
+                    mvol_right_local_1 = pAttr->mvol.right;
+                    mov_right_part1 = 0;
+                    break;
                 }
             }
-            mov_right_part2 = mvol_right_clamped & ~0x8000;
+            else
+            {
+                mvol_right_local_1 = pAttr->mvol.right;
+                mov_right_part1 = 0;
+            }
+            
+            mov_right_part2 = mvol_right_local_1 & 0x7FFF;
+
+            if (mov_right_part1)
+            {
+                mvol_right_local = pAttr->mvol.right;
+                mvol_right_clamped = 127;
+                if (mvol_right_local < 128)
+                {
+                    mvol_right_clamped = 0;
+                    if (mvol_right_local >= 0)
+                    {
+                        mvol_right_clamped = pAttr->mvol.right;
+                    }
+                }
+                mov_right_part2 = mvol_right_clamped & 0x7FFF;
+            }
+
+            _spu_RXX->main_vol.right = mov_right_part2 | mov_right_part1;
         }
 
-        _spu_RXX->main_vol.right = mov_right_part2 | mov_right_part1;
-
-    LABEL_37:
         if (pAttr->mask || (pAttr->mask & 0x40) != 0)
         {
             _spu_RXX->cd_vol.left = pAttr->cd.volume.left;
