@@ -57,7 +57,7 @@
 	include libspu\S_SRA.obj ; _spu_setReverbAttr (S)
 	include libspu\S_RMP2.obj ; _spu_rev_param (var only)
 
-	include libspu\S_SCA.obj ; SpuSetCommonAttr (S-M)
+;	include libspu\S_SCA.obj ; SpuSetCommonAttr (S-M)
 	include libspu\S_SRMP.obj ; SpuSetReverbModeParam (M)
 	include libspu\S_SAV.obj ; _SpuSetAnyVoice (M)
 	include libspu\S_M_M.obj ; SpuMalloc (M)
