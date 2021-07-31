@@ -1343,9 +1343,69 @@ extern "C"
         }
     }
 
+    void SpuSetKey(long on_off, unsigned long voice_bit)
+    {
+        u32 voice_hit;
+
+        voice_bit &= 0xFFFFFF;
+        voice_hit = voice_bit >> 16;
+
+        if (on_off != SPU_OFF)
+        {
+            if (_spu_env & 1)
+            {
+                _spu_RQ[0] = voice_bit;
+                _spu_RQ[1] = voice_hit;
+                _spu_RQmask |= 1;
+                _spu_RQvoice |= voice_bit;
+
+                if (_spu_RQ[2] & voice_bit)
+                {
+                    _spu_RQ[2] &= ~voice_bit;
+                }
+                
+                if (_spu_RQ[3] & voice_hit)
+                {
+                    _spu_RQ[3] &= ~voice_hit;
+                }
+            }
+            else
+            {
+                s->key_on[0] = voice_bit;
+                s->key_on[1] = voice_hit;
+                _spu_keystat |= voice_bit;
+            }
+        }
+        else
+        {
+            if (_spu_env & 1)
+            {
+                _spu_RQ[2] = voice_bit;
+                _spu_RQ[3] = voice_hit;
+                _spu_RQmask |= 1;
+                _spu_RQvoice &= ~voice_bit;
+
+                if (_spu_RQ[0] & voice_bit)
+                {
+                    _spu_RQ[0] &= ~voice_bit;
+                }
+
+                if (_spu_RQ[1] & voice_hit)
+                {
+                    _spu_RQ[1] &= ~voice_hit;
+                }
+            }
+            else
+            {
+                s->key_off[0] = voice_bit;
+                s->key_off[1] = voice_hit;
+                _spu_keystat &= ~voice_bit;
+            }
+        }
+    }
+
     // TODO
     long SpuMalloc(long size);
     extern void SpuSetVoiceAttr (SpuVoiceAttr *arg);
-    extern void SpuSetKey (long on_off, unsigned long voice_bit);
 
 }

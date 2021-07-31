@@ -13,7 +13,7 @@
 	inclib libgpu.lib
 
 ;	include libspu\S_I.obj ; SpuInit (OK)
-	include libspu\S_SK.obj ; SpuSetKey (OK) ??
+;	include libspu\S_SK.obj ; SpuSetKey (OK)
 ;	include libspu\S_IT.obj ; _spu_setInTransfer _spu_getInTransfer (OK)
 ;	include libspu\S_STSA.obj ; SpuSetTransferStartAddr (OK)
 ;	include libspu\S_M_INIT.obj ; SpuInitMalloc (OK)
