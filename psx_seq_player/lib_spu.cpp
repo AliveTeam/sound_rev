@@ -1155,28 +1155,12 @@ extern "C"
     // S_SCA.OBJ
     void SpuSetCommonAttr(SpuCommonAttr *pAttr)
     {
-        short mvol_left;              // $a2
-        short mvol_right_local_1;     // $t0
-        int mov_left_part1;           // $a1
-        short mov_left_part2;         // $v0
-        int mvol_left_local;          // $a3
-        short mvol_left_clamped;      // $a2
-        int mov_right_part1;          // $a1
-        short mov_right_part2;        // $v0
-        int mvol_right_local;         // $a2
-        short mvol_right_clamped;     // $t0
-
-        mvol_left = 0;
-        if (pAttr->mask == 0)
+        short mvol_left = 0;
+        if ((pAttr->mask == 0) || (pAttr->mask & 1))
         {
-            goto LABEL_4;
-        }
-
-        if (pAttr->mask & 1)
-        {
-            if (pAttr->mask & 4)
+            int mov_left_part1 = 0;
+            if ((pAttr->mask == 0) || (pAttr->mask & 4))
             {
-            LABEL_4:
                 switch (pAttr->mvolmode.left)
                 {
                 case 1:
@@ -1212,11 +1196,11 @@ extern "C"
                 mov_left_part1 = 0;
             }
 
-            mov_left_part2 = mvol_left & 0x7FFF;
+            short mov_left_part2 = mvol_left & 0x7FFF;
             if (mov_left_part1)
             {
-                mvol_left_local = pAttr->mvol.left;
-                mvol_left_clamped = 127;
+                const int mvol_left_local = pAttr->mvol.left;
+                short mvol_left_clamped = 127;
                 if (mvol_left_local < 128)
                 {
                     mvol_left_clamped = 0;
@@ -1230,17 +1214,12 @@ extern "C"
             _spu_RXX->main_vol.left = mov_left_part2 | mov_left_part1;
         }
 
-        mvol_right_local_1 = 0;
-        if (pAttr->mask == 0)
+        short mvol_right_local_1 = 0;
+        if ((pAttr->mask == 0) || (pAttr->mask & 2))
         {
-            goto LABEL_22;
-        }
-        
-        if (pAttr->mask & 2)
-        {
-            if (pAttr->mask & 8)
+            int mov_right_part1 = 0;
+            if ((pAttr->mask == 0) || (pAttr->mask & 8))
             {
-            LABEL_22:
                 switch (pAttr->mvolmode.right)
                 {
                 case 1:
@@ -1275,13 +1254,12 @@ extern "C"
                 mvol_right_local_1 = pAttr->mvol.right;
                 mov_right_part1 = 0;
             }
-            
-            mov_right_part2 = mvol_right_local_1 & 0x7FFF;
 
+            short mov_right_part2 = mvol_right_local_1 & 0x7FFF;
             if (mov_right_part1)
             {
-                mvol_right_local = pAttr->mvol.right;
-                mvol_right_clamped = 127;
+                const int mvol_right_local = pAttr->mvol.right;
+                short mvol_right_clamped = 127;
                 if (mvol_right_local < 128)
                 {
                     mvol_right_clamped = 0;
