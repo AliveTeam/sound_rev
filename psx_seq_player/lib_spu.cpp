@@ -130,6 +130,39 @@ extern "C"
         SpuVolume ex_vol;	// 1B4
         SpuVolume main_volx;// 1B8
         SpuVolume unk_vol;	// 1BC
+
+        u16 dAPF1; // Starting at 0x1F801DC0
+        u16 dAPF2;
+        u16 vIIR;
+        u16 vCOMB1;
+        u16 vCOMB2;
+        u16 vCOMB3;
+        u16 vCOMB4;
+        u16 vWALL;
+        u16 vAPF1;
+        u16 vAPF2;
+        u16 mLSAME;
+        u16 mRSAME;
+        u16 mLCOMB1;
+        u16 mRCOMB1;
+        u16 mLCOMB2;
+        u16 mRCOMB2;
+        u16 dLSAME;
+        u16 dRSAME;
+        u16 mLDIFF;
+        u16 mRDIFF;
+        u16 mLCOMB3;
+        u16 mRCOMB3;
+        u16 mLCOMB4;
+        u16 mRCOMB4;
+        u16 dLDIFF;
+        u16 dRDIFF;
+        u16 mLAPF1;
+        u16 mRAPF1;
+        u16 mLAPF2;
+        u16 mRAPF2;
+        u16 vLIN;
+        u16 vRIN;
     } SPU_RXX;
 
     typedef struct tagSpuMalloc
@@ -1363,7 +1396,7 @@ extern "C"
                 {
                     _spu_RQ[2] &= ~voice_bit;
                 }
-                
+
                 if (_spu_RQ[3] & voice_hit)
                 {
                     _spu_RQ[3] &= ~voice_hit;
@@ -1404,8 +1437,822 @@ extern "C"
         }
     }
 
+    void SpuSetVoiceAttr(SpuVoiceAttr *pAttr)
+    {
+        int voice_num;                 // $s4
+        unsigned int attr_mask;        // $s1
+        u16 *pCentreNoteIter;        // $s5
+        int converted_voice_num;       // $s3
+        int vol_left_upper;            // $a0
+        short vol_left_clamped;      // $a1
+        int vol_left;                  // $v1
+        int vol_right_upper;           // $a0
+        short vol_right_clamped;     // $a1
+        int vol_right;                 // $v1
+        int voice_num_;                // $v0
+        int voice_num__;               // $v0
+        unsigned int attr_ar;          // $a1
+        short adsr_ar_part;          // $a2
+        unsigned int adsr_dr_part;     // $a1
+        unsigned int adsr_sr_part;     // $a1
+        short converted_s_mode;      // $a2
+        int attr_s_mode;               // $v1
+        unsigned int adsr_rr_part;     // $a1
+        short attr_r_mode_converted; // $a2
+        int attr_r_mode;               // $v1
+        unsigned int attr_sl;          // $a1
+        int i;                         // [sp+10h] [-8h]
+        int time_waster;               // [sp+14h] [-4h]
+
+        voice_num = 0;
+        attr_mask = pAttr->mask;
+        pCentreNoteIter = _spu_voice_centerNote;
+        do
+        {
+            if ((pAttr->voice & (1 << voice_num)) != 0)
+            {
+                converted_voice_num = 8 * voice_num;
+                if (!attr_mask || (attr_mask & 0x10) != 0)
+                {
+                    _spu_RXX->voice[voice_num].pitch = pAttr->pitch;
+                }
+
+                if (!attr_mask || (attr_mask & 0x40) != 0)
+                {
+                    *pCentreNoteIter = pAttr->sample_note;
+                }
+
+                if (!attr_mask || (attr_mask & 0x20) != 0)
+                {
+                    _spu_RXX->voice[voice_num].pitch = _spu_note2pitch(
+                        (*pCentreNoteIter) >> 8 & 0xFF,
+                        (u8)*pCentreNoteIter,
+                        pAttr->note >> 8 & 0xFF,
+                        (u8)pAttr->note);
+                }
+
+                if (!attr_mask || (attr_mask & 1) != 0)
+                {
+                    vol_left_upper = 0;
+                    vol_left_clamped = pAttr->volume.left & 0x7FFF;
+                    if (!attr_mask || (attr_mask & 4) != 0)
+                    {
+                        switch (pAttr->volmode.left)
+                        {
+                        case 1:
+                            vol_left_upper = 0x8000;
+                            break;
+                        case 2:
+                            vol_left_upper = 0x9000;
+                            break;
+                        case 3:
+                            vol_left_upper = 0xA000;
+                            break;
+                        case 4:
+                            vol_left_upper = 0xB000;
+                            break;
+                        case 5:
+                            vol_left_upper = 0xC000;
+                            break;
+                        case 6:
+                            vol_left_upper = 0xD000;
+                            break;
+                        case 7:
+                            vol_left_upper = 0xE000;
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                    if (vol_left_upper)
+                    {
+                        vol_left = pAttr->volume.left;
+                        if (vol_left < 128)
+                        {
+                            if (vol_left < 0)
+                            {
+                                vol_left_clamped = 0;
+                            }
+                        }
+                        else
+                        {
+                            vol_left_clamped = 127;
+                        }
+                    }
+                    _spu_RXX->voice[voice_num].volume.left = vol_left_clamped | vol_left_upper;
+                }
+
+                if (!attr_mask || (attr_mask & 2) != 0)
+                {
+                    vol_right_upper = 0;
+                    vol_right_clamped = pAttr->volume.right & 0x7FFF;
+                    if (!attr_mask || (attr_mask & 8) != 0)
+                    {
+                        switch (pAttr->volmode.right)
+                        {
+                        case 1:
+                            vol_right_upper = 0x8000;
+                            break;
+                        case 2:
+                            vol_right_upper = 0x9000;
+                            break;
+                        case 3:
+                            vol_right_upper = 0xA000;
+                            break;
+                        case 4:
+                            vol_right_upper = 0xB000;
+                            break;
+                        case 5:
+                            vol_right_upper = 0xC000;
+                            break;
+                        case 6:
+                            vol_right_upper = 0xD000;
+                            break;
+                        case 7:
+                            vol_right_upper = 0xE000;
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+
+                    if (vol_right_upper)
+                    {
+                        vol_right = pAttr->volume.right;
+                        if (vol_right < 128)
+                        {
+                            if (vol_right < 0)
+                            {
+                                vol_right_clamped = 0;
+                            }
+                        }
+                        else
+                        {
+                            vol_right_clamped = 127;
+                        }
+                    }
+                    _spu_RXX->voice[voice_num].volume.right = vol_right_clamped | vol_right_upper;
+                }
+
+                if (!attr_mask || (attr_mask & 0x80) != 0)
+                {
+                    _spu_FsetRXXa(converted_voice_num | 3, pAttr->addr);
+                }
+
+                if (!attr_mask || (attr_mask & 0x10000) != 0)
+                {
+                    _spu_FsetRXXa(converted_voice_num | 7, pAttr->loop_addr);
+                }
+
+                voice_num_ = voice_num;
+                if (!attr_mask || (voice_num_ = voice_num, (attr_mask & 0x20000) != 0))
+                {
+                    _spu_RXX->voice[voice_num_].adsr[0] = pAttr->adsr1;
+                }
+
+                voice_num__ = voice_num;
+                if (!attr_mask || (voice_num__ = voice_num, (attr_mask & 0x40000) != 0))
+                {
+                    _spu_RXX->voice[voice_num__].adsr[1] = pAttr->adsr2;
+                }
+
+                if (!attr_mask || (attr_mask & 0x800) != 0)
+                {
+                    attr_ar = pAttr->ar;
+                    if (attr_ar >= 128)
+                    {
+                        attr_ar = 127; // loword
+                    }
+
+                    adsr_ar_part = 0;
+                    if ((!attr_mask || (attr_mask & 0x100) != 0) && pAttr->a_mode == 5)
+                    {
+                        adsr_ar_part = 128;
+                    }
+                    _spu_RXX->voice[voice_num].adsr[0] = (unsigned char)_spu_RXX->voice[voice_num].adsr[0] | (unsigned short)(((unsigned short)attr_ar | (unsigned short)adsr_ar_part) << 8);
+                }
+
+                if (!attr_mask || (attr_mask & 0x1000) != 0)
+                {
+                    adsr_dr_part = pAttr->dr;
+                    if (adsr_dr_part >= 0x10)
+                    {
+                        adsr_dr_part = 15; // loword
+                    }
+                    _spu_RXX->voice[voice_num].adsr[0] = _spu_RXX->voice[voice_num].adsr[0] & 0xFF0F | (0x10 * adsr_dr_part);
+                }
+
+                if (!attr_mask || (attr_mask & 0x2000) != 0)
+                {
+                    adsr_sr_part = pAttr->sr;
+                    if (adsr_sr_part >= 0x80)
+                    {
+                        adsr_sr_part = 127; //loword
+                    }
+
+                    converted_s_mode = 0x100;
+                    if (!attr_mask || (attr_mask & 0x200) != 0)
+                    {
+                        attr_s_mode = pAttr->s_mode;
+                        if (attr_s_mode == 5)
+                        {
+                            converted_s_mode = 0x200;
+                        }
+                        else if (attr_s_mode >= 6)
+                        {
+                            if (attr_s_mode == 7)
+                            {
+                                converted_s_mode = 0x300;
+                            }
+                        }
+                        else if (attr_s_mode == 1)
+                        {
+                            converted_s_mode = 0;
+                        }
+                    }
+                    _spu_RXX->voice[voice_num].adsr[1] = _spu_RXX->voice[voice_num].adsr[1] & 0x3F | (((unsigned short)adsr_sr_part | (unsigned short)converted_s_mode) << 6);
+                }
+
+                if (!attr_mask || (attr_mask & 0x4000) != 0)
+                {
+                    adsr_rr_part = pAttr->rr;
+                    if (adsr_rr_part >= 0x20)
+                    {
+                        adsr_rr_part = 31; // loword
+                    }
+
+                    attr_r_mode_converted = 0;
+                    if (!attr_mask || (attr_mask & 0x400) != 0)
+                    {
+                        attr_r_mode = pAttr->r_mode;
+                        if (attr_r_mode != 3 && attr_r_mode == 7)
+                        {
+                            attr_r_mode_converted = 32;
+                        }
+                    }
+                    _spu_RXX->voice[voice_num].adsr[1] = _spu_RXX->voice[voice_num].adsr[1] & 0xFFC0 | adsr_rr_part | attr_r_mode_converted;
+                }
+
+                if (!attr_mask || (attr_mask & 0x8000) != 0)
+                {
+                    attr_sl = pAttr->sl;
+                    if (attr_sl >= 16)
+                    {
+                        attr_sl = 15; // loword
+                    }
+                    _spu_RXX->voice[voice_num].adsr[0] = _spu_RXX->voice[voice_num].adsr[0] & 0xFFF0 | attr_sl;
+                }
+            }
+            ++voice_num;
+            ++pCentreNoteIter;
+        } while (voice_num < 24);
+
+        time_waster = 1;
+        for (i = 0; i < 2; ++i)
+        {
+            time_waster *= 13;
+        }
+    }
+
+    struct rev_param_entry
+    {
+        u32 flags;
+        u16 dAPF1;
+        u16 dAPF2;
+        u16 vIIR;
+        u16 vCOMB1;
+        u16 vCOMB2;
+        u16 vCOMB3;
+        u16 vCOMB4;
+        u16 vWALL;
+        u16 vAPF1;
+        u16 vAPF2;
+        u16 mLSAME;
+        u16 mRSAME;
+        u16 mLCOMB1;
+        u16 mRCOMB1;
+        u16 mLCOMB2;
+        u16 mRCOMB2;
+        u16 dLSAME;
+        u16 dRSAME;
+        u16 mLDIFF;
+        u16 mRDIFF;
+        u16 mLCOMB3;
+        u16 mRCOMB3;
+        u16 mLCOMB4;
+        u16 mRCOMB4;
+        u16 dLDIFF;
+        u16 dRDIFF;
+        u16 mLAPF1;
+        u16 mRAPF1;
+        u16 mLAPF2;
+        u16 mRAPF2;
+        u16 vLIN;
+        u16 vRIN;
+    };
+
+    rev_param_entry _spu_rev_param[10] =
+        {
+            {0,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u
+             },
+            {0,
+             125u,
+             91u,
+             28032u,
+             21688u,
+             48848u,
+             0u,
+             0u,
+             47744u,
+             22528u,
+             21248u,
+             1238u,
+             819u,
+             1008u,
+             551u,
+             884u,
+             495u,
+             820u,
+             437u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             436u,
+             310u,
+             184u,
+             92u,
+             32768u,
+             32768u},
+            {0,
+             51u,
+             37u,
+             28912u,
+             20392u,
+             48352u,
+             17424u,
+             49392u,
+             39936u,
+             21120u,
+             20160u,
+             996u,
+             795u,
+             932u,
+             687u,
+             882u,
+             614u,
+             796u,
+             605u,
+             604u,
+             398u,
+             559u,
+             309u,
+             466u,
+             183u,
+             399u,
+             181u,
+             180u,
+             128u,
+             76u,
+             38u,
+             32768u,
+             32768u},
+            {0,
+             177u,
+             127u,
+             28912u,
+             20392u,
+             48352u,
+             17680u,
+             48880u,
+             46272u,
+             21120u,
+             20160u,
+             2308u,
+             1899u,
+             2084u,
+             1631u,
+             1954u,
+             1558u,
+             1900u,
+             1517u,
+             1516u,
+             1070u,
+             1295u,
+             773u,
+             1122u,
+             695u,
+             1071u,
+             613u,
+             612u,
+             434u,
+             256u,
+             128u,
+             32768u,
+             32768u},
+            {0,
+             227u,
+             169u,
+             28512u,
+             20392u,
+             48352u,
+             17680u,
+             48880u,
+             42624u,
+             22144u,
+             21184u,
+             3579u,
+             2904u,
+             3337u,
+             2620u,
+             3033u,
+             2419u,
+             2905u,
+             2266u,
+             2265u,
+             1513u,
+             2028u,
+             1200u,
+             1775u,
+             978u,
+             1514u,
+             797u,
+             796u,
+             568u,
+             340u,
+             170u,
+             32768u,
+             32768u},
+            {0,
+             421u,
+             313u,
+             24576u,
+             20480u,
+             19456u,
+             47104u,
+             48128u,
+             49152u,
+             24576u,
+             23552u,
+             5562u,
+             4539u,
+             5314u,
+             4285u,
+             4540u,
+             3521u,
+             4544u,
+             3523u,
+             3520u,
+             2497u,
+             3012u,
+             1985u,
+             2560u,
+             1741u,
+             2498u,
+             1473u,
+             1472u,
+             1050u,
+             628u,
+             314u,
+             32768u,
+             32768u},
+            {0,
+             829u,
+             561u,
+             32256u,
+             20480u,
+             46080u,
+             45056u,
+             19456u,
+             45056u,
+             24576u,
+             21504u,
+             7894u,
+             6705u,
+             7444u,
+             6203u,
+             7106u,
+             5810u,
+             6706u,
+             5615u,
+             5614u,
+             4181u,
+             4916u,
+             3885u,
+             4598u,
+             3165u,
+             4182u,
+             2785u,
+             2784u,
+             1954u,
+             1124u,
+             562u,
+             32768u,
+             32768u},
+            {0,
+             1u,
+             1u,
+             32767u,
+             32767u,
+             0u,
+             0u,
+             0u,
+             33024u,
+             0u,
+             0u,
+             8191u,
+             4095u,
+             4101u,
+             5u,
+             0u,
+             0u,
+             4101u,
+             5u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             4100u,
+             4098u,
+             4u,
+             2u,
+             32768u,
+             32768u},
+            {0,
+             1u,
+             1u,
+             32767u,
+             32767u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             8191u,
+             4095u,
+             4101u,
+             5u,
+             0u,
+             0u,
+             4101u,
+             5u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             0u,
+             4100u,
+             4098u,
+             4u,
+             2u,
+             32768u,
+             32768u},
+            {0,
+             23u,
+             19u,
+             28912u,
+             20392u,
+             48352u,
+             17680u,
+             48880u,
+             34048u,
+             24448u,
+             21696u,
+             881u,
+             687u,
+             741u,
+             479u,
+             688u,
+             471u,
+             856u,
+             618u,
+             470u,
+             286u,
+             301u,
+             177u,
+             287u,
+             89u,
+             416u,
+             227u,
+             88u,
+             64u,
+             40u,
+             20u,
+             32768u,
+             32768u}};
+
+    void _spu_setReverbAttr(rev_param_entry *pRevParamEntry)
+    {
+        const unsigned int flags = pRevParamEntry->flags;
+        const unsigned int bFlagsAreZero = pRevParamEntry->flags == 0;
+
+        if (!pRevParamEntry->flags || (pRevParamEntry->flags & 1) != 0)
+        {
+            _spu_RXX->dAPF1 = pRevParamEntry->dAPF1; // 0x1F801DC0
+        }
+
+        if (bFlagsAreZero || (flags & 2) != 0)
+        {
+            _spu_RXX->dAPF2 = pRevParamEntry->dAPF2;
+        }
+
+        if (bFlagsAreZero || (flags & 4) != 0)
+        {
+            _spu_RXX->vIIR = pRevParamEntry->vIIR;
+        }
+
+        if (bFlagsAreZero || (flags & 8) != 0)
+        {
+            _spu_RXX->vCOMB1 = pRevParamEntry->vCOMB1;
+        }
+
+        if (bFlagsAreZero || (flags & 0x10) != 0)
+        {
+            _spu_RXX->vCOMB2 = pRevParamEntry->vCOMB2;
+        }
+
+        if (bFlagsAreZero || (flags & 0x20) != 0)
+        {
+            _spu_RXX->vCOMB3 = pRevParamEntry->vCOMB3;
+        }
+
+        if (bFlagsAreZero || (flags & 0x40) != 0)
+        {
+            _spu_RXX->vCOMB4 = pRevParamEntry->vCOMB4;
+        }
+
+        if (bFlagsAreZero || (flags & 0x80) != 0)
+        {
+            _spu_RXX->vWALL = pRevParamEntry->vWALL;
+        }
+
+        if (bFlagsAreZero || (flags & 0x100) != 0)
+        {
+            _spu_RXX->vAPF1 = pRevParamEntry->vAPF1;
+        }
+
+        if (bFlagsAreZero || (flags & 0x200) != 0)
+        {
+            _spu_RXX->vAPF2 = pRevParamEntry->vAPF2;
+        }
+
+        if (bFlagsAreZero || (flags & 0x400) != 0)
+        {
+            _spu_RXX->mLSAME = pRevParamEntry->mLSAME;
+        }
+
+        if (bFlagsAreZero || (flags & 0x800) != 0)
+        {
+            _spu_RXX->mRSAME = pRevParamEntry->mRSAME;
+        }
+
+        if (bFlagsAreZero || (flags & 0x1000) != 0)
+        {
+            _spu_RXX->mLCOMB1 = pRevParamEntry->mLCOMB1;
+        }
+
+        if (bFlagsAreZero || (flags & 0x2000) != 0)
+        {
+            _spu_RXX->mRCOMB1 = pRevParamEntry->mRCOMB1;
+        }
+
+        if (bFlagsAreZero || (flags & 0x4000) != 0)
+        {
+            _spu_RXX->mLCOMB2 = pRevParamEntry->mLCOMB2;
+        }
+
+        if (bFlagsAreZero || (flags & 0x8000) != 0)
+        {
+            _spu_RXX->mRCOMB2 = pRevParamEntry->mRCOMB2;
+        }
+
+        if (bFlagsAreZero || (flags & 0x10000) != 0)
+        {
+            _spu_RXX->dLSAME = pRevParamEntry->dLSAME;
+        }
+
+        if (bFlagsAreZero || (flags & 0x20000) != 0)
+        {
+            _spu_RXX->dRSAME = pRevParamEntry->dRSAME;
+        }
+
+        if (bFlagsAreZero || (flags & 0x40000) != 0)
+        {
+            _spu_RXX->mLDIFF = pRevParamEntry->mLDIFF;
+        }
+
+        if (bFlagsAreZero || (flags & 0x80000) != 0)
+        {
+            _spu_RXX->mRDIFF = pRevParamEntry->mRDIFF;
+        }
+
+        if (bFlagsAreZero || (flags & 0x100000) != 0)
+        {
+            _spu_RXX->mLCOMB3 = pRevParamEntry->mLCOMB3;
+        }
+
+        if (bFlagsAreZero || (flags & 0x200000) != 0)
+        {
+            _spu_RXX->mRCOMB3 = pRevParamEntry->mRCOMB3;
+        }
+
+        if (bFlagsAreZero || (flags & 0x400000) != 0)
+        {
+            _spu_RXX->mLCOMB4 = pRevParamEntry->mLCOMB4;
+        }
+
+        if (bFlagsAreZero || (flags & 0x800000) != 0)
+        {
+            _spu_RXX->mRCOMB4 = pRevParamEntry->mRCOMB4;
+        }
+
+        if (bFlagsAreZero || (flags & 0x1000000) != 0)
+        {
+            _spu_RXX->dLDIFF = pRevParamEntry->dLDIFF;
+        }
+
+        if (bFlagsAreZero || (flags & 0x2000000) != 0)
+        {
+            _spu_RXX->dRDIFF = pRevParamEntry->dRDIFF;
+        }
+
+        if (bFlagsAreZero || (flags & 0x4000000) != 0)
+        {
+            _spu_RXX->mLAPF1 = pRevParamEntry->mLAPF1;
+        }
+
+        if (bFlagsAreZero || (flags & 0x8000000) != 0)
+        {
+            _spu_RXX->mRAPF1 = pRevParamEntry->mRAPF1;
+        }
+
+        if (bFlagsAreZero || (flags & 0x10000000) != 0)
+        {
+            _spu_RXX->mLAPF2 = pRevParamEntry->mLAPF2;
+        }
+
+        if (bFlagsAreZero || (flags & 0x20000000) != 0)
+        {
+            _spu_RXX->mRAPF2 = pRevParamEntry->mRAPF2;
+        }
+
+        if (bFlagsAreZero || (flags & 0x40000000) != 0)
+        {
+            _spu_RXX->vLIN = pRevParamEntry->vLIN;
+        }
+
+        if (bFlagsAreZero || (flags & 0x80000000) != 0)
+        {
+            _spu_RXX->vRIN= pRevParamEntry->vRIN;
+        }
+    }
+
     // TODO
     long SpuMalloc(long size);
-    extern void SpuSetVoiceAttr (SpuVoiceAttr *arg);
+    extern long SpuSetReverbModeParam (SpuReverbAttr *attr);
 
 }
