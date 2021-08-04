@@ -48,6 +48,7 @@ extern "C"
     #define SPU_OFF 0
 
     typedef unsigned int u32;
+    typedef signed int s32;
     typedef unsigned short int u16;
     typedef unsigned char u8;
 

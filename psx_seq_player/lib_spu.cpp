@@ -61,8 +61,8 @@ extern "C"
     LIBVAR u8 _spu_zerobuf[1024] = { 0 };
 
     // S_M.obj
-    LIBVAR u32 _spu_AllocBlockNum = 0;
-    LIBVAR u32 _spu_AllocLastNum = 0;
+    LIBVAR s32 _spu_AllocBlockNum = 0;
+    LIBVAR s32 _spu_AllocLastNum = 0;
     LIBVAR SPU_MALLOC *_spu_memList=NULL;
 
     // private var
@@ -1162,7 +1162,7 @@ extern "C"
     // S_M_F.OBJ
     void SpuFree(unsigned long addr)
     {
-        u32 blockCounter = 0;
+        s32 blockCounter = 0;
         if (_spu_AllocBlockNum > 0)
         {
             SPU_MALLOC* pAllocIter = _spu_memList;
@@ -2433,7 +2433,7 @@ extern "C"
 
             if (_spu_AllocBlockNum > 0)
             {
-                u32 cur_idx = 0;
+                s32 cur_idx = 0;
                 SPU_MALLOC* pListIter = _spu_memList;
                 while ((pListIter->field_0_addr & 0x40000000) == 0 && ((pListIter->field_0_addr & 0x80000000) == 0 || pListIter->field_4_size < calc_alloc_size))
                 {
@@ -2503,5 +2503,177 @@ extern "C"
 
         }
         return pAllocated;
+    }
+}
+
+void _spu_gcSPU(void)
+{
+    int last_alloc_idx;           // $v0
+    int counter;                  // $t1
+    SPU_MALLOC *pMemList;         // $t0
+    int last_alloc_idx_;          // $t5
+    SPU_MALLOC *pMemList_Iter;    // $a3
+    int list_idx;                 // $a2
+    SPU_MALLOC *pCurBlock;        // $v1
+    bool bIsntMagicAddr;          // dc
+    SPU_MALLOC *pCurBlock_;       // $a1
+    int counter_;                 // $t1
+    SPU_MALLOC *pMemList__;       // $v1
+    int last_alloc_idx__;         // $v1
+    int counter__;                // $t1
+    SPU_MALLOC *pMemList___;      // $t5
+    SPU_MALLOC *pMemListIter_;    // $t2
+    int counter_next;             // $a2
+    int last_alloc_idx___;        // $t3
+    SPU_MALLOC *pNextBlock_;      // $a0
+    int mem_addr;                 // $a3
+    int mem_size;                 // $v1
+    int last_alloc_idx____;       // $a1
+    int idx;                      // $t1
+    SPU_MALLOC *pMemListIter;     // $a0
+    SPU_MALLOC *pCurBlock__;      // $v0
+    SPU_MALLOC *pPrevBlock;       // $a0
+
+    last_alloc_idx = _spu_AllocLastNum;
+    counter = 0;
+    if (_spu_AllocLastNum >= 0)
+    {
+        pMemList = _spu_memList;
+        last_alloc_idx_ = _spu_AllocLastNum;
+        pMemList_Iter = _spu_memList;
+        do
+        {
+            list_idx = counter + 1;
+            if ((pMemList_Iter->field_0_addr & 0x80000000) == 0)
+            {
+                goto next_item;
+            }
+
+            pCurBlock = &pMemList[list_idx];
+            while (1)
+            {
+                bIsntMagicAddr = pCurBlock->field_0_addr != 0x2FFFFFFF;
+                ++pCurBlock;
+                if (bIsntMagicAddr)
+                {
+                    break;
+                }
+                ++list_idx;
+            }
+            pCurBlock_ = &pMemList[list_idx];
+            if ((pCurBlock_->field_0_addr & 0x80000000) != 0 && (pCurBlock_->field_0_addr & 0xFFFFFFF) == (pMemList_Iter->field_0_addr & 0xFFFFFFF) + pMemList_Iter->field_4_size)
+            {
+                pCurBlock_->field_0_addr = 0x2FFFFFFF;
+                pMemList_Iter->field_4_size += pCurBlock_->field_4_size;
+            }
+            else
+            {
+            next_item:
+                ++pMemList_Iter;
+                ++counter;
+            }
+        } while (last_alloc_idx_ >= counter);
+        last_alloc_idx = _spu_AllocLastNum;
+    }
+
+    counter_ = 0;
+    if (last_alloc_idx >= 0)
+    {
+        pMemList__ = _spu_memList;
+        do
+        {
+            if (!pMemList__->field_4_size)
+            {
+                pMemList__->field_0_addr = 0x2FFFFFFF;
+            }
+            ++counter_;
+            ++pMemList__;
+        } while (last_alloc_idx >= counter_);
+    }
+
+    last_alloc_idx__ = _spu_AllocLastNum;
+    counter__ = 0;
+    if (_spu_AllocLastNum >= 0)
+    {
+        pMemList___ = _spu_memList;
+        pMemListIter_ = _spu_memList;
+        do
+        {
+            if ((pMemListIter_->field_0_addr & 0x40000000) != 0)
+            {
+                break;
+            }
+            counter_next = counter__ + 1;
+            if (last_alloc_idx__ >= counter__ + 1)
+            {
+                last_alloc_idx___ = _spu_AllocLastNum;
+                pNextBlock_ = &pMemList___[counter__ + 1];
+                do
+                {
+                    if ((pNextBlock_->field_0_addr & 0x40000000) != 0)
+                    {
+                        break;
+                    }
+
+                    mem_addr = pMemListIter_->field_0_addr;
+                    if ((pNextBlock_->field_0_addr & 0xFFFFFFFu) < (pMemListIter_->field_0_addr & 0xFFFFFFFu))
+                    {
+                        pMemListIter_->field_0_addr = pNextBlock_->field_0_addr;
+                        mem_size = pMemListIter_->field_4_size;
+                        pMemListIter_->field_4_size = pNextBlock_->field_4_size;
+                        pNextBlock_->field_0_addr = mem_addr;
+                        pNextBlock_->field_4_size = mem_size;
+                    }
+                    ++counter_next;
+                    ++pNextBlock_;
+                } while (last_alloc_idx___ >= counter_next);
+            }
+            last_alloc_idx__ = _spu_AllocLastNum;
+            ++counter__;
+            ++pMemListIter_;
+        } while (_spu_AllocLastNum >= counter__);
+    }
+
+    last_alloc_idx____ = _spu_AllocLastNum;
+    idx = 0;
+    if (_spu_AllocLastNum >= 0)
+    {
+        pMemListIter = _spu_memList;
+        while ((pMemListIter->field_0_addr & 0x40000000) == 0) // not last entry
+        {
+            if (pMemListIter->field_0_addr == 0x2FFFFFFF)
+            {
+                pCurBlock__ = &_spu_memList[last_alloc_idx____];
+                pMemListIter->field_0_addr = pCurBlock__->field_0_addr;
+                pMemListIter->field_4_size = pCurBlock__->field_4_size;
+                _spu_AllocLastNum = idx;
+                break;
+            }
+            last_alloc_idx____ = _spu_AllocLastNum;
+            ++idx;
+            ++pMemListIter;
+            if (_spu_AllocLastNum < idx)
+            {
+                break;
+            }
+        }
+    }
+
+    // Merged tail unused blocks
+    if (_spu_AllocLastNum - 1 >= 0)
+    {
+        pPrevBlock = &_spu_memList[_spu_AllocLastNum - 1];
+        do
+        {
+            if ((pPrevBlock->field_0_addr & 0x80000000) == 0)
+            {
+                break;
+            }
+            // Found unused block, merge it and set as last entry
+            pPrevBlock->field_0_addr = pPrevBlock->field_0_addr & 0xFFFFFFF | 0x40000000;
+            pPrevBlock->field_4_size += _spu_memList[_spu_AllocLastNum].field_4_size;
+            _spu_AllocLastNum--;
+            pPrevBlock--;
+        } while (_spu_AllocLastNum >= 0);
     }
 }
