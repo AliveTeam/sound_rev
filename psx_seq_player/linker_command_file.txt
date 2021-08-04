@@ -57,12 +57,12 @@
 ;	include libspu\S_RMP2.obj ; _spu_rev_param (var only)
 ;	include libspu\S_SCA.obj ; SpuSetCommonAttr (S-M)
 ;	include libspu\S_SRMP.obj ; SpuSetReverbModeParam (H)
+;	include libspu\S_M_M.obj ; SpuMalloc (M)
 
+	include libspu\S_M_INT.obj ; _spu_gcSPU (H gc algo)
 	include libspu\S_GAV.obj ; _SpuGetAnyVoice (S)
 	include libspu\S_SAV.obj ; _SpuSetAnyVoice (M)
-	include libspu\S_M_M.obj ; SpuMalloc (M)
-	include libspu\S_M_INT.obj ; _spu_gcSPU (H gc algo)
-	include libspu\S_N2P.obj ; _spu_note2pitch _spu_pitch2note (M-H)
+	include libspu\S_N2P.obj ; _spu_note2pitch _spu_pitch2note (not used) (M-H)
 
 
 	; Fully replaced (at least the bits we use)

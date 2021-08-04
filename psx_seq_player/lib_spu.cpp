@@ -168,7 +168,7 @@ extern "C"
     typedef struct tagSpuMalloc
     {
         u32 field_0_addr;
-        u32 v1;
+        u32 field_4_size;
     } SPU_MALLOC;
 
     // Forward declares
@@ -450,7 +450,7 @@ extern "C"
         _spu_AllocLastNum = 0;
         _spu_AllocBlockNum = num;
         pTop->field_0_addr = 0x40001010;
-        pTop->v1 = (0x10000 << _spu_mem_mode_plus) - 0x1010;
+        pTop->field_4_size = (0x10000 << _spu_mem_mode_plus) - 0x1010;
 
         return num;
     }
@@ -472,8 +472,10 @@ extern "C"
             if (ptr & 0x80000000) continue;
 
             ptr &= 0xFFFFFF;
-            if (addr > ptr && addr < pA->v1 + ptr)
+            if (addr > ptr && addr < pA->field_4_size + ptr)
+            {
                 return 1;
+            }
         }
 
         return 0;
@@ -507,7 +509,7 @@ extern "C"
             }
 
             ptr &= 0xFFFFFF;
-            if (pos > ptr && pos < pA->v1 + ptr)
+            if (pos > ptr && pos < pA->field_4_size + ptr)
             {
                 return 1;
             }
@@ -2398,5 +2400,108 @@ extern "C"
     }
 
     // TODO
-    long SpuMalloc(long size);
+    void _spu_gcSPU(void);
+
+    long SpuMalloc(long size)
+    {
+        unsigned int rev_size_zero = 0;
+        if (_spu_rev_reserve_wa)
+        {
+            rev_size_zero = (0x10000 - _spu_rev_offsetaddr) << _spu_mem_mode_plus;
+        }
+        else
+        {
+            rev_size_zero = 0;
+        }
+
+        int size_adjusted = size;
+        if ((size & ~_spu_mem_mode_unitM) != 0)
+        {
+            size_adjusted = size + _spu_mem_mode_unitM;
+        }
+
+        const u32 calc_alloc_size = size_adjusted >> _spu_mem_mode_plus << _spu_mem_mode_plus;
+        
+        int found_block_idx = -1;
+        if ((_spu_memList->field_0_addr & 0x40000000) != 0)
+        {
+            found_block_idx = 0;
+        }
+        else
+        {
+            _spu_gcSPU();
+
+            if (_spu_AllocBlockNum > 0)
+            {
+                u32 cur_idx = 0;
+                SPU_MALLOC* pListIter = _spu_memList;
+                while ((pListIter->field_0_addr & 0x40000000) == 0 && ((pListIter->field_0_addr & 0x80000000) == 0 || pListIter->field_4_size < calc_alloc_size))
+                {
+                    ++cur_idx;
+                    ++pListIter;
+                    if (cur_idx >= _spu_AllocBlockNum)
+                    {
+                        goto out_of_blocks;
+                    }
+                }
+                found_block_idx = cur_idx;
+            }
+        }
+
+    out_of_blocks:
+        long pAllocated = -1;
+
+        if (found_block_idx != -1)
+        {
+            if ((_spu_memList[found_block_idx].field_0_addr & 0x40000000) != 0)
+            {
+                if (found_block_idx < (int)_spu_AllocBlockNum)
+                {
+                    if (_spu_memList[found_block_idx].field_4_size - rev_size_zero >= calc_alloc_size)
+                    {
+                        _spu_AllocLastNum = found_block_idx + 1;
+
+                        SPU_MALLOC* pLastBlock = &_spu_memList[_spu_AllocLastNum];
+                        pLastBlock->field_0_addr = ((_spu_memList[found_block_idx].field_0_addr & 0xFFFFFFF) + calc_alloc_size) | 0x40000000;
+                        pLastBlock->field_4_size = _spu_memList[found_block_idx].field_4_size - calc_alloc_size;
+
+                        _spu_memList[found_block_idx].field_4_size = calc_alloc_size;
+                        _spu_memList[found_block_idx].field_0_addr &= 0xFFFFFFF;
+
+                        _spu_gcSPU();
+
+                        pAllocated = _spu_memList[found_block_idx].field_0_addr;
+                    }
+                }
+            }
+            else
+            {
+                if (calc_alloc_size < _spu_memList[found_block_idx].field_4_size)
+                {
+                    const u32 pAllocEndAddr = _spu_memList[found_block_idx].field_0_addr + calc_alloc_size;
+                    if (_spu_AllocLastNum < _spu_AllocBlockNum)
+                    {
+                        const u32 last_addr = _spu_memList[_spu_AllocLastNum].field_0_addr;
+                        const u32 last_alloc_size = _spu_memList[_spu_AllocLastNum].field_4_size;
+
+                        _spu_memList[_spu_AllocLastNum].field_0_addr = pAllocEndAddr | 0x80000000;
+                        _spu_memList[_spu_AllocLastNum].field_4_size = _spu_memList[found_block_idx].field_4_size - calc_alloc_size;
+                        
+                        _spu_AllocLastNum++;
+                        _spu_memList[_spu_AllocLastNum].field_0_addr = last_addr;
+                        _spu_memList[_spu_AllocLastNum].field_4_size = last_alloc_size;
+                    }
+                }
+
+                _spu_memList[found_block_idx].field_4_size = calc_alloc_size;
+                _spu_memList[found_block_idx].field_0_addr &= 0xFFFFFFF;
+
+                _spu_gcSPU();
+
+                pAllocated = _spu_memList[found_block_idx].field_0_addr;
+            }
+
+        }
+        return pAllocated;
+    }
 }
