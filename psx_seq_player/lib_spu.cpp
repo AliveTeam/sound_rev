@@ -1437,6 +1437,8 @@ extern "C"
         }
     }
 
+    u16 _spu_note2pitch(u8 cenNoteHi, u8 cenNoteLo, u8 noteHi, u8 noteLo);
+
     void SpuSetVoiceAttr(SpuVoiceAttr *pAttr)
     {
         int voice_num;                 // $s4
@@ -2251,8 +2253,150 @@ extern "C"
         }
     }
 
+    long SpuSetReverbModeParam(SpuReverbAttr *pAttr)
+    {
+        rev_param_entry entry;
+        entry.flags = 0;
+
+        bool b_rModeInBounds = false; // TODO: Bad name, means something else
+        bool bClearReverbWorkArea = false;
+        if (pAttr->mask == 0 || (pAttr->mask & 1) != 0)
+        {
+            long r_mode = pAttr->mode;
+            if ((r_mode & 0x100) != 0)
+            {
+                r_mode &= ~0x100u;
+                bClearReverbWorkArea = true;
+            }
+            
+            if (r_mode >= 10)
+            {
+                return -1;
+            }
+
+            b_rModeInBounds = true;
+
+            if (_SpuIsInAllocateArea(_spu_rev_startaddr[r_mode]))
+            {
+                return -1;
+            }
+
+            _spu_rev_attr.mode = r_mode;
+            entry = _spu_rev_param[_spu_rev_attr.mode];
+
+            _spu_rev_offsetaddr = _spu_rev_startaddr[_spu_rev_attr.mode];
+
+            if (_spu_rev_attr.mode == 7)
+            {
+                _spu_rev_attr.feedback = 127;
+                _spu_rev_attr.delay = 127;
+            }
+            else
+            {
+                _spu_rev_attr.feedback = 0;
+                if (_spu_rev_attr.mode == 8)
+                {
+                    _spu_rev_attr.delay = 127;
+                }
+                else
+                {
+                    _spu_rev_attr.delay = 0;
+                }
+            }
+        }
+
+        bool bModeIs7to9_bit0x8 = false;
+        if ((pAttr->mask == 0 || (pAttr->mask & 8) != 0) && _spu_rev_attr.mode < 9 && _spu_rev_attr.mode >= 7)
+        {
+            bModeIs7to9_bit0x8 = true;
+            if (!b_rModeInBounds)
+            {
+                entry = _spu_rev_param[_spu_rev_attr.mode];
+                entry.flags = 0xC011C00;
+            }
+
+            _spu_rev_attr.delay = pAttr->delay;
+            entry.mLSAME = ((_spu_rev_attr.delay & 0xFFFF) << 13) / 127 - entry.dAPF1;
+            const u16 delay_converted = (_spu_rev_attr.delay << 12) / 127;
+            entry.mRSAME = delay_converted - entry.dAPF2;
+            entry.dLSAME = entry.dRSAME + delay_converted;
+            entry.mLCOMB1 = entry.mRCOMB1 + delay_converted;
+            entry.mRAPF1 = entry.mRAPF2 + delay_converted;
+            entry.mLAPF1 = entry.mLAPF2 + delay_converted;
+        }
+
+        bool bModeIs7to9_bit0x10 = false;
+        if ((pAttr->mask == 0 || (pAttr->mask & 0x10) != 0) && _spu_rev_attr.mode < 9 && _spu_rev_attr.mode >= 7)
+        {
+            bModeIs7to9_bit0x10 = true;
+            if (!b_rModeInBounds)
+            {
+                u32 flagsTmp = 0;
+                if (bModeIs7to9_bit0x8)
+                {
+                    flagsTmp = entry.flags | 0x80;
+                }
+                else
+                {
+                    entry = _spu_rev_param[_spu_rev_attr.mode];
+                    flagsTmp = 0x80;
+                }
+                entry.flags = flagsTmp;
+            }
+            _spu_rev_attr.feedback = pAttr->feedback;
+            entry.vWALL = (0x8100 * _spu_rev_attr.feedback) / 127;
+        }
+
+        bool bSet_spucnt = false;
+        if (b_rModeInBounds)
+        {
+            bSet_spucnt = ((_spu_RXX->spucnt >> 7) & 1) ? true : false;
+            if (bSet_spucnt)
+            {
+                _spu_RXX->spucnt &= ~0x80u;
+            }
+            _spu_RXX->rev_vol.left = 0;
+            _spu_RXX->rev_vol.right = 0;
+            _spu_rev_attr.depth.left = 0;
+            _spu_rev_attr.depth.right = 0;
+        }
+        else
+        {
+            if (pAttr->mask == 0 || (pAttr->mask & 2) != 0)
+            {
+                _spu_RXX->rev_vol.left = pAttr->depth.left;
+                _spu_rev_attr.depth.left = pAttr->depth.left;
+            }
+
+            if (pAttr->mask == 0 || (pAttr->mask & 4) != 0)
+            {
+                _spu_RXX->rev_vol.right = pAttr->depth.right;
+                _spu_rev_attr.depth.right = pAttr->depth.right;
+            }
+        }
+
+        if (b_rModeInBounds || bModeIs7to9_bit0x8 || bModeIs7to9_bit0x10)
+        {
+            _spu_setReverbAttr(&entry);
+        }
+
+        if (bClearReverbWorkArea)
+        {
+            SpuClearReverbWorkArea(_spu_rev_attr.mode);
+        }
+
+        if (b_rModeInBounds)
+        {
+            _spu_FsetRXX(209, _spu_rev_offsetaddr, 0);
+            if (bSet_spucnt)
+            {
+                _spu_RXX->spucnt |= 0x80u;
+            }
+        }
+
+        return 0;
+    }
+
     // TODO
     long SpuMalloc(long size);
-    extern long SpuSetReverbModeParam (SpuReverbAttr *attr);
-
 }
