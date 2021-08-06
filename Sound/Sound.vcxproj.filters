@@ -33,6 +33,15 @@
     <ClInclude Include="..\psyq_rev\psyq_spu.h">
       <Filter>Header Files\psyq_rev</Filter>
     </ClInclude>
+    <ClInclude Include="..\psx_seq_player\lib_snd.hpp">
+      <Filter>Header Files\psyq_rev</Filter>
+    </ClInclude>
+    <ClInclude Include="..\psx_seq_player\lib_spu.hpp">
+      <Filter>Header Files\psyq_rev</Filter>
+    </ClInclude>
+    <ClInclude Include="..\psx_seq_player\psx_stubs.hpp">
+      <Filter>Header Files\psyq_rev</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\mednafen\spu_fir_table.inc">
@@ -47,6 +56,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\psyq_rev\psyq_spu.cpp">
+      <Filter>Source Files\psyq_rev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\psx_seq_player\lib_snd.cpp">
+      <Filter>Source Files\psyq_rev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\psx_seq_player\lib_spu.cpp">
       <Filter>Source Files\psyq_rev</Filter>
     </ClCompile>
   </ItemGroup>

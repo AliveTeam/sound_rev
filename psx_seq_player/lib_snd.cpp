@@ -3,7 +3,9 @@
 
 #include <stdio.h> // printf
 #include <sys/types.h>
-#include <libetc.h> // ResetCallback
+//#include <libetc.h> // ResetCallback
+#include "psx_stubs.hpp"
+
 
 #define AddBytes(T, ptr, bytes) reinterpret_cast<T *>(reinterpret_cast<unsigned char *>(ptr) + bytes)
 
@@ -3370,8 +3372,11 @@ static void Test_SsVmSelectToneAndVag()
 
 static void Test_SsVmDoAllocate()
 {
-    SpuVoice voiceBuffer[24] = {};
-    _svm_voice = voiceBuffer;
+    for (int i = 0; i < 24; i++)
+    {
+        SpuVoice blank = {};
+        _svm_voice[i] = blank;
+    }
 
     _svm_cur.field_18_voice_idx = 3;
     _svm_cur.field_C_vag_idx = 0;

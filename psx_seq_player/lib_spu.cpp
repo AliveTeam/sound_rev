@@ -1,10 +1,11 @@
 #include "lib_spu.hpp"
 
 #include <sys/types.h>
-#include <libapi.h>
-#include <libetc.h> // ResetCallBack
+//#include <libapi.h>
+//#include <libetc.h> // ResetCallBack
 #include <stdarg.h> // va_list
 #include <stdio.h> // printf
+#include "psx_stubs.hpp"
 
 extern "C"
 {
@@ -176,7 +177,7 @@ extern "C"
     int _SpuIsInAllocateArea_(u32 addr);
     void _SpuInit(int mode);
 
-    int  _spu_init();
+    int  _spu_init(int flag);
     void _spu_FiDMA();
     void _spu_FsetRXX(int l, u32 addr, int flag);
     void _spu_Fw1ts();
@@ -905,9 +906,11 @@ extern "C"
         {
             v[1] += v[1] * 12;
             v[0]++;
+            /*
             __asm__ volatile ("nop");
             __asm__ volatile ("nop");
             __asm__ volatile ("nop");
+            */
     stuff:
             if (v[0] >= 60) break;
         }
@@ -2753,7 +2756,7 @@ const signed short int word_8001D6F8[12] =
 
 const signed short int word_8001D710[128] =
 {
-  32768,
+  32768, // -1 ??
   -32754,
   -32739,
   -32724,

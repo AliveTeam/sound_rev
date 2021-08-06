@@ -1,6 +1,8 @@
 #include <iostream>
 #include "mednafen/spu.h"
-#include "psyq_rev/psyq_spu.h"
+//#include "psyq_rev/psyq_spu.h"
+#include "psx_seq_player/lib_snd.hpp"
+#include "psx_seq_player/lib_spu.hpp"
 
 /*
 EXPORT void CC SND_Init_4CA1F0()
@@ -49,7 +51,7 @@ int main(int, char**)
 
     spu.Write(0, 0, 0);
 
-    SSInit_4FC230();
+    SsInit();
 
 
     // audio_batch_cb((int16_t*)&IntermediateBuffer,IntermediateBufferPos);

@@ -116,6 +116,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\mednafen\spu.h" />
+    <ClInclude Include="..\psx_seq_player\lib_snd.hpp" />
+    <ClInclude Include="..\psx_seq_player\lib_spu.hpp" />
+    <ClInclude Include="..\psx_seq_player\psx_stubs.hpp" />
     <ClInclude Include="..\psyq_rev\psyq_spu.h" />
   </ItemGroup>
   <ItemGroup>
@@ -124,6 +127,8 @@
   <ItemGroup>
     <ClCompile Include="..\main.cpp" />
     <ClCompile Include="..\mednafen\spu.cpp" />
+    <ClCompile Include="..\psx_seq_player\lib_snd.cpp" />
+    <ClCompile Include="..\psx_seq_player\lib_spu.cpp" />
     <ClCompile Include="..\psyq_rev\psyq_spu.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
