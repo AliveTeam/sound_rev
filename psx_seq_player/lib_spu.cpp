@@ -2700,5 +2700,222 @@ static volatile unsigned long* _GetVoiceImpl(int word_idx1, int word_idx2)
 
 unsigned long _SpuGetAnyVoice(int word_idx1, int word_idx2)
 {
-    return *_GetVoiceImpl(word_idx1, word_idx2);
+    return (*_GetVoiceImpl(word_idx1, word_idx2)) & 0xFFFFFF;
+}
+
+// note: partial impl cause _spu_env stuff ignored as its never set in the funcs I care about
+unsigned long _SpuSetAnyVoice(long on_off_flags, unsigned long voice_bits, int word_idx1, int word_idx2)
+{
+    volatile unsigned long* pRegister = _GetVoiceImpl(word_idx1, word_idx2);
+
+    // Note: _spu_env branch removed
+    unsigned long ret_bits = *pRegister;
+
+    if (on_off_flags == 1)
+    {
+        // Note: _spu_env branch removed
+        *pRegister |= voice_bits & 0xFFFFFF;
+        ret_bits |= voice_bits & 0xFFFFFF;
+    }
+    else if (on_off_flags >= 2)
+    {
+        if (on_off_flags == 8)
+        {
+            // Note: _spu_env branch removed
+            *pRegister = voice_bits & 0xFFFFFF;
+            ret_bits = voice_bits & 0xFFFFFF;
+        }
+    }
+    else if (on_off_flags == 0)
+    {
+        // Note: _spu_env branch removed
+        *pRegister = ~(voice_bits & 0xFFFFFF);
+        ret_bits &= ~(voice_bits & 0xFFFFFF);
+    }
+    return ret_bits & 0xFFFFFF;
+}
+
+const signed short int word_8001D6F8[12] =
+{
+  32768,
+  -30820,
+  -28756,
+  -26569,
+  -24251,
+  -21796,
+  -19196,
+  -16440,
+  -13521,
+  -10428,
+  -7151,
+  -3679
+};
+
+const signed short int word_8001D710[128] =
+{
+  32768,
+  -32754,
+  -32739,
+  -32724,
+  -32709,
+  -32694,
+  -32680,
+  -32665,
+  -32650,
+  -32635,
+  -32620,
+  -32605,
+  -32591,
+  -32576,
+  -32561,
+  -32546,
+  -32531,
+  -32516,
+  -32501,
+  -32486,
+  -32471,
+  -32456,
+  -32442,
+  -32427,
+  -32412,
+  -32397,
+  -32382,
+  -32367,
+  -32352,
+  -32337,
+  -32322,
+  -32307,
+  -32292,
+  -32277,
+  -32262,
+  -32247,
+  -32232,
+  -32217,
+  -32202,
+  -32187,
+  -32172,
+  -32157,
+  -32142,
+  -32126,
+  -32111,
+  -32096,
+  -32081,
+  -32066,
+  -32051,
+  -32036,
+  -32021,
+  -32006,
+  -31990,
+  -31975,
+  -31960,
+  -31945,
+  -31930,
+  -31915,
+  -31900,
+  -31884,
+  -31869,
+  -31854,
+  -31839,
+  -31824,
+  -31808,
+  -31793,
+  -31778,
+  -31763,
+  -31747,
+  -31732,
+  -31717,
+  -31702,
+  -31686,
+  -31671,
+  -31656,
+  -31640,
+  -31625,
+  -31610,
+  -31595,
+  -31579,
+  -31564,
+  -31549,
+  -31533,
+  -31518,
+  -31503,
+  -31487,
+  -31472,
+  -31456,
+  -31441,
+  -31426,
+  -31410,
+  -31395,
+  -31379,
+  -31364,
+  -31349,
+  -31333,
+  -31318,
+  -31302,
+  -31287,
+  -31271,
+  -31256,
+  -31240,
+  -31225,
+  -31209,
+  -31194,
+  -31178,
+  -31163,
+  -31147,
+  -31132,
+  -31116,
+  -31101,
+  -31085,
+  -31070,
+  -31054,
+  -31039,
+  -31023,
+  -31008,
+  -30992,
+  -30976,
+  -30961,
+  -30945,
+  -30930,
+  -30914,
+  -30898,
+  -30883,
+  -30867,
+  -30851,
+  -30836
+};
+
+u16 _spu_note2pitch(u8 cenNoteHi, u8 cenNoteLo, u8 noteHi, u8 noteLo)
+{
+    unsigned short int maxLo;  // $a3
+    int calc_note;           // $a0
+    unsigned short int v2_idx; // $a3
+    int calc_note_div12;     // $a1
+    int calc_note_div12_m2;  // $a2
+    int calc_note_mod12;     // $a0
+    int v1_idx;              // $v1
+    unsigned int calc_pitch; // $a1
+
+    maxLo = noteLo + cenNoteLo;
+    calc_note = (u16)(noteHi + (maxLo >> 7) - cenNoteHi);
+    v2_idx = maxLo & 127;
+    calc_note_div12 = calc_note / 12;
+    calc_note_div12_m2 = calc_note / 12 - 2;
+    calc_note_mod12 = calc_note % 12;
+    v1_idx = calc_note_mod12;
+
+    if (calc_note_mod12 < 0)
+    {
+        v1_idx = calc_note_mod12 + 12;
+        calc_note_div12_m2 = calc_note_div12 - 3;
+    }
+ 
+    if (calc_note_div12_m2 < 0)
+    {
+        unsigned int tmp =  (1 << (-(signed short int)calc_note_div12_m2 - 1)) >> -(signed short int)calc_note_div12_m2;
+        calc_pitch = word_8001D6F8[v1_idx] * word_8001D710[v2_idx] +  tmp;
+    }
+    else
+    {
+        calc_pitch = 0x3FFF;
+    }
+    return calc_pitch;
 }
