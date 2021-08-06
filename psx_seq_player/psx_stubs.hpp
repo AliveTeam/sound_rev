@@ -1,7 +1,7 @@
 #ifndef _PSX_STUBS_HPP_
 #define _PSX_STUBS_HPP_
 
-#define PSX
+//#define PSX
 
 #ifdef PSX
     #include <libapi.h>
@@ -47,17 +47,18 @@ extern "C"
 
     inline int TestEvent(int)
     {
-        return 0;
+        return 1;
     }
 
-    inline void WaitEvent(int)
+    inline int WaitEvent(int)
     {
-
+        return 1;
     }
 
     inline int OpenEvent(int, int, int, void*)
     {
-        return 0;
+        printf("Open event...\n");
+        return 1;
     }
 
     inline void DeliverEvent(int, int)
