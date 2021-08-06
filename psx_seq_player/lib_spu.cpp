@@ -4,6 +4,7 @@
 #include <libapi.h>
 #include <libetc.h> // ResetCallBack
 #include <stdarg.h> // va_list
+#include <stdio.h> // printf
 
 extern "C"
 {
@@ -2676,4 +2677,28 @@ void _spu_gcSPU(void)
             pPrevBlock--;
         } while (_spu_AllocLastNum >= 0);
     }
+}
+
+static volatile unsigned long* _GetVoiceImpl(int word_idx1, int word_idx2)
+{
+    if (word_idx1 == 204 && word_idx2 == 205)
+    {
+        // 0x1F801D98 4  Voice 0..23 Channel Reverb mode (R/W)
+        return (volatile unsigned long*)0x1F801D98;
+    }
+    else if (word_idx1 == 202 && word_idx2 == 203)
+    {
+        // 0x1F801D94 4  Voice 0..23 Channel Noise mode (R/W)
+        return (volatile unsigned long*)0x1F801D94;
+    }
+    else
+    {
+        printf("Unknown reg combo\n");
+        while(1) {}
+    }
+}
+
+unsigned long _SpuGetAnyVoice(int word_idx1, int word_idx2)
+{
+    return *_GetVoiceImpl(word_idx1, word_idx2);
 }
