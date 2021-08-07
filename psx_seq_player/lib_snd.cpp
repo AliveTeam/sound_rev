@@ -2358,14 +2358,14 @@ extern "C"
 
     void _SsContNrpn2(short seq_no, short sep_no, unsigned char a3)
     {
-        SeqStruct *pStru = &_ss_score[seq_no][sep_no];
+        SeqStruct* pStru = &_ss_score[seq_no][sep_no];
 
         if (a3 == 20)
         {
             pStru->field_1B = a3;
             pStru->field_1C = 1;
-            pStru->field_8 = pStru->field_0_seq_ptr;
             pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
+            pStru->field_8 = pStru->field_0_seq_ptr;
             return;
         }
 
@@ -2379,14 +2379,14 @@ extern "C"
 
         pStru->field_1B = a3;
 
-        if (!pStru->field_1D)
+        if (pStru->field_1D == 0)
         {
             pStru->field_15 = 0;
             pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
             return;
         }
 
-        if (pStru->field_1D >= 127)
+        if (pStru->field_1D >= 127u)
         {
             _SsReadDeltaValue(seq_no, sep_no);
             pStru->field_90_delta_value = 0;
