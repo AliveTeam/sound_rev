@@ -410,24 +410,25 @@ extern "C"
         return -1;
     }
 
-    void _SsVmPBVoice(short voiceNum, short seq_sep_num, short vabId, short program, int pitch)
+    void _SsVmPBVoice(short voiceNum, short seq_sep_num, short vabId, short program, short pitch)
     {
         if ((_svm_voice[voiceNum].field_10_seq_sep_no == seq_sep_num &&
              _svm_voice[voiceNum].field_18_vabId == vabId) &&
             _svm_voice[voiceNum].field_14_program == program)
         {
             const short note = _svm_voice[voiceNum].field_E_note;
-            const int vagIdx = _svm_voice[voiceNum].field_16_vag_num + (_svm_cur.field_7_fake_program * 16);
+            const short vagIdx = _svm_voice[voiceNum].field_16_vag_num + (_svm_cur.field_7_fake_program * 16);
 
-            int bendMin = 0;
-            int bendMax = 0;
+            short bendMin = note;
+            short bendMax = 0;
 
             const int pitch_converted = (pitch - 64);
             if (pitch_converted < 0)
             {
-                const int pbmin_tmp = pitch_converted * _svm_tn[vagIdx].pbmin;
-                bendMin = (note + (pbmin_tmp / 64)) - 1;
-                bendMax = ((pbmin_tmp % 64) * 2) + 127;
+                int pbmin_tmp = pitch_converted * _svm_tn[vagIdx].pbmin;
+                
+                bendMin = note + pbmin_tmp / 64 - 1;
+                bendMax = 2 * (pbmin_tmp % 64) + 127;
             }
             else if (pitch_converted > 0)
             {
@@ -435,11 +436,11 @@ extern "C"
                 bendMin = note + pbmax_tmp / 63;
                 bendMax = (pbmax_tmp % 63) * 2;
             }
-            else
+            else if (pitch_converted == 0)
             {
                 bendMax = 0;
             }
-            _svm_cur.field_C_vag_idx = _svm_voice[voiceNum].field_16_vag_num;
+            _svm_cur.field_C_vag_idx = _svm_voice[voiceNum].field_16_vag_num & 0xFF;
             _svm_cur.field_18_voice_idx = voiceNum;
             _svm_sreg_buf[voiceNum].field_4_pitch = note2pitch2(bendMin, bendMax);
             _svm_sreg_dirty[voiceNum] |= 4;
