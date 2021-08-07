@@ -2207,41 +2207,40 @@ extern "C"
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
     }
 
-    // TODO: Not tested and some funny stuff happening in here - probably totally bugged
     void _SsGetMetaEvent(short seq_no, short sep_no, unsigned char ev)
     {
-        printf("_SsGetMetaEvent\n");
+        // This could be any meta event bar EOF/0x2F, yet code treats it as if it must always be
+        // a tempo change of 0x51 ??
+        printf("_SsGetMetaEvent %d\n", (int)ev);
 
         SeqStruct *pStru = &_ss_score[seq_no][sep_no];
+
+        const int tempoValue = pStru->field_0_seq_ptr[2] | (pStru->field_0_seq_ptr[0] << 16) | (pStru->field_0_seq_ptr[1] << 8);
         pStru->field_0_seq_ptr += 3;
 
-        int read = pStru->field_0_seq_ptr[2] | (pStru->field_0_seq_ptr[0] << 16) | (pStru->field_0_seq_ptr[1] << 8);
+        const int v7 = 60000000 / tempoValue; // TODO: Negative constant ?
+        const int uVar2 = pStru->field_50_res_of_quarter_note * v7;
 
-        read = 60000000 / read;
+        pStru->field_94 = v7;
 
-        pStru->field_94 = read;
-
-        const int v6 = read * pStru->field_50_res_of_quarter_note;
-
-        const int v8 = 15 * VBLANK_MINUS;
-        const int v9 = 60 * VBLANK_MINUS;
-        if (10 * v6 < 60 * VBLANK_MINUS)
+        const int v9 = 15 * VBLANK_MINUS;
+        const int v10 = 60 * VBLANK_MINUS;
+        if ((uVar2 * 10) < v10)
         {
-            const int v10 = 600 * VBLANK_MINUS / v6;
-            pStru->field_52 = v10;
-            pStru->field_54 = v10;
+            pStru->field_52 = (600 * VBLANK_MINUS) / uVar2;
+            pStru->field_54 = (600 * VBLANK_MINUS) / uVar2;
         }
         else
         {
-            const int v11 = 10 * pStru->field_50_res_of_quarter_note * pStru->field_94 / v9;
-            const int v12 = 10 * pStru->field_50_res_of_quarter_note * pStru->field_94 % v9;
+            const int v12 = (10 * pStru->field_50_res_of_quarter_note * pStru->field_94) / v10;
+            const int v13 = (10 * pStru->field_50_res_of_quarter_note * pStru->field_94) % v10;
 
             pStru->field_52 = -1;
-            pStru->field_54 = v11;
+            pStru->field_54 = v12;
 
-            if (2 * v8 < v12)
+            if (v9 * 2 < v13)
             {
-                pStru->field_54 = v11 + 1;
+                pStru->field_54++;
             }
         }
         pStru->field_90_delta_value = _SsReadDeltaValue(seq_no, sep_no);
@@ -2862,33 +2861,33 @@ extern "C"
                 return;
             }
 
-            if (midi_byte_and_F0 != 0xE0) // pitch bend
+            if (midi_byte_and_F0 == 0xE0) // pitch bend
             {
-                if (midi_byte_and_F0 != 0xF0) // meta
-                {
-                    return;
-                }
-
-                pSeqPtr->field_16_running_status = 0xFF; // TODO ?? -1;
-                const unsigned char midi_byte__ = *pSeqPtr->field_0_seq_ptr;
+                pSeqPtr->field_16_running_status = 0xE0;
                 pSeqPtr->field_0_seq_ptr++;
-
-                if (midi_byte__ == 0x2F)
-                {
-                    _SsSeqGetEof(seq_idx, sep_idx);
-                    return;
-                }
-
-                SsFCALL.metaevent(seq_idx,  sep_idx, midi_byte);
-                //_SsGetMetaEvent(seq_idx, sep_idx, midi_byte);
+                SsFCALL.pitchbend(seq_idx, sep_idx);
+                //_SsSetPitchBend(seq_idx, sep_idx);
                 return;
             }
+            else
+            {
+                if (midi_byte_and_F0 == 0xF0) // meta
+                {
+                    pSeqPtr->field_16_running_status = 0xFF; // TODO ?? -1;
+                    const unsigned char midi_byte__ = *pSeqPtr->field_0_seq_ptr;
+                    pSeqPtr->field_0_seq_ptr++;
 
-            pSeqPtr->field_16_running_status = 0xE0;
-            pSeqPtr->field_0_seq_ptr++;
-            SsFCALL.pitchbend(seq_idx, sep_idx);
-            //_SsSetPitchBend(seq_idx, sep_idx);
-            return;
+                    if (midi_byte__ == 0x2F)
+                    {
+                        _SsSeqGetEof(seq_idx, sep_idx);
+                        return;
+                    }
+
+                    SsFCALL.metaevent(seq_idx, sep_idx, midi_byte);
+                    //_SsGetMetaEvent(seq_idx, sep_idx, midi_byte);
+                }
+                return;
+            }
         }
 
         const unsigned char running_status = pSeqPtr->field_16_running_status;
