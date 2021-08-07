@@ -1,7 +1,7 @@
 #ifndef _PSX_STUBS_HPP_
 #define _PSX_STUBS_HPP_
 
-//#define PSX
+#define PSX
 
 #ifdef PSX
     #include <libapi.h>

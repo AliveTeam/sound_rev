@@ -955,7 +955,6 @@ extern "C"
         u32 bsize;
         u32 written, tsa, old_tmode;
         extern u32 _spu_EVdma;
-        extern u8 _spu_zerobuf[];
         void(*bk)();
 
         if ((old_tmode=_spu_transMode) == 1)
