@@ -150,7 +150,7 @@ extern "C"
         char field_E_pan;
         char field_F_prior;
         char field_10_centre;
-        char field_11_shift;
+        unsigned char field_11_shift;
         char field_12_mode;
         char field_0x13;
         short field_14_seq_sep_no;
