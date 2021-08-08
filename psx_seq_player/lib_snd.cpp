@@ -771,8 +771,8 @@ extern "C"
         if (v10 < 0)
         {
             ret = -(int)v10;
-            ret = (int)(((int)((int) * (ushort *)((int)word_8001D0E8 + ((v11 << 0x10) >> 0xf)) *
-                                (int) * (ushort *)((int)word_8001D100 + ((shiftPlusFine << 0x10) >> 0xf))) >>
+            ret = (int)(((int)((int) * (unsigned short int *)((int)word_8001D0E8 + ((v11 << 0x10) >> 0xf)) *
+                                (int) * (unsigned short int *)((int)word_8001D100 + ((shiftPlusFine << 0x10) >> 0xf))) >>
                           0x10) +
                          (1 << (ret - 1 & 0x1f))) >>
                   (ret & 0x1f);
