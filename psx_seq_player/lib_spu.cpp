@@ -98,6 +98,8 @@ extern "C"
     void _spu_ssize();
     void _spu_ssize0();
 
+
+
     typedef struct tagSpuVoiceRegister
     {
         SpuVolume volume;	// 0-2
@@ -165,6 +167,21 @@ extern "C"
         u16 mRAPF2;
         u16 vLIN;
         u16 vRIN;
+
+        static u16 GetU16(volatile u16* ptr)
+        {
+            return GetSpuRegU16(ptr);
+        }
+
+        static void Set(volatile u16* ptr, u16 value)
+        {
+            SetSpuReg(ptr, value);
+        }
+
+        static void Set(volatile short* ptr, short value)
+        {
+            SetSpuReg(ptr, value);
+        }
     } SPU_RXX;
 
     typedef struct tagSpuMalloc
@@ -533,16 +550,16 @@ extern "C"
         _spu_addrMode = 0;
         _spu_tsa = 0;
 
-        _spu_RXX->main_vol.left = 0;
-        _spu_RXX->main_vol.right = 0;
-        _spu_RXX->spucnt = 0;
+        SPU_RXX::Set(&_spu_RXX->main_vol.left, 0);
+        SPU_RXX::Set(&_spu_RXX->main_vol.right, 0);
+        SPU_RXX::Set(&_spu_RXX->spucnt, 0);
         _spu_Fw1ts();
 
         //DEBUGPRINT(("wasted spu\n"));
-        _spu_RXX->main_vol.left = 0;
-        _spu_RXX->main_vol.right = 0;
+        SPU_RXX::Set(&_spu_RXX->main_vol.left, 0);
+        SPU_RXX::Set(&_spu_RXX->main_vol.right, 0);
 
-        if (_spu_RXX->spustat & 0x7FF)
+        if (SPU_RXX::GetU16(&_spu_RXX->spustat) & 0x7FF)
         {
             i = 1;
             do
@@ -553,7 +570,7 @@ extern "C"
                     break;
                 }
                 i++;
-            } while (_spu_RXX->spustat & 0x7FF);
+            } while (SPU_RXX::GetU16(&_spu_RXX->spustat) & 0x7FF);
         }
 
         //DEBUGPRINT(("set spu\n"));
@@ -561,49 +578,51 @@ extern "C"
         _spu_mem_mode_plus = 3;
         _spu_mem_mode_unit = 8;
         _spu_mem_mode_unitM = 7;
-        _spu_RXX->data_trans = 4;
-        _spu_RXX->rev_vol.left = 0;
-        _spu_RXX->rev_vol.right = 0;
-        _spu_RXX->key_off[0] = 0xFF;//-1;	// code actually handles this as 2 u16 writes
-        _spu_RXX->key_off[1] = 0xFF;//-1;
-        _spu_RXX->rev_mode[0] = 0;	// same write style
-        _spu_RXX->rev_mode[1] = 0;
+        SPU_RXX::Set(&_spu_RXX->data_trans, 4);
+        SPU_RXX::Set(&_spu_RXX->rev_vol.left, 0);
+        SPU_RXX::Set(&_spu_RXX->rev_vol.right, 0);
+        SPU_RXX::Set(&_spu_RXX->key_off[0], 0xFF);//-1;	// code actually handles this as 2 u16 writes
+        SPU_RXX::Set(&_spu_RXX->key_off[1], 0xFF);//-1;
+        SPU_RXX::Set(&_spu_RXX->rev_mode[0], 0);	// same write style
+        SPU_RXX::Set(&_spu_RXX->rev_mode[1], 0);
 
         for (i = 0; i < _countof(_spu_RQ); i++)
+        {
             _spu_RQ[i] = 0;
+        }
 
         if (!flag)
         {
             _spu_tsa = 0x200;
-            _spu_RXX->chan_fm[0] = 0;		// 2 writes
-            _spu_RXX->chan_fm[1] = 0;
-            _spu_RXX->noise_mode[0] = 0;	// 2 writes
-            _spu_RXX->noise_mode[1] = 0;
-            _spu_RXX->cd_vol.left = 0;
-            _spu_RXX->cd_vol.right = 0;
-            _spu_RXX->ex_vol.left = 0;
-            _spu_RXX->ex_vol.right = 0;
+             SPU_RXX::Set(&_spu_RXX->chan_fm[0], 0);		// 2 writes
+             SPU_RXX::Set(&_spu_RXX->chan_fm[1], 0);
+             SPU_RXX::Set(&_spu_RXX->noise_mode[0], 0);	// 2 writes
+             SPU_RXX::Set(&_spu_RXX->noise_mode[1], 0);
+             SPU_RXX::Set(&_spu_RXX->cd_vol.left, 0);
+             SPU_RXX::Set(&_spu_RXX->cd_vol.right, 0);
+             SPU_RXX::Set(&_spu_RXX->ex_vol.left, 0);
+             SPU_RXX::Set(&_spu_RXX->ex_vol.right, 0);
             _spu_w(wseq, sizeof(wseq));
 
             for (i = 0; i < 24; i++)
             {
-                _spu_RXX->voice[i].volume.left = 0;
-                _spu_RXX->voice[i].volume.right = 0;
-                _spu_RXX->voice[i].pitch = 0x3FFF;
-                _spu_RXX->voice[i].addr = 0x200;
-                _spu_RXX->voice[i].adsr[0] = 0;	// 2 writes
-                _spu_RXX->voice[i].adsr[1] = 0;
+                 SPU_RXX::Set(&_spu_RXX->voice[i].volume.left, 0);
+                 SPU_RXX::Set(&_spu_RXX->voice[i].volume.right, 0);
+                 SPU_RXX::Set(&_spu_RXX->voice[i].pitch, 0x3FFF);
+                 SPU_RXX::Set(&_spu_RXX->voice[i].addr, 0x200);
+                 SPU_RXX::Set(&_spu_RXX->voice[i].adsr[0], 0);	// 2 writes
+                 SPU_RXX::Set(&_spu_RXX->voice[i].adsr[1], 0);
             }
 
-            _spu_RXX->key_on[0] = 0xFFFF;	// 2 writes
-            _spu_RXX->key_on[1] = 0xFF;
+             SPU_RXX::Set(&_spu_RXX->key_on[0], 0xFFFF);	// 2 writes
+             SPU_RXX::Set(&_spu_RXX->key_on[1], 0xFF);
             _spu_Fw1ts();
             _spu_Fw1ts();
             _spu_Fw1ts();
             _spu_Fw1ts();
 
-            _spu_RXX->key_off[0] = 0xFFFF;	// 2 writes
-            _spu_RXX->key_off[1] = 0xFF;
+             SPU_RXX::Set(&_spu_RXX->key_off[0], 0xFFFF);	// 2 writes
+             SPU_RXX::Set(&_spu_RXX->key_off[1], 0xFF);
             _spu_Fw1ts();
             _spu_Fw1ts();
             _spu_Fw1ts();
@@ -612,7 +631,7 @@ extern "C"
 
         //DEBUGPRINT(("final spu\n"));
         _spu_inTransfer = 1;
-        _spu_RXX->spucnt = 0xC000;
+         SPU_RXX::Set(&_spu_RXX->spucnt, 0xC000);
         _spu_transferCallback = NULL;
         _spu_IRQCallback = NULL;
 
@@ -707,9 +726,9 @@ extern "C"
         _spu_Fw1ts();
         _spu_ssize();
 
-        *SPUDMA_MADR = (u32)data;
-        *SPUDMA_BCR = (size << 16) | 0x10;
-        *SPUDMA_CHCR = 0x1000200;
+        SetSpuReg(SPUDMA_MADR, (u32)data);
+        SetSpuReg(SPUDMA_BCR, (size << 16) | 0x10);
+        SetSpuReg(SPUDMA_CHCR, 0x1000200);
         _spu_wck = 1;
     }
 
@@ -780,9 +799,9 @@ extern "C"
             ck = (u32)va_arg(args, u32);
             _spu_bcr = (ck / 64) + ((ck % 64) ? 1 : 0);
 
-            *SPUDMA_MADR = _spu_tmp;
-            *SPUDMA_BCR = (_spu_bcr << 16) | 0x10;
-            *SPUDMA_CHCR = _spu_wck==1 ? 0x1000200 : 0x1000201;
+            SetSpuReg(SPUDMA_MADR, _spu_tmp);
+            SetSpuReg(SPUDMA_BCR, (_spu_bcr << 16) | 0x10);
+            SetSpuReg(SPUDMA_CHCR, _spu_wck==1 ? 0x1000200 : 0x1000201);
         }
 
         return 0;
@@ -876,21 +895,21 @@ extern "C"
     {
         u32 r;
 
-        *DPCR &= ~0x70000;
+        SetSpuReg(DPCR, GetSpuRegU32(DPCR) & ~0x70000);
         r = flag ? 0x30000 : 0x50000;
-        *DPCR|=r;
+        SetSpuReg(DPCR, GetSpuRegU32(DPCR) | r);
     }
 
     // private ??
     void _spu_ssize0()
     {
-        *SPUSIZE = (*SPUSIZE & 0xF0FFFFFF) | 0x20000000;
+        SetSpuReg(SPUSIZE, (GetSpuRegU32(SPUSIZE) & 0xF0FFFFFF) | 0x20000000);
     }
 
     // private ??
     void _spu_ssize()
     {
-        *SPUSIZE = (*SPUSIZE & 0xF0FFFFFF) | 0x22000000;
+        SetSpuReg(SPUSIZE, (GetSpuRegU32(SPUSIZE) & 0xF0FFFFFF) | 0x22000000);
     }
 
     // SPU.OBJ spu time waster
@@ -1079,14 +1098,14 @@ extern "C"
                 n_clock_fixed = 63;
             }
         }
-        _spu_RXX->spucnt = _spu_RXX->spucnt & 0xC0FF | ((n_clock_fixed & 0x3F) << 8);
+        SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) & 0xC0FF | ((n_clock_fixed & 0x3F) << 8));
         return n_clock_fixed;
     }
 
     // S_GVEX.OBJ
     void SpuGetVoiceEnvelope(int voiceNum, short *envx)
     {
-        *envx = _spu_RXX->voice[voiceNum].volumex;
+        *envx = SPU_RXX::GetU16(&_spu_RXX->voice[voiceNum].volumex);
     }
 
     // TODO:
@@ -1125,19 +1144,19 @@ extern "C"
         if (on_off == 0)
         {
             _spu_rev_flag = 0;
-            _spu_RXX->spucnt &= ~0x80;
+            SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) & ~0x80);
         }
         else if (on_off == 1)
         {
             if (_spu_rev_reserve_wa == 1 || !_SpuIsInAllocateArea(_spu_rev_offsetaddr))
             {
                 _spu_rev_flag = 1;
-                _spu_RXX->spucnt |= 0x80;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) | 0x80);
             }
             else
             {
                 _spu_rev_flag = 0;
-                _spu_RXX->spucnt &= ~0x80;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) & ~0x80);
             }
         }
     }
@@ -1249,7 +1268,7 @@ extern "C"
                 }
                 mov_left_part2 = mvol_left_clamped & 0x7FFF;
             }
-            _spu_RXX->main_vol.left = mov_left_part2 | mov_left_part1;
+            SPU_RXX::Set(&_spu_RXX->main_vol.left, mov_left_part2 | mov_left_part1);
         }
 
         short mvol_right_local_1 = 0;
@@ -1309,38 +1328,38 @@ extern "C"
                 mov_right_part2 = mvol_right_clamped & 0x7FFF;
             }
 
-            _spu_RXX->main_vol.right = mov_right_part2 | mov_right_part1;
+            SPU_RXX::Set(&_spu_RXX->main_vol.right, mov_right_part2 | mov_right_part1);
         }
 
         if (pAttr->mask || (pAttr->mask & 0x40) != 0)
         {
-            _spu_RXX->cd_vol.left = pAttr->cd.volume.left;
+            SPU_RXX::Set(&_spu_RXX->cd_vol.left, pAttr->cd.volume.left);
         }
 
         if (pAttr->mask || (pAttr->mask & 0x80) != 0)
         {
-            _spu_RXX->cd_vol.right = pAttr->cd.volume.right;
+            SPU_RXX::Set(&_spu_RXX->cd_vol.right, pAttr->cd.volume.right);
         }
 
         if (pAttr->mask || (pAttr->mask & 0x400) != 0)
         {
-            _spu_RXX->ex_vol.left = pAttr->ext.volume.left;
+            SPU_RXX::Set(&_spu_RXX->ex_vol.left, pAttr->ext.volume.left);
         }
 
         if (pAttr->mask || (pAttr->mask & 0x800) != 0)
         {
-            _spu_RXX->ex_vol.right = pAttr->ext.volume.right;
+            SPU_RXX::Set(&_spu_RXX->ex_vol.right, pAttr->ext.volume.right);
         }
 
         if (pAttr->mask || (pAttr->mask & 0x100) != 0)
         {
             if (pAttr->cd.reverb)
             {
-                _spu_RXX->spucnt |= 4;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) | 4);
             }
             else
             {
-                _spu_RXX->spucnt &= ~4;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) & ~4);
             }
         }
 
@@ -1348,11 +1367,11 @@ extern "C"
         {
             if (pAttr->cd.mix)
             {
-                _spu_RXX->spucnt |= 1;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) | 1);
             }
             else
             {
-                _spu_RXX->spucnt &= ~1;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) & ~1);
             }
         }
 
@@ -1360,11 +1379,11 @@ extern "C"
         {
             if (pAttr->ext.reverb)
             {
-                _spu_RXX->spucnt |= 8;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) | 8);
             }
             else
             {
-                _spu_RXX->spucnt &= ~8;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) & ~8);
             }
         }
 
@@ -1372,11 +1391,11 @@ extern "C"
         {
             if (pAttr->ext.mix)
             {
-                _spu_RXX->spucnt |= 2;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) | 2);
             }
             else
             {
-                _spu_RXX->spucnt &= ~2;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) & ~2);
             }
         }
     }
@@ -1481,7 +1500,7 @@ extern "C"
                 converted_voice_num = 8 * voice_num;
                 if (!attr_mask || (attr_mask & 0x10) != 0)
                 {
-                    _spu_RXX->voice[voice_num].pitch = pAttr->pitch;
+                    SPU_RXX::Set(&_spu_RXX->voice[voice_num].pitch, pAttr->pitch);
                 }
 
                 if (!attr_mask || (attr_mask & 0x40) != 0)
@@ -1491,11 +1510,11 @@ extern "C"
 
                 if (!attr_mask || (attr_mask & 0x20) != 0)
                 {
-                    _spu_RXX->voice[voice_num].pitch = _spu_note2pitch(
+                    SPU_RXX::Set(&_spu_RXX->voice[voice_num].pitch, _spu_note2pitch(
                         (*pCentreNoteIter) >> 8 & 0xFF,
                         (u8)*pCentreNoteIter,
                         pAttr->note >> 8 & 0xFF,
-                        (u8)pAttr->note);
+                        (u8)pAttr->note));
                 }
 
                 if (!attr_mask || (attr_mask & 1) != 0)
@@ -1546,7 +1565,7 @@ extern "C"
                             vol_left_clamped = 127;
                         }
                     }
-                    _spu_RXX->voice[voice_num].volume.left = vol_left_clamped | vol_left_upper;
+                    SPU_RXX::Set(&_spu_RXX->voice[voice_num].volume.left, vol_left_clamped | vol_left_upper);
                 }
 
                 if (!attr_mask || (attr_mask & 2) != 0)
@@ -1598,7 +1617,7 @@ extern "C"
                             vol_right_clamped = 127;
                         }
                     }
-                    _spu_RXX->voice[voice_num].volume.right = vol_right_clamped | vol_right_upper;
+                    SPU_RXX::Set(&_spu_RXX->voice[voice_num].volume.right, vol_right_clamped | vol_right_upper);
                 }
 
                 if (!attr_mask || (attr_mask & 0x80) != 0)
@@ -1614,13 +1633,13 @@ extern "C"
                 voice_num_ = voice_num;
                 if (!attr_mask || (voice_num_ = voice_num, (attr_mask & 0x20000) != 0))
                 {
-                    _spu_RXX->voice[voice_num_].adsr[0] = pAttr->adsr1;
+                    SPU_RXX::Set(&_spu_RXX->voice[voice_num_].adsr[0], pAttr->adsr1);
                 }
 
                 voice_num__ = voice_num;
                 if (!attr_mask || (voice_num__ = voice_num, (attr_mask & 0x40000) != 0))
                 {
-                    _spu_RXX->voice[voice_num__].adsr[1] = pAttr->adsr2;
+                    SPU_RXX::Set(&_spu_RXX->voice[voice_num__].adsr[1], pAttr->adsr2);
                 }
 
                 if (!attr_mask || (attr_mask & 0x800) != 0)
@@ -1636,7 +1655,7 @@ extern "C"
                     {
                         adsr_ar_part = 128;
                     }
-                    _spu_RXX->voice[voice_num].adsr[0] = (unsigned char)_spu_RXX->voice[voice_num].adsr[0] | (unsigned short)(((unsigned short)attr_ar | (unsigned short)adsr_ar_part) << 8);
+                    SPU_RXX::Set(&_spu_RXX->voice[voice_num].adsr[0], (unsigned char)SPU_RXX::GetU16(&_spu_RXX->voice[voice_num].adsr[0]) | (unsigned short)(((unsigned short)attr_ar | (unsigned short)adsr_ar_part) << 8));
                 }
 
                 if (!attr_mask || (attr_mask & 0x1000) != 0)
@@ -1646,7 +1665,7 @@ extern "C"
                     {
                         adsr_dr_part = 15; // loword
                     }
-                    _spu_RXX->voice[voice_num].adsr[0] = _spu_RXX->voice[voice_num].adsr[0] & 0xFF0F | (0x10 * adsr_dr_part);
+                    SPU_RXX::Set(&_spu_RXX->voice[voice_num].adsr[0], SPU_RXX::GetU16(&_spu_RXX->voice[voice_num].adsr[0]) & 0xFF0F | (0x10 * adsr_dr_part));
                 }
 
                 if (!attr_mask || (attr_mask & 0x2000) != 0)
@@ -1677,7 +1696,7 @@ extern "C"
                             converted_s_mode = 0;
                         }
                     }
-                    _spu_RXX->voice[voice_num].adsr[1] = _spu_RXX->voice[voice_num].adsr[1] & 0x3F | (((unsigned short)adsr_sr_part | (unsigned short)converted_s_mode) << 6);
+                    SPU_RXX::Set(&_spu_RXX->voice[voice_num].adsr[1], SPU_RXX::GetU16(&_spu_RXX->voice[voice_num].adsr[1]) & 0x3F | (((unsigned short)adsr_sr_part | (unsigned short)converted_s_mode) << 6));
                 }
 
                 if (!attr_mask || (attr_mask & 0x4000) != 0)
@@ -1697,7 +1716,7 @@ extern "C"
                             attr_r_mode_converted = 32;
                         }
                     }
-                    _spu_RXX->voice[voice_num].adsr[1] = _spu_RXX->voice[voice_num].adsr[1] & 0xFFC0 | adsr_rr_part | attr_r_mode_converted;
+                    SPU_RXX::Set(&_spu_RXX->voice[voice_num].adsr[1], SPU_RXX::GetU16(&_spu_RXX->voice[voice_num].adsr[1]) & 0xFFC0 | adsr_rr_part | attr_r_mode_converted);
                 }
 
                 if (!attr_mask || (attr_mask & 0x8000) != 0)
@@ -1707,7 +1726,7 @@ extern "C"
                     {
                         attr_sl = 15; // loword
                     }
-                    _spu_RXX->voice[voice_num].adsr[0] = _spu_RXX->voice[voice_num].adsr[0] & 0xFFF0 | attr_sl;
+                    SPU_RXX::Set(&_spu_RXX->voice[voice_num].adsr[0], SPU_RXX::GetU16(&_spu_RXX->voice[voice_num].adsr[0]) & 0xFFF0 | attr_sl);
                 }
             }
             ++voice_num;
@@ -2099,162 +2118,162 @@ extern "C"
 
         if (!pRevParamEntry->flags || (pRevParamEntry->flags & 1) != 0)
         {
-            _spu_RXX->dAPF1 = pRevParamEntry->dAPF1; // 0x1F801DC0
+            SPU_RXX::Set(&_spu_RXX->dAPF1, pRevParamEntry->dAPF1); // 0x1F801DC0
         }
 
         if (bFlagsAreZero || (flags & 2) != 0)
         {
-            _spu_RXX->dAPF2 = pRevParamEntry->dAPF2;
+             SPU_RXX::Set(&_spu_RXX->dAPF2, pRevParamEntry->dAPF2);
         }
 
         if (bFlagsAreZero || (flags & 4) != 0)
         {
-            _spu_RXX->vIIR = pRevParamEntry->vIIR;
+             SPU_RXX::Set(&_spu_RXX->vIIR, pRevParamEntry->vIIR);
         }
 
         if (bFlagsAreZero || (flags & 8) != 0)
         {
-            _spu_RXX->vCOMB1 = pRevParamEntry->vCOMB1;
+             SPU_RXX::Set(&_spu_RXX->vCOMB1, pRevParamEntry->vCOMB1);
         }
 
         if (bFlagsAreZero || (flags & 0x10) != 0)
         {
-            _spu_RXX->vCOMB2 = pRevParamEntry->vCOMB2;
+             SPU_RXX::Set(&_spu_RXX->vCOMB2, pRevParamEntry->vCOMB2);
         }
 
         if (bFlagsAreZero || (flags & 0x20) != 0)
         {
-            _spu_RXX->vCOMB3 = pRevParamEntry->vCOMB3;
+             SPU_RXX::Set(&_spu_RXX->vCOMB3, pRevParamEntry->vCOMB3);
         }
 
         if (bFlagsAreZero || (flags & 0x40) != 0)
         {
-            _spu_RXX->vCOMB4 = pRevParamEntry->vCOMB4;
+             SPU_RXX::Set(&_spu_RXX->vCOMB4, pRevParamEntry->vCOMB4);
         }
 
         if (bFlagsAreZero || (flags & 0x80) != 0)
         {
-            _spu_RXX->vWALL = pRevParamEntry->vWALL;
+             SPU_RXX::Set(&_spu_RXX->vWALL, pRevParamEntry->vWALL);
         }
 
         if (bFlagsAreZero || (flags & 0x100) != 0)
         {
-            _spu_RXX->vAPF1 = pRevParamEntry->vAPF1;
+             SPU_RXX::Set(&_spu_RXX->vAPF1, pRevParamEntry->vAPF1);
         }
 
         if (bFlagsAreZero || (flags & 0x200) != 0)
         {
-            _spu_RXX->vAPF2 = pRevParamEntry->vAPF2;
+             SPU_RXX::Set(&_spu_RXX->vAPF2, pRevParamEntry->vAPF2);
         }
 
         if (bFlagsAreZero || (flags & 0x400) != 0)
         {
-            _spu_RXX->mLSAME = pRevParamEntry->mLSAME;
+            SPU_RXX::Set(&_spu_RXX->mLSAME, pRevParamEntry->mLSAME);
         }
 
         if (bFlagsAreZero || (flags & 0x800) != 0)
         {
-            _spu_RXX->mRSAME = pRevParamEntry->mRSAME;
+             SPU_RXX::Set(&_spu_RXX->mRSAME, pRevParamEntry->mRSAME);
         }
 
         if (bFlagsAreZero || (flags & 0x1000) != 0)
         {
-            _spu_RXX->mLCOMB1 = pRevParamEntry->mLCOMB1;
+             SPU_RXX::Set(&_spu_RXX->mLCOMB1, pRevParamEntry->mLCOMB1);
         }
 
         if (bFlagsAreZero || (flags & 0x2000) != 0)
         {
-            _spu_RXX->mRCOMB1 = pRevParamEntry->mRCOMB1;
+             SPU_RXX::Set(&_spu_RXX->mRCOMB1, pRevParamEntry->mRCOMB1);
         }
 
         if (bFlagsAreZero || (flags & 0x4000) != 0)
         {
-            _spu_RXX->mLCOMB2 = pRevParamEntry->mLCOMB2;
+             SPU_RXX::Set(&_spu_RXX->mLCOMB2, pRevParamEntry->mLCOMB2);
         }
 
         if (bFlagsAreZero || (flags & 0x8000) != 0)
         {
-            _spu_RXX->mRCOMB2 = pRevParamEntry->mRCOMB2;
+             SPU_RXX::Set(&_spu_RXX->mRCOMB2, pRevParamEntry->mRCOMB2);
         }
 
         if (bFlagsAreZero || (flags & 0x10000) != 0)
         {
-            _spu_RXX->dLSAME = pRevParamEntry->dLSAME;
+             SPU_RXX::Set(&_spu_RXX->dLSAME, pRevParamEntry->dLSAME);
         }
 
         if (bFlagsAreZero || (flags & 0x20000) != 0)
         {
-            _spu_RXX->dRSAME = pRevParamEntry->dRSAME;
+             SPU_RXX::Set(&_spu_RXX->dRSAME, pRevParamEntry->dRSAME);
         }
 
         if (bFlagsAreZero || (flags & 0x40000) != 0)
         {
-            _spu_RXX->mLDIFF = pRevParamEntry->mLDIFF;
+             SPU_RXX::Set(&_spu_RXX->mLDIFF, pRevParamEntry->mLDIFF);
         }
 
         if (bFlagsAreZero || (flags & 0x80000) != 0)
         {
-            _spu_RXX->mRDIFF = pRevParamEntry->mRDIFF;
+             SPU_RXX::Set(&_spu_RXX->mRDIFF, pRevParamEntry->mRDIFF);
         }
 
         if (bFlagsAreZero || (flags & 0x100000) != 0)
         {
-            _spu_RXX->mLCOMB3 = pRevParamEntry->mLCOMB3;
+             SPU_RXX::Set(&_spu_RXX->mLCOMB3, pRevParamEntry->mLCOMB3);
         }
 
         if (bFlagsAreZero || (flags & 0x200000) != 0)
         {
-            _spu_RXX->mRCOMB3 = pRevParamEntry->mRCOMB3;
+             SPU_RXX::Set(&_spu_RXX->mRCOMB3, pRevParamEntry->mRCOMB3);
         }
 
         if (bFlagsAreZero || (flags & 0x400000) != 0)
         {
-            _spu_RXX->mLCOMB4 = pRevParamEntry->mLCOMB4;
+             SPU_RXX::Set(&_spu_RXX->mLCOMB4, pRevParamEntry->mLCOMB4);
         }
 
         if (bFlagsAreZero || (flags & 0x800000) != 0)
         {
-            _spu_RXX->mRCOMB4 = pRevParamEntry->mRCOMB4;
+             SPU_RXX::Set(&_spu_RXX->mRCOMB4, pRevParamEntry->mRCOMB4);
         }
 
         if (bFlagsAreZero || (flags & 0x1000000) != 0)
         {
-            _spu_RXX->dLDIFF = pRevParamEntry->dLDIFF;
+             SPU_RXX::Set(&_spu_RXX->dLDIFF, pRevParamEntry->dLDIFF);
         }
 
         if (bFlagsAreZero || (flags & 0x2000000) != 0)
         {
-            _spu_RXX->dRDIFF = pRevParamEntry->dRDIFF;
+             SPU_RXX::Set(&_spu_RXX->dRDIFF, pRevParamEntry->dRDIFF);
         }
 
         if (bFlagsAreZero || (flags & 0x4000000) != 0)
         {
-            _spu_RXX->mLAPF1 = pRevParamEntry->mLAPF1;
+             SPU_RXX::Set(&_spu_RXX->mLAPF1, pRevParamEntry->mLAPF1);
         }
 
         if (bFlagsAreZero || (flags & 0x8000000) != 0)
         {
-            _spu_RXX->mRAPF1 = pRevParamEntry->mRAPF1;
+             SPU_RXX::Set(&_spu_RXX->mRAPF1, pRevParamEntry->mRAPF1);
         }
 
         if (bFlagsAreZero || (flags & 0x10000000) != 0)
         {
-            _spu_RXX->mLAPF2 = pRevParamEntry->mLAPF2;
+             SPU_RXX::Set(&_spu_RXX->mLAPF2, pRevParamEntry->mLAPF2);
         }
 
         if (bFlagsAreZero || (flags & 0x20000000) != 0)
         {
-            _spu_RXX->mRAPF2 = pRevParamEntry->mRAPF2;
+             SPU_RXX::Set(&_spu_RXX->mRAPF2, pRevParamEntry->mRAPF2);
         }
 
         if (bFlagsAreZero || (flags & 0x40000000) != 0)
         {
-            _spu_RXX->vLIN = pRevParamEntry->vLIN;
+             SPU_RXX::Set(&_spu_RXX->vLIN, pRevParamEntry->vLIN);
         }
 
         if (bFlagsAreZero || (flags & 0x80000000) != 0)
         {
-            _spu_RXX->vRIN= pRevParamEntry->vRIN;
+             SPU_RXX::Set(&_spu_RXX->vRIN, pRevParamEntry->vRIN);
         }
     }
 
@@ -2355,13 +2374,13 @@ extern "C"
         bool bSet_spucnt = false;
         if (b_rModeInBounds)
         {
-            bSet_spucnt = ((_spu_RXX->spucnt >> 7) & 1) ? true : false;
+            bSet_spucnt = ((SPU_RXX::GetU16(&_spu_RXX->spucnt) >> 7) & 1) ? true : false;
             if (bSet_spucnt)
             {
-                _spu_RXX->spucnt &= ~0x80u;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) & ~0x80u);
             }
-            _spu_RXX->rev_vol.left = 0;
-            _spu_RXX->rev_vol.right = 0;
+            SPU_RXX::Set(&_spu_RXX->rev_vol.left, 0);
+            SPU_RXX::Set(&_spu_RXX->rev_vol.right, 0);
             _spu_rev_attr.depth.left = 0;
             _spu_rev_attr.depth.right = 0;
         }
@@ -2369,13 +2388,13 @@ extern "C"
         {
             if (pAttr->mask == 0 || (pAttr->mask & 2) != 0)
             {
-                _spu_RXX->rev_vol.left = pAttr->depth.left;
+                SPU_RXX::Set(&_spu_RXX->rev_vol.left, pAttr->depth.left);
                 _spu_rev_attr.depth.left = pAttr->depth.left;
             }
 
             if (pAttr->mask == 0 || (pAttr->mask & 4) != 0)
             {
-                _spu_RXX->rev_vol.right = pAttr->depth.right;
+                SPU_RXX::Set(&_spu_RXX->rev_vol.right, pAttr->depth.right);
                 _spu_rev_attr.depth.right = pAttr->depth.right;
             }
         }
@@ -2395,7 +2414,7 @@ extern "C"
             _spu_FsetRXX(209, _spu_rev_offsetaddr, 0);
             if (bSet_spucnt)
             {
-                _spu_RXX->spucnt |= 0x80u;
+                SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) | 0x80u);
             }
         }
 
@@ -2681,34 +2700,35 @@ void _spu_gcSPU(void)
     }
 }
 
-static volatile unsigned long* _GetVoiceImpl(int word_idx1, int word_idx2)
+static volatile u32* _GetVoiceAddr(int word_idx1, int word_idx2)
 {
     if (word_idx1 == 204 && word_idx2 == 205)
     {
         // 0x1F801D98 4  Voice 0..23 Channel Reverb mode (R/W)
-        return (volatile unsigned long*)0x1F801D98;
+        return (volatile u32*)0x1F801D98;
     }
     else if (word_idx1 == 202 && word_idx2 == 203)
     {
         // 0x1F801D94 4  Voice 0..23 Channel Noise mode (R/W)
-        return (volatile unsigned long*)0x1F801D94;
+        return (volatile u32*)0x1F801D94;
     }
     else
     {
         printf("Unknown reg combo\n");
-        while(1) {}
+        //while(1) {}
+        return (volatile u32*)0;
     }
 }
 
 unsigned long _SpuGetAnyVoice(int word_idx1, int word_idx2)
 {
-    return (*_GetVoiceImpl(word_idx1, word_idx2)) & 0xFFFFFF;
+    return GetSpuRegU32(_GetVoiceAddr(word_idx1, word_idx2)) & 0xFFFFFF;
 }
 
 // note: partial impl cause _spu_env stuff ignored as its never set in the funcs I care about
 unsigned long _SpuSetAnyVoice(long on_off_flags, unsigned long voice_bits, int word_idx1, int word_idx2)
 {
-    volatile unsigned long* pRegister = _GetVoiceImpl(word_idx1, word_idx2);
+    volatile u32* pRegister = _GetVoiceAddr(word_idx1, word_idx2);
 
     // Note: _spu_env branch removed
     unsigned long ret_bits = *pRegister;
@@ -2716,7 +2736,7 @@ unsigned long _SpuSetAnyVoice(long on_off_flags, unsigned long voice_bits, int w
     if (on_off_flags == 1)
     {
         // Note: _spu_env branch removed
-        *pRegister |= voice_bits & 0xFFFFFF;
+        SetSpuReg(pRegister, GetSpuRegU32(pRegister) | voice_bits & 0xFFFFFF);
         ret_bits |= voice_bits & 0xFFFFFF;
     }
     else if (on_off_flags >= 2)
@@ -2724,14 +2744,14 @@ unsigned long _SpuSetAnyVoice(long on_off_flags, unsigned long voice_bits, int w
         if (on_off_flags == 8)
         {
             // Note: _spu_env branch removed
-            *pRegister = voice_bits & 0xFFFFFF;
+            SetSpuReg(pRegister, voice_bits & 0xFFFFFF);
             ret_bits = voice_bits & 0xFFFFFF;
         }
     }
     else if (on_off_flags == 0)
     {
         // Note: _spu_env branch removed
-        *pRegister = ~(voice_bits & 0xFFFFFF);
+        SetSpuReg(pRegister, ~(voice_bits & 0xFFFFFF));
         ret_bits &= ~(voice_bits & 0xFFFFFF);
     }
     return ret_bits & 0xFFFFFF;

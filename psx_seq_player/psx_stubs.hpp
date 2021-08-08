@@ -6,6 +6,32 @@
 #ifdef PSX
     #include <libapi.h>
     #include <libetc.h> // ResetCallBack
+
+inline void SetSpuReg(volatile u32* pReg, u32 value)
+{
+    *pReg = value;
+}
+
+inline void SetSpuReg(volatile u16* pReg, u16 value)
+{
+    *pReg = value;
+}
+
+inline void SetSpuReg(volatile short* pReg, short value)
+{
+    *pReg = value;
+}
+
+inline u32 GetSpuRegU32(volatile u32* pReg)
+{
+    return *pReg;
+}
+
+inline u16 GetSpuRegU16(volatile u16* pReg)
+{
+    return *pReg;
+}
+
 #else
 
 extern "C"
@@ -14,6 +40,31 @@ extern "C"
 #define EvSpCOMP 2
 #define EvStACTIVE 3
 #define NULL 0
+
+    inline void SetSpuReg(volatile u32* pReg, u32 value)
+    {
+        *pReg = value;
+    }
+
+    inline void SetSpuReg(volatile u16* pReg, u16 value)
+    {
+        *pReg = value;
+    }
+
+    inline void SetSpuReg(volatile short* pReg, short value)
+    {
+        *pReg = value;
+    }
+
+    inline u32 GetSpuRegU32(volatile u32* pReg)
+    {
+        return *pReg;
+    }
+
+    inline u16 GetSpuRegU16(volatile u16* pReg)
+    {
+        return *pReg;
+    }
 
     inline void ResetCallback()
     {
