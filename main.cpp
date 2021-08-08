@@ -37,11 +37,40 @@ EXPORT s32 CC MIDI_Play_Single_Note_4CA1B0(s32 vabIdAndProgram, s32 note, s32 le
 
 */
 
+
+PS_SPU spu;
+
+void SetSpuReg(volatile u32* pReg, u32 value)
+{
+    spu.Write(0, (uint32_t)pReg, value);
+    // TODO: needs to be done as 2x writes ??
+}
+
+void SetSpuReg(volatile u16* pReg, u16 value)
+{
+    spu.Write(0, (uint32_t)pReg, value);
+}
+
+void SetSpuReg(volatile short* pReg, short value)
+{
+    spu.Write(0, (uint32_t)pReg, value);
+}
+
+u32 GetSpuRegU32(volatile u32* pReg)
+{
+    // TODO: needs to be done as 2x reads ??
+    return spu.Read(0, (uint32_t)pReg);
+}
+
+u16 GetSpuRegU16(volatile u16* pReg)
+{
+    return spu.Read(0, (uint32_t)pReg);
+}
+
 int main(int, char**)
 {
     std::cout << "hello" << std::endl;
 
-    PS_SPU spu;
     spu.Power();
 
     for (int i = 0; i < 900; i++)

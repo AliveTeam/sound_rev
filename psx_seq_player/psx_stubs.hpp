@@ -34,6 +34,12 @@ inline u16 GetSpuRegU16(volatile u16* pReg)
 
 #else
 
+void SetSpuReg(volatile u32* pReg, u32 value);
+void SetSpuReg(volatile u16* pReg, u16 value);
+void SetSpuReg(volatile short* pReg, short value);
+u32 GetSpuRegU32(volatile u32* pReg);
+u16 GetSpuRegU16(volatile u16* pReg);
+
 extern "C"
 {
 #define HwSPU 1
@@ -41,30 +47,6 @@ extern "C"
 #define EvStACTIVE 3
 #define NULL 0
 
-    inline void SetSpuReg(volatile u32* pReg, u32 value)
-    {
-        *pReg = value;
-    }
-
-    inline void SetSpuReg(volatile u16* pReg, u16 value)
-    {
-        *pReg = value;
-    }
-
-    inline void SetSpuReg(volatile short* pReg, short value)
-    {
-        *pReg = value;
-    }
-
-    inline u32 GetSpuRegU32(volatile u32* pReg)
-    {
-        return *pReg;
-    }
-
-    inline u16 GetSpuRegU16(volatile u16* pReg)
-    {
-        return *pReg;
-    }
 
     inline void ResetCallback()
     {

@@ -2204,7 +2204,7 @@ extern "C"
         volatile short* pReg = (volatile short*)0x1F801D80;
         for (int i = 0; i < 16; i++)
         {
-            pReg[i] = private_8001D0A4[i];
+           SetSpuReg(&pReg[i], private_8001D0A4[i]);
         }
 
         _SsVmInit(24);

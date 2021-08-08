@@ -270,8 +270,6 @@ extern "C"
     //};
 
 
-    #define s _spu_RXX
-
     // S_I.OBJ
     void SpuInit()
     {
@@ -545,7 +543,7 @@ extern "C"
 
         //DEBUGPRINT(("init spu\n"));
 
-        *DPCR |= 0xB0000;
+        SetSpuReg(DPCR, GetSpuRegU32(DPCR) | 0xB0000);
         _spu_transMode = 0;
         _spu_addrMode = 0;
         _spu_tsa = 0;
@@ -647,8 +645,8 @@ extern "C"
         u16 *d16;
 
         //DEBUGPRINT(("spu_w\n"));
-        ck = s->spustat & 0x7FF;
-        s->trans_addr = _spu_tsa;
+        ck = SPU_RXX::GetU16(&_spu_RXX->spustat) & 0x7FF;
+        SPU_RXX::Set(&_spu_RXX->trans_addr, _spu_tsa);
         _spu_Fw1ts();
 
         if (size)
@@ -659,11 +657,14 @@ extern "C"
             {
                 c = size > 64 ? 64 : size;
                 //DEBUGPRINT(("write %d bytes\n", c));
-                for (i=0; i < c; i += 2)
-                    s->trans_fifo = *d16++;
-                s->spucnt = (s->spucnt & ~0x30) | 0x10;
+                for (i = 0; i < c; i += 2)
+                {
+                    SPU_RXX::Set(&_spu_RXX->trans_fifo, *d16++);
+                }
+
+                SPU_RXX::Set(&_spu_RXX->spucnt, (SPU_RXX::GetU16(&_spu_RXX->spucnt) & ~0x30) | 0x10);
                 _spu_Fw1ts();
-                if (s->spustat & 0x400)
+                if (SPU_RXX::GetU16(&_spu_RXX->spustat) & 0x400)
                 {
                     i = 1;
                     do
@@ -674,7 +675,7 @@ extern "C"
                             break;
                         }
                         i++;
-                    } while (s->spustat & 0x400);
+                    } while (SPU_RXX::GetU16(&_spu_RXX->spustat) & 0x400);
                 }
                 _spu_Fw1ts();
                 _spu_Fw1ts();
@@ -682,8 +683,8 @@ extern "C"
             }
         }
 
-        s->spucnt &= ~0x30;
-        if ((s->spustat & 0x7FFu) != ck)
+        SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) & ~0x30);
+        if ((SPU_RXX::GetU16(&_spu_RXX->spustat) & 0x7FFu) != ck)
         {
             i = 1;
             do
@@ -694,7 +695,7 @@ extern "C"
                     break;
                 }
                 i++;
-            } while ((s->spustat & 0x7FFu) != ck);
+            } while ((SPU_RXX::GetU16(&_spu_RXX->spustat) & 0x7FFu) != ck);
         }
     }
 
@@ -704,25 +705,34 @@ extern "C"
         int i;
         if (!_spu_wck) _spu_Fw1ts();
 
-        s->spucnt &= ~0x30;
+        SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) & ~0x30);
 
         // waste time or wait for SPU
-        for (i = 1; !(s->spucnt & 0x30); i++)
-            if (i>3840)
+        for (i = 1; !(SPU_RXX::GetU16(&_spu_RXX->spucnt) & 0x30); i++)
+        {
+            if (i > 3840)
+            {
                 break;
+            }
+        }
 
         if (_spu_transferCallback)
+        {
             _spu_transferCallback();
-        else DeliverEvent(HwSPU, EvSpCOMP);
+        }
+        else
+        {
+            DeliverEvent(HwSPU, EvSpCOMP);
+        }
     }
 
     // SPU.OBJ
     void _spu_Fr_(void *data, int addr, u32 size)
     {
-        s->trans_addr = addr;
+        SPU_RXX::Set(&_spu_RXX->trans_addr, addr);
         _spu_Fw1ts();
 
-        s->spucnt |= 0x30;
+        SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) | 0x30);
         _spu_Fw1ts();
         _spu_ssize();
 
@@ -748,38 +758,41 @@ extern "C"
         case SPU_T_SET_TRANS:
             ck = va_arg(args, u32) >> _spu_mem_mode_plus;
             _spu_tsa = ck;
-            s->trans_addr = ck;
+            SPU_RXX::Set(&_spu_RXX->trans_addr, ck);
             return 0;
+
         case SPU_T_SYNC:
             _spu_wck = 0;
-            if (s->trans_addr != _spu_tsa)
+            if (SPU_RXX::GetU16(&_spu_RXX->trans_addr) != _spu_tsa)
             {
                 i = 1;
                 do
                 {
                     if (i > 3841) return -2;
                     i++;
-                } while (s->trans_addr != _spu_tsa);
+                } while (SPU_RXX::GetU16(&_spu_RXX->trans_addr) != _spu_tsa);
             }
-            s->spucnt = (s->spucnt & ~0x30) | 0x20;
+            SPU_RXX::Set(&_spu_RXX->spucnt, (SPU_RXX::GetU16(&_spu_RXX->spucnt) & ~0x30) | 0x20);
             return 0;
+
         case SPU_T_SYNC0:
             _spu_wck = 1;
-            if (s->trans_addr != _spu_tsa)
+            if (SPU_RXX::GetU16(&_spu_RXX->trans_addr) != _spu_tsa)
             {
                 i = 1;
                 do
                 {
                     if (i > 3841) return -2;
                     i++;
-                } while (s->trans_addr != _spu_tsa);
+                } while (SPU_RXX::GetU16(&_spu_RXX->trans_addr) != _spu_tsa);
             }
-            s->spucnt |= 0x30;
+            SPU_RXX::Set(&_spu_RXX->spucnt, SPU_RXX::GetU16(&_spu_RXX->spucnt) | 0x30);
             return 0;
+
         case SPU_T_TRANSFER:
             //ck = _spu_wck ? 0x20 : 0x30;
             ck = _spu_wck ? 0x30 : 0x20;
-            if ((s->spucnt & 0x30u) != ck)
+            if ((SPU_RXX::GetU16(&_spu_RXX->spucnt) & 0x30u) != ck)
             {
                 i = 1;
                 do
@@ -790,7 +803,7 @@ extern "C"
                         return -2;
                     }
                     i++;
-                } while ((s->spucnt & 0x30u) != ck);
+                } while ((SPU_RXX::GetU16(&_spu_RXX->spucnt) & 0x30u) != ck);
             }
             if (_spu_wck == 1) _spu_ssize();
             else _spu_ssize0();
@@ -834,27 +847,35 @@ extern "C"
     // SPU.OBJ
     void _spu_FsetRXX(int l, u32 addr, int flag)
     {
-        u16 *x=&((u16*)s)[l];
+        volatile u16 *x=&((volatile u16*)_spu_RXX)[l];
 
-        if(!flag) *x = addr;
-        else *x = addr >> _spu_mem_mode_plus;
+        if (!flag)
+        {
+            SetSpuReg(x, addr);
+        }
+        else
+        {
+            SetSpuReg(x, addr >> _spu_mem_mode_plus);
+        }
     }
 
     // SPU.OBJ
     long _spu_FsetRXXa(int l, u32 flag)
     {
         u32 ret;
-        u16 *x = &((u16*)s)[l];
+        volatile u16 *x = &((volatile u16*)_spu_RXX)[l];
 
         if (_spu_mem_mode && (flag % _spu_mem_mode_unit))
-            flag = (flag+_spu_mem_mode_unit) & ~_spu_mem_mode_unitM;
+        {
+            flag = (flag + _spu_mem_mode_unit) & ~_spu_mem_mode_unitM;
+        }
 
         ret = flag >> _spu_mem_mode_plus;
 
         switch (l)
         {
         default:
-            *x = ret;
+            SetSpuReg(x, ret);
             ret = flag;
             break;
         case -1:
@@ -881,12 +902,15 @@ extern "C"
     long _spu_FgetRXXa(int l, int flag)
     {
         u32 ret;
-        u16 *x=&((u16*)s)[l];
+        volatile u16 *x=&((volatile u16*)_spu_RXX)[l];
 
-        ret = *x;
+        ret =  GetSpuRegU16(x);
 
-        if (flag == -1) return ret;
-        
+        if (flag == -1)
+        {
+            return ret;
+        }
+
         return ret << _spu_mem_mode_plus;
     }
 
@@ -1049,38 +1073,43 @@ extern "C"
         {
             ret |= SPU_EVENT_PITCHLFO;
             _spu_RQmask &= ~SPU_EVENT_PITCHLFO;
-            s->chan_fm[0] = _spu_RQ[4];
-            s->chan_fm[1] = _spu_RQ[5];
+            SPU_RXX::Set(&_spu_RXX->chan_fm[0], _spu_RQ[4]);
+            SPU_RXX::Set(&_spu_RXX->chan_fm[1], _spu_RQ[5]);
         }
         //
         if ((ev == SPU_EVENT_ALL || ev & SPU_EVENT_NOISE) && _spu_RQmask & SPU_EVENT_NOISE)
         {
             ret |= SPU_EVENT_NOISE;
             _spu_RQmask &= ~SPU_EVENT_NOISE;
-            s->noise_mode[0] = _spu_RQ[6];
-            s->noise_mode[1] = _spu_RQ[7];
+            SPU_RXX::Set(&_spu_RXX->noise_mode[0], _spu_RQ[6]);
+            SPU_RXX::Set(&_spu_RXX->noise_mode[1], _spu_RQ[7]);
         }
         //
         if ((ev == SPU_EVENT_ALL || ev & SPU_EVENT_REVERB) && _spu_RQmask & SPU_EVENT_REVERB)
         {
             ret |= SPU_EVENT_REVERB;
             _spu_RQmask &= ~SPU_EVENT_REVERB;
-            s->rev_mode[0] = _spu_RQ[8];
-            s->rev_mode[1] = _spu_RQ[9];
+            SPU_RXX::Set(&_spu_RXX->rev_mode[0], _spu_RQ[8]);
+            SPU_RXX::Set(&_spu_RXX->rev_mode[1], _spu_RQ[9]);
         }
         //
         if ((ev == SPU_EVENT_ALL || ev & SPU_EVENT_KEY) && _spu_RQmask & SPU_EVENT_KEY)
         {
             ret |= SPU_EVENT_KEY;
             _spu_RQmask &= ~SPU_EVENT_KEY;
-            s->key_on[0] = _spu_RQ[0];
-            s->key_on[1] = _spu_RQ[1];
-            s->key_off[0] = _spu_RQ[2];
-            s->key_off[1] = _spu_RQ[3];
+            SPU_RXX::Set(&_spu_RXX->key_on[0], _spu_RQ[0]);
+            SPU_RXX::Set(&_spu_RXX->key_on[1], _spu_RQ[1]);
+            SPU_RXX::Set(&_spu_RXX->key_off[0], _spu_RQ[2]);
+            SPU_RXX::Set(&_spu_RXX->key_off[1], _spu_RQ[3]);
             for (i = 0; i < 4; i++)
+            {
                 _spu_RQ[i] = 0;
+            }
+
             if (_spu_env & SPU_EVENT_KEY)
-                _spu_keystat=_spu_RQvoice;
+            {
+                _spu_keystat = _spu_RQvoice;
+            }
         }
 
         return ret;
@@ -1428,8 +1457,8 @@ extern "C"
             }
             else
             {
-                s->key_on[0] = voice_bit;
-                s->key_on[1] = voice_hit;
+                SPU_RXX::Set(&_spu_RXX->key_on[0], voice_bit);
+                SPU_RXX::Set(&_spu_RXX->key_on[1], voice_hit);
                 _spu_keystat |= voice_bit;
             }
         }
@@ -1454,8 +1483,8 @@ extern "C"
             }
             else
             {
-                s->key_off[0] = voice_bit;
-                s->key_off[1] = voice_hit;
+                SPU_RXX::Set(&_spu_RXX->key_off[0], voice_bit);
+                SPU_RXX::Set(&_spu_RXX->key_off[1], voice_hit);
                 _spu_keystat &= ~voice_bit;
             }
         }
@@ -2731,7 +2760,7 @@ unsigned long _SpuSetAnyVoice(long on_off_flags, unsigned long voice_bits, int w
     volatile u32* pRegister = _GetVoiceAddr(word_idx1, word_idx2);
 
     // Note: _spu_env branch removed
-    unsigned long ret_bits = *pRegister;
+    unsigned long ret_bits = GetSpuRegU32(pRegister);
 
     if (on_off_flags == 1)
     {
