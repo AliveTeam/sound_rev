@@ -578,67 +578,217 @@ extern "C"
         }
     }
 
-    // TODO: Taken from googling SsPitchFromNote along with SsPitchFromNote's impl
-    const unsigned short _svm_ptable[] =
-        {
-            4096, 4110, 4125, 4140, 4155, 4170, 4185, 4200,
-            4216, 4231, 4246, 4261, 4277, 4292, 4308, 4323,
-            4339, 4355, 4371, 4386, 4402, 4418, 4434, 4450,
-            4466, 4482, 4499, 4515, 4531, 4548, 4564, 4581,
-            4597, 4614, 4630, 4647, 4664, 4681, 4698, 4715,
-            4732, 4749, 4766, 4783, 4801, 4818, 4835, 4853,
-            4870, 4888, 4906, 4924, 4941, 4959, 4977, 4995,
-            5013, 5031, 5050, 5068, 5086, 5105, 5123, 5142,
-            5160, 5179, 5198, 5216, 5235, 5254, 5273, 5292,
-            5311, 5331, 5350, 5369, 5389, 5408, 5428, 5447,
-            5467, 5487, 5507, 5527, 5547, 5567, 5587, 5607,
-            5627, 5648, 5668, 5688, 5709, 5730, 5750, 5771,
-            5792, 5813, 5834, 5855, 5876, 5898, 5919, 5940,
-            5962, 5983, 6005, 6027, 6049, 6070, 6092, 6114,
-            6137, 6159, 6181, 6203, 6226, 6248, 6271, 6294,
-            6316, 6339, 6362, 6385, 6408, 6431, 6455, 6478,
-            6501, 6525, 6549, 6572, 6596, 6620, 6644, 6668,
-            6692, 6716, 6741, 6765, 6789, 6814, 6839, 6863,
-            6888, 6913, 6938, 6963, 6988, 7014, 7039, 7064,
-            7090, 7116, 7141, 7167, 7193, 7219, 7245, 7271,
-            7298, 7324, 7351, 7377, 7404, 7431, 7458, 7485,
-            7512, 7539, 7566, 7593, 7621, 7648, 7676, 7704,
-            7732, 7760, 7788, 7816, 7844, 7873, 7901, 7930,
-            7958, 7987, 8016, 8045, 8074, 8103, 8133, 8162,
-            8192};
-
-    short SsPitchFromNote(short note, short fine, unsigned char center, unsigned char shift)
+    const unsigned short int word_8001D0E8[12] =
     {
+        32768u,
+        34716u,
+        36780u,
+        38967u,
+        41285u,
+        43740u,
+        46340u,
+        49096u,
+        52015u,
+        55108u,
+        58385u,
+        61857u
+    };
 
-        unsigned int pitch;
-        short calc, type;
-        signed int add, sfine; //, ret;
+    const unsigned short int word_8001D100[136] = // TODO: Prob 128?
+    {
+        32768u,
+        32782u,
+        32797u,
+        32812u,
+        32827u,
+        32842u,
+        32856u,
+        32871u,
+        32886u,
+        32901u,
+        32916u,
+        32931u,
+        32945u,
+        32960u,
+        32975u,
+        32990u,
+        33005u,
+        33020u,
+        33035u,
+        33050u,
+        33065u,
+        33080u,
+        33094u,
+        33109u,
+        33124u,
+        33139u,
+        33154u,
+        33169u,
+        33184u,
+        33199u,
+        33214u,
+        33229u,
+        33244u,
+        33259u,
+        33274u,
+        33289u,
+        33304u,
+        33319u,
+        33334u,
+        33349u,
+        33364u,
+        33379u,
+        33394u,
+        33410u,
+        33425u,
+        33440u,
+        33455u,
+        33470u,
+        33485u,
+        33500u,
+        33515u,
+        33530u,
+        33546u,
+        33561u,
+        33576u,
+        33591u,
+        33606u,
+        33621u,
+        33636u,
+        33652u,
+        33667u,
+        33682u,
+        33697u,
+        33712u,
+        33728u,
+        33743u,
+        33758u,
+        33773u,
+        33789u,
+        33804u,
+        33819u,
+        33834u,
+        33850u,
+        33865u,
+        33880u,
+        33896u,
+        33911u,
+        33926u,
+        33941u,
+        33957u,
+        33972u,
+        33987u,
+        34003u,
+        34018u,
+        34033u,
+        34049u,
+        34064u,
+        34080u,
+        34095u,
+        34110u,
+        34126u,
+        34141u,
+        34157u,
+        34172u,
+        34187u,
+        34203u,
+        34218u,
+        34234u,
+        34249u,
+        34265u,
+        34280u,
+        34296u,
+        34311u,
+        34327u,
+        34342u,
+        34358u,
+        34373u,
+        34389u,
+        34404u,
+        34420u,
+        34435u,
+        34451u,
+        34466u,
+        34482u,
+        34497u,
+        34513u,
+        34528u,
+        34544u,
+        34560u,
+        34575u,
+        34591u,
+        34606u,
+        34622u,
+        34638u,
+        34653u,
+        34669u,
+        34685u,
+        34700u, // last entry ?
+        0u,
+        0u,
+        0u,
+        0u,
+        29520u,
+        17u,
+        0u,
+        70u
+    };
 
-        sfine = fine + shift;
-        if (sfine < 0)
-            sfine += 7;
-        sfine >>= 3;
 
-        add = 0;
-        if (sfine > 15)
+    short Our_SsPitchFromNote(short note, short fine, unsigned char centre, unsigned char shift)
+    {
+        int v11;
+        short noteCentreOffset;
+        short v10;
+        int shiftPlusFine;
+        int ret;
+
+        shiftPlusFine = (int)(((shift & 0xff) + fine) * 0x10000) >> 0x10;
+        v11 = shiftPlusFine;
+        if (shiftPlusFine < 0)
         {
-            add = 1;
-            sfine -= 16;
+            v11 = shiftPlusFine + 0x7f;
         }
-
-        calc = add + (note - (center - 60)); //((center + 60) - note) + add;
-        pitch = _svm_ptable[16 * (calc % 12) + (short)sfine];
-        type = calc / 12 - 5;
-
-        // regular shift
-        if (type > 0)
-            return pitch << type;
-        // negative shift
-        if (type < 0)
-            return pitch >> -type;
-
-        return pitch;
+        noteCentreOffset = (note + (short)(v11 >> 7)) - (centre & 0xff);
+        shiftPlusFine = shiftPlusFine + (v11 >> 7) * -0x80;
+        if (shiftPlusFine * 0x10000 < 0)
+        {
+            shiftPlusFine = shiftPlusFine + 0x80;
+            v11 = shiftPlusFine * 0x10000 >> 0x10;
+            if (v11 < 0)
+            {
+                v11 = v11 + 0x7f;
+            }
+            noteCentreOffset = noteCentreOffset + -1 + (short)(v11 >> 7);
+        }
+        v10 = noteCentreOffset / 0xc + -2;
+        v11 = (int)noteCentreOffset % 0xc;
+        if (v11 * 0x10000 < 0)
+        {
+            v11 = v11 + 0xc;
+            v10 = noteCentreOffset / 0xc + -3;
+        }
+        if (v10 < 0)
+        {
+            ret = -(int)v10;
+            ret = (int)(((int)((int) * (ushort *)((int)word_8001D0E8 + ((v11 << 0x10) >> 0xf)) *
+                                (int) * (ushort *)((int)word_8001D100 + ((shiftPlusFine << 0x10) >> 0xf))) >>
+                          0x10) +
+                         (1 << (ret - 1 & 0x1f))) >>
+                  (ret & 0x1f);
+        }
+        else
+        {
+            ret = 0x3fff;
+        }
+        return ret & 0xffff;
     }
+
+    short SsPitchFromNote(short note, short fine, unsigned char centre, unsigned char shift)
+    {
+        return Our_SsPitchFromNote(note, fine, centre, shift);
+    }
+
     short note2pitch2(short note, short fine)
     {
         VagAtr* pVag = &_svm_tn[_svm_cur.field_C_vag_idx + (_svm_cur.field_7_fake_program * 16)];
@@ -3746,9 +3896,33 @@ static void Test_SsGetSeqData()
     }
 }
 
+static void Test_SsPitchFromNote()
+{
+    for (int note = 0; note < 127; note++)
+    {
+        for (int fine = 0; fine < 127; fine++)
+        {
+            for (int centre = 0; centre < 127; centre++)
+            {
+                for (int shift = 0; shift < 127; shift++)
+                {
+                    const short realRet = SsPitchFromNote(note, fine, centre, shift);
+                    const short ourRet = Our_SsPitchFromNote(note, fine, centre, shift);
+                    if (ourRet != realRet)
+                    {
+                        printf("Failed to match result on %d %d %d %d\n", note, fine, centre, shift);
+                        ASSERT_EQ(ourRet, realRet);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void DoTests()
 {
     printf("Tests start\n");
+    Test_SsPitchFromNote();
     Test_SsVmSelectToneAndVag();
     Test_SsVmDoAllocate();
     Test_SsGetSeqData();
