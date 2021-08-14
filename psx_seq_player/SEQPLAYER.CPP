@@ -1054,7 +1054,6 @@ public:
             }
             else if (chunk->iType == Lvl::MakeType('S', 'e', 'q', ' '))
             {
-                printf("Found SEQ\n");
                 mNumSeqs++;
             }
             else
@@ -1064,6 +1063,7 @@ public:
             ptr += chunk->iSize;
         }
 
+        printf("Found %i SEQ's\n", mNumSeqs);
         mMenu.Init(mNumbersPtrs, mNumSeqs);
 
         return ok;
@@ -1172,6 +1172,32 @@ private:
 };
 static VhMenu gVhMenu;
 
+const char* getBsqFromLvlWithEnder()
+{
+    const char* kBsqEnderTable[10][2] =
+    {
+      {"SCRVAULT.VH", "SVSEQ.BSQ"},
+      {"SVENDER.VH",  "SESEQ.BSQ"},
+      {"PARVAULT.VH", "PVSEQ.BSQ"},
+      {"PVENDER.VH",  "PESEQ.BSQ"},
+      {"BARRACKS.VH", "BASEQ.BSQ"},
+      {"BAENDER.VH",  "B2SEQ.BSQ"},
+      {"FEECO.VH",    "FDSEQ.BSQ"},
+      {"FEENDER.VH",  "FESEQ.BSQ"},
+      {"BONEWERK.VH", "BWSEQ.BSQ"},
+      {"BWENDER.VH",  "B3SEQ.BSQ"}
+    };
+    
+    for (int i = 0; i < 10; i++)
+    {
+        if (strstr(gVhMenu.SelectedName(), kBsqEnderTable[i][0]))
+        {
+            return kBsqEnderTable[i][1];
+        }
+    }
+    return " ";
+}
+
 static void HandleLvlLoaded()
 {
     const int selected = gVhMenu.DisplayMenu();
@@ -1202,33 +1228,55 @@ static void HandleLvlLoaded()
             gMainState = eErrorLoadingTracks;
             return;
         }
-
+        
         unsigned int seqsSize = 0;
 
-        for (int i = 0; i < gLvl.NumFiles(); i++)
+        char tmp[13] = {};
+        // use the correct BSQ file if we select a lvl with more than 1 BSQ file
+        const char* BSQ = getBsqFromLvlWithEnder();
+        bool bLvlHasEnder = false;
+        if (!strstr(BSQ, " "))
         {
-            const Lvl::FileRecord &rec = gLvl.FileAt(i);
-            char tmp[13] = {};
-            strncpy(tmp, rec.mFileNameBytes, 12);
-            if (strstr(tmp, ".BSQ"))
-            {
-                if (!gLvl.LoadFile(tmp, gSeqBuffer, sizeof(gSeqBuffer), seqsSize))
-                {
-                    gMainState = eErrorLoadingTracks;
-                    return;
-                }
-
-                if (!gSeqChunk.Parse(gSeqBuffer))
-                {
-                    gMainState = eErrorLoadingTracks;
-                    return;
-                }
-
-                gMainState = eSfxOrTrackSelection;
-                return;
-            }
+            printf("Current lvl has multiple BSQ's\n");
+            strncpy(tmp, BSQ, 12);
+            bLvlHasEnder = true;
         }
 
+        if (bLvlHasEnder == false)
+        {
+            // search the lvl for BSQ files
+            for (int i = 0; i < gLvl.NumFiles(); i++)
+            {
+                const Lvl::FileRecord& rec = gLvl.FileAt(i);
+                // make a copy of the BSQ file name
+                if (strstr(rec.mFileNameBytes, ".BSQ"))
+                {
+                    strncpy(tmp, rec.mFileNameBytes, 12);
+                    printf("Found %s at index %i\n", tmp, i);
+                    break;
+                }
+            }
+        }
+        
+        if (strstr(tmp, ".BSQ"))
+        {
+            if (!gLvl.LoadFile(tmp, gSeqBuffer, sizeof(gSeqBuffer), seqsSize))
+            {
+                gMainState = eErrorLoadingTracks;
+                return;
+            }
+
+            if (!gSeqChunk.Parse(gSeqBuffer))
+            {
+                gMainState = eErrorLoadingTracks;
+                return;
+            }
+
+            gMainState = eSfxOrTrackSelection;
+            return;
+        }
+
+        printf("Couldn't find %s \n", tmp);
         gMainState = eErrorLoadingTracks;
     }
     else if (gInput.Circle())
