@@ -42,6 +42,12 @@
     <ClInclude Include="..\psx_seq_player\psx_stubs.hpp">
       <Filter>Header Files\psyq_rev</Filter>
     </ClInclude>
+    <ClInclude Include="..\psx_seq_player\Sound.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mednafen\dma.h">
+      <Filter>Header Files\mednafen</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\mednafen\spu_fir_table.inc">
@@ -52,9 +58,6 @@
     <ClCompile Include="..\mednafen\spu.cpp">
       <Filter>Source Files\mednafen</Filter>
     </ClCompile>
-    <ClCompile Include="..\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\psyq_rev\psyq_spu.cpp">
       <Filter>Source Files\psyq_rev</Filter>
     </ClCompile>
@@ -63,6 +66,18 @@
     </ClCompile>
     <ClCompile Include="..\psx_seq_player\lib_spu.cpp">
       <Filter>Source Files\psyq_rev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\psx_seq_player\vs_vt.c">
+      <Filter>Source Files\psyq_rev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\psx_seq_player\vs_vtc.c">
+      <Filter>Source Files\psyq_rev</Filter>
+    </ClCompile>
+    <ClCompile Include="..\psx_seq_player\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mednafen\dma.cpp">
+      <Filter>Source Files\mednafen</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

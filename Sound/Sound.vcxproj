@@ -115,6 +115,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\mednafen\dma.h" />
     <ClInclude Include="..\mednafen\spu.h" />
     <ClInclude Include="..\psx_seq_player\lib_snd.hpp" />
     <ClInclude Include="..\psx_seq_player\lib_spu.hpp" />
@@ -126,10 +127,11 @@
     <None Include="..\mednafen\spu_fir_table.inc" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="..\mednafen\dma.cpp" />
     <ClCompile Include="..\mednafen\spu.cpp" />
     <ClCompile Include="..\psx_seq_player\lib_snd.cpp" />
     <ClCompile Include="..\psx_seq_player\lib_spu.cpp" />
+    <ClCompile Include="..\psx_seq_player\main.cpp" />
     <ClCompile Include="..\psx_seq_player\vs_vt.c" />
     <ClCompile Include="..\psx_seq_player\vs_vtc.c" />
     <ClCompile Include="..\psyq_rev\psyq_spu.cpp" />
