@@ -46,7 +46,10 @@ extern "C"
 #define EvSpCOMP 2
 #define EvStACTIVE 3
 #define NULL 0
+    inline void VSyncCallback(void*)
+    {
 
+    }
 
     inline void ResetCallback()
     {

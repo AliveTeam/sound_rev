@@ -1,7 +1,8 @@
 ; base address
 	org     $80010000
 
-	include "seqplayer.obj"
+	include "main.obj"
+	;include "seqplayer.obj"
 	include "lib_snd.obj"
 	include "lib_spu.obj"
 	include "vs_vtc.obj"

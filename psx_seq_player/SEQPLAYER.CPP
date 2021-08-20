@@ -18,81 +18,8 @@
 #include "tims/P1.h"
 #include "tims/P2.h"
 
-void Sound_SsInit()
-{
-    ::SsInit();
-}
-
-void Sound_SsSetTableSize(char *table, short s_max, short t_max)
-{
-    ::SsSetTableSize(table, s_max, t_max);
-}
-
-void Sound_SsSetTickMode(long tick_mode)
-{
-    ::SsSetTickMode(tick_mode);
-}
-
-void Sound_SsStart()
-{
-    ::SsStart();
-}
-
-void Sound_SsSetMVol(short voll, short volr)
-{
-    ::SsSetMVol(voll, volr);
-}
-
-int Sound_SsVabTransfer(u_char *vh_addr, u_char *vb_addr, short vabid, short i_flag)
-{
-    return ::SsVabTransfer(vh_addr, vb_addr, vabid, i_flag);
-}
-
-short Sound_SsVabTransCompleted(short immediateFlag)
-{
-    return ::SsVabTransCompleted(immediateFlag);
-}
-
-short Sound_SsSeqOpen(u_long *addr, short vab_id)
-{
-    return ::SsSeqOpen(addr, vab_id);
-}
-
-void Sound_SsSeqSetVol(short seq_access_num, short voll, short volr)
-{
-    ::SsSeqSetVol(seq_access_num, voll, volr);
-}
-
-void Sound_SsSeqPlay(short seq_access_num, char play_mode, short l_count)
-{
-    ::SsSeqPlay(seq_access_num, play_mode, l_count);
-}
-
-void Sound_SsSeqClose(short seq_access_num)
-{
-    ::SsSeqClose(seq_access_num);
-}
-
-// TODO: but isn't in test binary
-void Sound_SsVabClose(short vab_id)
-{
-    ::SsVabClose(vab_id);
-}
-
-short Sound_SsUtKeyOffV(short voice)
-{
-    return ::SsUtKeyOffV(voice);
-}
-
-long Sound_SsVoKeyOn(long vab_pro, long pitch, u_short volL, u_short volR)
-{
-    return ::SsVoKeyOn(vab_pro, pitch, volL, volR);
-}
-
-void Sound_SsSeqCalledTbyT()
-{
-    ::SsSeqCalledTbyT();
-}
+#include "Sound.hpp"
+#include "SeqChunkParser.hpp"
 
 #define OT_LENGTH 40      // the ordertable length
 #define PACKETMAX 4000    // the maximum number of objects on the screen
@@ -565,22 +492,6 @@ static Uint8 gSeqBuffer[2048 * 100];
 class Lvl
 {
 public:
-    static Uint32 MakeType(Uint8 b4, Uint8 b3, Uint8 b2, Uint8 b1)
-    {
-        return (static_cast<Uint32>(b1) << 24) +
-               (static_cast<Uint32>(b2) << 16) +
-               (static_cast<Uint32>(b3) << 8) +
-               static_cast<Uint32>(b4);
-    }
-
-    struct ChunkHeader
-    {
-        Uint32 iSize;     // Size inc header
-        Uint32 iRefCount; // Ref count, should be zero when loaded
-        Uint32 iType;
-        Uint32 iId; // Id
-    };
-
     struct LvlHeader
     {
         Uint32 mFirstFileOffset;
@@ -908,122 +819,6 @@ int DisplayLevelSelection()
     return -1;
 }
 
-#define MVOL 127
-#define SVOL 64
-
-static void TickSeq()
-{
-    Sound_SsSeqCalledTbyT();
-}
-
-class Sound
-{
-public:
-    Sound()
-    {
-        mOpenVabId = -1;
-        mOpenSeqId = -1;
-    }
-
-    void Init()
-    {
-        Sound_SsInit();
-        Sound_SsSetTableSize(mSeqTable, 4, 5);
-        Sound_SsSetTickMode(SS_NOTICK);
-        Sound_SsStart();
-        Sound_SsSetMVol(MVOL, MVOL);
-        VSyncCallback(TickSeq);
-    }
-
-    bool LoadVab(unsigned char *vhBuffer, unsigned char *vbBuffer)
-    {
-        CloseVab();
-
-        mOpenVabId = Sound_SsVabTransfer(vhBuffer, vbBuffer, -1, SS_WAIT_COMPLETED);
-        if (mOpenVabId < 0)
-        {
-            if (mOpenVabId == -1)
-            {
-                printf("ERROR: Invalid VH\n");
-                return false;
-            }
-            else if (mOpenVabId == -2)
-            {
-                printf("ERROR: Invalid VB\n");
-                return false;
-            }
-            else
-            {
-                printf("ERROR: Copying to SPU memory\n");
-                return false;
-            }
-        }
-        if (Sound_SsVabTransCompleted(SS_WAIT_COMPLETED) == 0)
-        {
-            printf("ERROR: Didn't finish copy to SPU ram\n");
-            return false;
-        }
-
-        //debug_dump_vh((unsigned long *)vhBuffer, mOpenVabId);
-
-        return true;
-    }
-
-    bool PlaySEQ(unsigned char *seqBuffer)
-    {
-        if (mOpenVabId == -1)
-        {
-            printf("ERROR: No vab loaded\n");
-            return false;
-        }
-
-        CloseSeq();
-
-        mOpenSeqId = Sound_SsSeqOpen(reinterpret_cast<unsigned long *>(seqBuffer), mOpenVabId);
-        if (mOpenSeqId == -1)
-        {
-            printf("Open SEQ failed\n");
-            return false;
-        }
-
-        printf("Playing seq [%d]\n", mOpenSeqId);
-        Sound_SsSeqSetVol(mOpenSeqId, SVOL, SVOL);
-        Sound_SsSeqPlay(mOpenSeqId, SSPLAY_PLAY, 1);
-
-        return true;
-    }
-
-    void CloseSeq()
-    {
-        if (mOpenSeqId != -1)
-        {
-            printf("Closing seq [%d]\n", mOpenSeqId);
-            Sound_SsSeqClose(mOpenSeqId);
-            mOpenSeqId = -1;
-        }
-    }
-
-    short VabId() const
-    {
-        return mOpenVabId;
-    }
-
-private:
-    void CloseVab()
-    {
-        if (mOpenVabId != -1)
-        {
-            printf("Closing vab [%d]\n", mOpenVabId);
-            Sound_SsVabClose(mOpenVabId);
-            mOpenVabId = -1;
-        }
-    }
-
-    char mSeqTable[SS_SEQ_TABSIZ * 4 * 5];
-    short mOpenVabId;
-    short mOpenSeqId;
-};
-
 static Sound gSound;
 
 class SeqChunk
@@ -1040,63 +835,17 @@ public:
 
     bool Parse(unsigned char *seqChunk)
     {
-        mData = seqChunk;
-        bool ok = true;
-        mNumSeqs = 0;
-        unsigned char *ptr = mData;
-        for (;;)
+        const bool ok = mParser.Parse(seqChunk);
+        if (ok)
         {
-            Lvl::ChunkHeader *chunk = reinterpret_cast<Lvl::ChunkHeader *>(ptr);
-            if (chunk->iType == Lvl::MakeType('E', 'n', 'd', '!'))
-            {
-                printf("At end\n");
-                break;
-            }
-            else if (chunk->iType == Lvl::MakeType('S', 'e', 'q', ' '))
-            {
-                mNumSeqs++;
-            }
-            else
-            {
-                printf("Unknown chunk type\n");
-            }
-            ptr += chunk->iSize;
+            mMenu.Init(mNumbersPtrs, mParser.NumSeqs());
         }
-
-        printf("Found %i SEQ's\n", mNumSeqs);
-        mMenu.Init(mNumbersPtrs, mNumSeqs);
-
         return ok;
     }
 
     unsigned char *SeqPtr(unsigned int index)
     {
-        if (index > mNumSeqs)
-        {
-            return NULL;
-        }
-
-        unsigned char *ptr = gSeqBuffer;
-        unsigned int count = 0;
-        for (;;)
-        {
-            Lvl::ChunkHeader *chunk = reinterpret_cast<Lvl::ChunkHeader *>(ptr);
-            if (chunk->iType == Lvl::MakeType('E', 'n', 'd', '!'))
-            {
-                return NULL;
-            }
-            else if (chunk->iType == Lvl::MakeType('S', 'e', 'q', ' '))
-            {
-                if (count == index)
-                {
-                    printf("Found SEQ at index %d\n", index);
-                    return reinterpret_cast<unsigned char *>(chunk);
-                }
-                count++;
-            }
-            ptr += chunk->iSize;
-        }
-        return NULL;
+        return mParser.SeqPtr(gSeqBuffer, index);
     }
 
     int DisplayMenu()
@@ -1107,8 +856,7 @@ public:
     }
 
 private:
-    unsigned char *mData;
-    unsigned int mNumSeqs;
+    SeqChunkParser mParser;
     char mNumbers[200][10];
     const char *mNumbersPtrs[200];
     TextMenu mMenu;
@@ -1474,7 +1222,7 @@ static void SND_Stop_Channels_Mask_4CA810(int bitMask)
         if ((1 << i) & bitMask)
         {
             // Turn it off
-            Sound_SsUtKeyOffV(i);
+            SsUtKeyOffV(i);
         }
     }
 }
@@ -1502,7 +1250,7 @@ public:
         char volRight = 127;
 
         const SfxDefinition &def = sSligGameSpeakEntries_560868[idx];
-        mOnVoices = Sound_SsVoKeyOn(def.field_1_program | vabId, def.field_2_note << 8, volLeft, volRight);
+        mOnVoices = SsVoKeyOn(def.field_1_program | vabId, def.field_2_note << 8, volLeft, volRight);
     }
 
     void Stop()
@@ -1704,9 +1452,13 @@ int main()
                 unsigned char *seqPtr = gSeqChunk.SeqPtr(seqNum);
                 if (seqPtr)
                 {
-                    if (!gSound.PlaySEQ(seqPtr + sizeof(Lvl::ChunkHeader)))
+                    //for (int i=0; i<16; i++)
                     {
-                        printf("SEQ play failed for idx [%d]\n", seqNum);
+                        if (!gSound.PlaySEQ(seqPtr + sizeof(ChunkHeader)))
+                        {
+                            printf("SEQ play failed for idx [%d]\n", seqNum);
+                        }
+                        //gSound.CloseSeq();
                     }
                 }
             }

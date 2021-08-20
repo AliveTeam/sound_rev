@@ -91,7 +91,7 @@ extern "C"
     LIBVAR volatile u32 *SPUDMA_MADR  = (volatile u32*)0x1F8010C0;
     LIBVAR volatile u32 *SPUDMA_BCR   = (volatile u32*)0x1F8010C4;
     LIBVAR volatile u32 *SPUDMA_CHCR  = (volatile u32*)0x1F8010C8;
-    LIBVAR volatile u32 *DPCR         = (volatile u32*)0x1F8010F0;
+    LIBVAR volatile u32 *DPCR         = (volatile u32*)0x1F8010F0; // dma
     LIBVAR volatile u32 *SPUSIZE      = (volatile u32*)0x1F801014;
 
     void _spu_w(void *data, int size);

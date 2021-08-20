@@ -68,6 +68,9 @@ if ($testOnly -eq $true)
 ccpsx -O2 -G 8 -g -c -Wall $defineTest "seqplayer.cpp" "-oseqplayer.obj" -I $Env:C_INCLUDE_PATH
 if ($lastExitCode -ne 0) {Write-Error "Command exited with code " $lastExitCode}
 
+ccpsx -O2 -G 8 -g -c -Wall $defineTest "main.cpp" "-omain.obj" -I $Env:C_INCLUDE_PATH
+if ($lastExitCode -ne 0) {Write-Error "Command exited with code " $lastExitCode}
+
 ccpsx -O2 -G 8 -g -c -Wall $defineTest "lib_snd.cpp" "-olib_snd.obj" -I $Env:C_INCLUDE_PATH
 if ($lastExitCode -ne 0) {Write-Error "Command exited with code " $lastExitCode}
 
@@ -102,7 +105,7 @@ if ($testOnly -eq $false)
 Write-Host "Emu boot.."
 if ($testOnly -eq $false)
 {
-    invoke-expression 'cmd /c start powershell -Command { Start-Process "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)\duckstation-nogui-x64-ReleaseLTCG.exe" -WorkingDirectory "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)" -ArgumentList "-batch", "E:\Data\alive\reversing\sound_rev\psx_seq_player\iso.cue" }'
+    invoke-expression 'cmd /c start powershell -Command { Start-Process "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)\duckstation-qt-x64-ReleaseLTCG.exe" -WorkingDirectory "C:\Users\paul\Downloads\duckstation-windows-x64-release (1)" -ArgumentList "-batch", "E:\Data\alive\reversing\sound_rev\psx_seq_player\iso.cue" }'
 }
 else
 {
