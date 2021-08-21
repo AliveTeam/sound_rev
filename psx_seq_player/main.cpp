@@ -14,6 +14,10 @@
 #include "../mednafen/spu.h"
 #include "../mednafen/dma.h"
 
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
+//#include <SDL_main.h>
+
 PS_SPU* SPU = nullptr;
 
 void SetSpuReg(volatile u32* pReg, u32 value)
@@ -67,8 +71,33 @@ static void VSync(int mode)
 
 }
 
+#include <memory.h>
+
+static void my_audio_callback(void *userdata, Uint8 *stream, int len)
+{
+    memcpy(stream, IntermediateBuffer + IntermediateBufferPos, len);
+
+//    IntermediateBuffer, IntermediateBufferPos
+}
+
 int main(int, char**)
 {
+    SDL_SetMainReady();
+    SDL_Init(SDL_INIT_AUDIO);
+
+    SDL_AudioSpec wav_spec = {};
+    wav_spec.channels = 2;
+    wav_spec.samples = 2048;
+    wav_spec.format = AUDIO_S16;
+    wav_spec.callback = my_audio_callback;
+    wav_spec.userdata = NULL;
+    if (SDL_OpenAudio(&wav_spec, NULL) < 0) 
+    {
+        printf(SDL_GetError());
+        return 1;
+    }
+    SDL_PauseAudio(0);
+
     MDFN_IEN_PSX::DMA_Init();
 
     MDFN_IEN_PSX::DMA_Power();
