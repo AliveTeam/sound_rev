@@ -10,7 +10,9 @@
 
 #include <stdlib.h>
 
+#define USE_EMU
 
+#ifdef USE_EMU
 #include "../mednafen/spu.h"
 #include "../mednafen/dma.h"
 
@@ -75,19 +77,27 @@ static void VSync(int mode)
 
 static void my_audio_callback(void *userdata, Uint8 *stream, int len)
 {
-    memcpy(stream, IntermediateBuffer + IntermediateBufferPos, len);
+    printf("%d\n", IntermediateBufferPos);
+    memcpy(stream, IntermediateBuffer, len);
+
+    if (IntermediateBufferPos >= 4096)
+    {
+        IntermediateBufferPos = 0;
+    }
 
 //    IntermediateBuffer, IntermediateBufferPos
 }
+#endif
 
 int main(int, char**)
 {
+#ifdef USE_EMU
     SDL_SetMainReady();
     SDL_Init(SDL_INIT_AUDIO);
 
     SDL_AudioSpec wav_spec = {};
     wav_spec.channels = 2;
-    wav_spec.samples = 2048;
+    wav_spec.samples = 2048/2;
     wav_spec.format = AUDIO_S16;
     wav_spec.callback = my_audio_callback;
     wav_spec.userdata = NULL;
@@ -106,13 +116,14 @@ int main(int, char**)
     SPU = new PS_SPU();
 
     SPU->Power();
-
+    /*
     for (int i = 0; i < 900; i++)
     {
         SPU->UpdateFromCDC(400);
         MDFN_IEN_PSX::DMA_Update(0);
 
-    }
+    }*/
+#endif
 
     gSound.Init();
 
@@ -131,11 +142,14 @@ int main(int, char**)
         printf("PlaySEQ failure\n");
     }
 
+    unsigned int clocks = 0;
     printf("Enter loop\n");
     for (;;)
     {
-        SPU->UpdateFromCDC(400);
-        MDFN_IEN_PSX::DMA_Update(0);
+#ifdef USE_EMU
+        clocks = SPU->UpdateFromCDC(30);
+        clocks = MDFN_IEN_PSX::DMA_Update(30);
+#endif
         VSync(0);
     }
 
