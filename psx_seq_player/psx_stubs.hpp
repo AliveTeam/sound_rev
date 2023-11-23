@@ -1,7 +1,7 @@
 #ifndef _PSX_STUBS_HPP_
 #define _PSX_STUBS_HPP_
 
-#define PSX
+// #define PSX
 
 #ifdef PSX
     #include <libapi.h>
@@ -33,6 +33,8 @@ inline u16 GetSpuRegU16(volatile u16* pReg)
 }
 
 #else
+
+#include <cstdio>
 
 void SetSpuReg(volatile u32* pReg, u32 value);
 void SetSpuReg(volatile u16* pReg, u16 value);
