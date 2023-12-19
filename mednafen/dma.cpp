@@ -28,6 +28,7 @@
 //#include "cdc.h"
 #include "spu.h"
 #include <algorithm>
+#include <cstring>
 
 
 
