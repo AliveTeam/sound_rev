@@ -25,6 +25,21 @@ jobs:
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
+  build-psx:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: wine
+      run: sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install wine32
+
+    - name: psy-q
+      run: git clone https://github.com/sozud/psyq_sdk.git
+
+    - name: Build
+      run: cd psx_seq_player/build && pip3 install -r requirements.txt && python3 build.py --psyq_path ../../psyq_sdk
+
   build-windows:
     runs-on: windows-latest
 

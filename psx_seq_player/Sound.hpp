@@ -4,7 +4,11 @@
 #include "lib_snd.hpp"
 #include "lib_spu.hpp"
 #include "psx_stubs.hpp"
+#ifdef PSX
+#include <STDIO.H>
+#else
 #include <stdio.h>
+#endif
 
 #define MVOL 127
 #define SVOL 64

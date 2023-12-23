@@ -1,4 +1,9 @@
+
+#ifdef PSX
+#include <SYS/TYPES.H>
+#else
 #include <sys/types.h>
+#endif
 #include "lib_snd.hpp"
 #include "lib_spu.hpp"
 #include "Sound.hpp"
@@ -8,11 +13,13 @@
 #include "miseq.bsq.h"
 #include "SeqChunkParser.hpp"
 
+#ifdef PSX
+#include <STDLIB.H>
+#else
 #include <stdlib.h>
+#endif
 
-#define USE_EMU
-
-#ifdef USE_EMU
+#ifndef PSX
 #include "../mednafen/spu.h"
 #include "../mednafen/dma.h"
 
@@ -123,6 +130,11 @@ int main(int, char**)
         MDFN_IEN_PSX::DMA_Update(0);
 
     }*/
+#else
+
+Sound gSound;
+SeqChunkParser gChunkParser;
+
 #endif
 
     gSound.Init();

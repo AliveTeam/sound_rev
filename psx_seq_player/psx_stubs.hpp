@@ -4,8 +4,8 @@
 // #define PSX
 
 #ifdef PSX
-    #include <libapi.h>
-    #include <libetc.h> // ResetCallBack
+    #include <LIBAPI.H>
+    #include <LIBETC.H> // ResetCallBack
 
 inline void SetSpuReg(volatile u32* pReg, u32 value)
 {

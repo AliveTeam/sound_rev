@@ -1,0 +1,6 @@
+*.pyc
+.ninja_deps
+.ninja_log
+build.ninja
+obj
+build/objlib
