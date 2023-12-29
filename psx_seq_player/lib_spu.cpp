@@ -1,10 +1,16 @@
 #include "lib_spu.hpp"
 
-#include <sys/types.h>
+#ifdef PSX
+#include <SYS/TYPES.H>
 //#include <libapi.h>
 //#include <libetc.h> // ResetCallBack
+#include <STDARG.H> // va_list
+#include <STDIO.H> // printf
+#else
+#include <sys/types.h>
 #include <stdarg.h> // va_list
 #include <stdio.h> // printf
+#endif
 #include "psx_stubs.hpp"
 
 extern "C"

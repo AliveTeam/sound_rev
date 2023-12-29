@@ -1,8 +1,13 @@
 #include "lib_snd.hpp"
 #include "lib_spu.hpp"
 
+#ifdef PSX
+#include <STDIO.H> // printf
+#include <SYS/TYPES.H>
+#else
 #include <stdio.h> // printf
 #include <sys/types.h>
+#endif
 //#include <libetc.h> // ResetCallback
 #include "psx_stubs.hpp"
 
