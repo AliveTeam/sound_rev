@@ -25,6 +25,9 @@ jobs:
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
+    - name: Run unit tests
+      run: ./build/Sound test
+
   build-psx:
     runs-on: ubuntu-latest
 
@@ -32,13 +35,25 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: wine
-      run: sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install wine32
+      run: sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install wine32 libsdl2-dev
 
     - name: psy-q
       run: git clone https://github.com/sozud/psyq_sdk.git
 
     - name: Build
       run: cd psx_seq_player/build && pip3 install -r requirements.txt && python3 build.py --psyq_path ../../psyq_sdk
+
+    - name: Get mednafen
+      run: git clone https://github.com/sozud/mednafen-build.git
+
+    - name: Get bios
+      run: |
+        wget https://archive.org/download/PlayStationBIOSFilesNAEUJP/scph5500.bin
+        mkdir -p /home/runner/.mednafen/firmware/
+        cp scph5500.bin /home/runner/.mednafen/firmware/
+    
+    - name: Run unit tests
+      run: xvfb-run ./mednafen-build/mednafen ./psx_seq_player/obj/psx_seq_player_test/sound.exe
 
   build-windows:
     runs-on: windows-latest

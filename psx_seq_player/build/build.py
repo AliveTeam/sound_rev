@@ -61,6 +61,12 @@ ninja = ninja_syntax.Writer(f)
 ninja.variable("psyq_path", args.psyq_path)
 ninja.newline()
 
+ninja.variable("target_name", "default")
+ninja.newline()
+
+ninja.variable("suffix", "")
+ninja.newline()
+
 ninja.variable("psyq_path_backslashed", args.psyq_path.replace('/', '\\'))
 ninja.newline()
 
@@ -94,11 +100,11 @@ ninja.newline()
 
 includes = "-I " + args.psyq_path + "/psyq_4.4/INCLUDE" + " -I $src_dir"
 
-ninja.rule("psyq_c_preprocess_44", "$psyq_c_preprocessor_44_exe -undef -DPSX -D__GNUC__=2 -D__OPTIMIZE__ " + includes + " -lang-c -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D__EXTENSIONS__ -D_MIPSEL -D__CHAR_UNSIGNED__ -D_LANGUAGE_C -D__cplusplus -D_LANGUAGE_C_PLUS_PLUS $in $out", "Preprocess $in -> $out")
+ninja.rule("psyq_c_preprocess_44", "$psyq_c_preprocessor_44_exe -undef $is_test -DPSX -D__GNUC__=2 -D__OPTIMIZE__ " + includes + " -lang-c -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D__EXTENSIONS__ -D_MIPSEL -D__CHAR_UNSIGNED__ -D_LANGUAGE_C -D__cplusplus -D_LANGUAGE_C_PLUS_PLUS $in $out", "Preprocess $in -> $out")
 ninja.newline()
 
 # generate header deps, adds edges to the build graph for the next build -M option will write header deps
-ninja.rule("psyq_c_preprocess_44_headers", "$psyq_c_preprocessor_44_exe -M -undef -DPSX -D_LANGUAGE_C_PLUS_PLUS -D__cplusplus -D__GNUC__=2 -D__OPTIMIZE__ " + includes + " -lang-c -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D__EXTENSIONS__ -D_MIPSEL -D__CHAR_UNSIGNED__  $in $out", "Preprocess for includes $in -> $out")
+ninja.rule("psyq_c_preprocess_44_headers", "$psyq_c_preprocessor_44_exe -M -undef $is_test -DPSX -D_LANGUAGE_C_PLUS_PLUS -D__cplusplus -D__GNUC__=2 -D__OPTIMIZE__ " + includes + " -lang-c -Dmips -D__mips__ -D__mips -Dpsx -D__psx__ -D__psx -D_PSYQ -D__EXTENSIONS__ -D_MIPSEL -D__CHAR_UNSIGNED__  $in $out", "Preprocess for includes $in -> $out")
 ninja.newline()
 
 ninja.rule("header_deps", f"{sys.executable} hash_include_msvc_formatter.py $in $out", "Include deps fix $in -> $out", deps="msvc")
@@ -124,7 +130,7 @@ ninja.newline()
 
 psqy_lib = f'{args.psyq_path}/psyq_4.4/LIB'
 
-ninja.rule("psylink", f"$psyq_psylink_exe /l {psqy_lib} /c /n 4000 /q /gp .sdata /m @\"../{args.obj_directory}/linker_command_file$suffix.txt\",../{args.obj_directory}/sound$suffix.cpe,../{args.obj_directory}/asm$suffix.sym,../{args.obj_directory}/asm$suffix.map", "Link $out")
+ninja.rule("psylink", f"$psyq_psylink_exe /l {psqy_lib} /c /n 4000 /q /gp .sdata /m @\"../{args.obj_directory}/$target_name/linker_command_file$suffix.txt\",../{args.obj_directory}/$target_name/sound$suffix.cpe,../{args.obj_directory}/$target_name/asm$suffix.sym,../{args.obj_directory}/$target_name/asm$suffix.map", "Link $out")
 
 # TODO: update the tool so we can set the output name optionally
 # cmd /c doesn't like forward slashed relative paths
@@ -153,13 +159,13 @@ def get_files_recursive(path, ext):
                 collectedFiles.append(os.path.join(r, file))
     return collectedFiles
 
-def gen_build_target(targetName):
+def gen_build_target(targetName, is_test):
     ninja.comment("Build target " + targetName)
 
     asmFiles = get_files_recursive("../asm", ".s")
     print("Got " + str(len(asmFiles)) + " asm files")
 
-    cFiles = ['../vs_vt.c', '../vs_vtc.c', '../main.cpp', '../lib_snd.cpp', '../lib_spu.cpp']
+    cFiles = ['../vs_vt.c', '../vs_vtc.c', '../main.cpp', '../lib_snd.cpp', '../lib_spu.cpp', '../test.cpp']
     print("Got " + str(len(cFiles)) + " source files")
 
     linkerDeps = []
@@ -170,7 +176,7 @@ def gen_build_target(targetName):
     # build .s files
     for asmFile in asmFiles:
         asmFile = asmFile.replace("\\", "/")
-        asmOFile = asmFile.replace("/asm/", f"/{args.obj_directory}/")
+        asmOFile = asmFile.replace("/asm/", f"/{args.obj_directory}/{targetName}/")
         asmOFile = asmOFile.replace(".s", ".obj")
         #print("Build step " + asmFile + " -> " + asmOFile)
         ninja.build(asmOFile, "psyq_asmpsx_assemble", asmFile)
@@ -179,7 +185,7 @@ def gen_build_target(targetName):
     # build .c files
     for cFile in cFiles:
         cFile = cFile.replace("\\", "/")
-        cOFile = cFile.replace("../", f"../{args.obj_directory}/")
+        cOFile = cFile.replace("../", f"../{args.obj_directory}/{targetName}/")
 
         if 'cpp' in cFile:
             cPreProcHeadersFile = cOFile.replace(".cpp", ".cpp.preproc.headers")
@@ -210,7 +216,11 @@ def gen_build_target(targetName):
 
         compiler = "psyq_cc_44"
         aspsx = "psyq_aspsx_assemble_44"
-        ninja.build(cPreProcFile, "psyq_c_preprocess_44", cFile, implicit=[cPreProcHeadersFixedFile])
+        if(is_test):
+            is_test_def = "-DUNIT_TESTS"
+        else:
+            is_test_def = ""
+        ninja.build(cPreProcFile, "psyq_c_preprocess_44", cFile, implicit=[cPreProcHeadersFixedFile], variables={'is_test':is_test_def})
         ninja.build([cAsmPreProcFile, cAsmPreProcFileDeps, cDynDepFile], "asm_include_preprocess_44", cPreProcFile)
         ninja.build(cAsmFile, compiler, cAsmPreProcFile)
         ninja.build(cTempOFile, aspsx, cAsmFile)
@@ -221,21 +231,25 @@ def gen_build_target(targetName):
     # Build main exe
 
     # preprocess linker_command_file.txt
-    linkerCommandFile = f"../{args.obj_directory}/linker_command_file.txt"
-    ninja.build(linkerCommandFile, "linker_command_file_preprocess", f"linker_command_file.txt", variables={'psyq_sdk': args.psyq_path})
+    linkerCommandFile = f"../{args.obj_directory}/{targetName}/linker_command_file.txt"
+    if(is_test):
+        ninja.build(linkerCommandFile, "linker_command_file_preprocess", f"linker_command_file_test.txt", variables={'psyq_sdk': args.psyq_path})
+    else:
+        ninja.build(linkerCommandFile, "linker_command_file_preprocess", f"linker_command_file.txt", variables={'psyq_sdk': args.psyq_path})
     ninja.newline()
 
     # run the linker to generate the cpe
-    cpeFile = f"../{args.obj_directory}/sound.cpe"
-    ninja.build(cpeFile, "psylink", implicit=linkerDeps + [linkerCommandFile])
+    cpeFile = f"../{args.obj_directory}/{targetName}/sound.cpe"
+    ninja.build(cpeFile, "psylink", implicit=linkerDeps + [linkerCommandFile], variables={'target_name':targetName})
     ninja.newline()
 
     # cpe to exe
-    exeFile = f"../{args.obj_directory}/sound.exe"
+    exeFile = f"../{args.obj_directory}/{targetName}/sound.exe"
     ninja.build(exeFile, "cpe2exe", cpeFile)
     ninja.newline()
 
-gen_build_target("psx_seq_player")
+gen_build_target("psx_seq_player", False)
+gen_build_target("psx_seq_player_test", True)
 
 f.close()
 

@@ -1,11 +1,11 @@
 	org     $80010000
 
-	include "../obj/main.obj"
+	include "../obj/psx_seq_player/main.obj"
 	;include "seqplayer.obj"
-	include "../obj/lib_snd.obj"
-	include "../obj/lib_spu.obj"
-	include "../obj/vs_vtc.obj"
-	include "../obj/vs_vt.obj"
+	include "../obj/psx_seq_player/lib_snd.obj"
+	include "../obj/psx_seq_player/lib_spu.obj"
+	include "../obj/psx_seq_player/vs_vtc.obj"
+	include "../obj/psx_seq_player/vs_vt.obj"
 
 	inclib libsn.lib
 	inclib libds.lib

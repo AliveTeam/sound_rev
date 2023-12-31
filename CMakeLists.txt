@@ -6,6 +6,13 @@ project(Sound)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# turn on address sanitizer for gcc
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_BUILD_TYPE Debug)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+  set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
+endif()
+
 if(WIN32)
   set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 endif()
@@ -23,6 +30,7 @@ set(SOURCE_FILES
     psx_seq_player/vs_vt.c
     psx_seq_player/vs_vtc.c
     psx_seq_player/main.cpp
+    psx_seq_player/test.cpp
 )
 
 # Add executable target

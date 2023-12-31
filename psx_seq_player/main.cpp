@@ -12,6 +12,7 @@
 #include "mines.vh.h"
 #include "miseq.bsq.h"
 #include "SeqChunkParser.hpp"
+#include "test.hpp"
 
 #ifdef PSX
 #include <STDLIB.H>
@@ -22,6 +23,7 @@
 #ifndef PSX
 #include "../mednafen/spu.h"
 #include "../mednafen/dma.h"
+#include <string>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -96,9 +98,18 @@ static void my_audio_callback(void *userdata, Uint8 *stream, int len)
 }
 #endif
 
-int main(int, char**)
+int main(int argc, char* argv[])
 {
-#ifdef USE_EMU
+#ifndef PSX
+    if(argc > 0)
+    {
+        std::string arg = argv[1];
+        if(arg == "test")
+        {
+            run_unit_tests();
+        }
+ 
+    }
     SDL_SetMainReady();
     SDL_Init(SDL_INIT_AUDIO);
 
@@ -132,6 +143,10 @@ int main(int, char**)
     }*/
 #else
 
+#ifdef UNIT_TESTS
+    run_unit_tests();
+#endif
+
 Sound gSound;
 SeqChunkParser gChunkParser;
 
@@ -158,7 +173,7 @@ SeqChunkParser gChunkParser;
     printf("Enter loop\n");
     for (;;)
     {
-#ifdef USE_EMU
+#ifndef PSX
         clocks = SPU->UpdateFromCDC(30);
         clocks = MDFN_IEN_PSX::DMA_Update(30);
 #endif
