@@ -1,6 +1,8 @@
 #ifndef _LIB_SND_HPP_
 #define _LIB_SND_HPP_
 
+#include "types.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -87,35 +89,33 @@ extern "C"
 
     typedef struct VabHdr {         /* VAB Bank Headdings */
 
-        long           form;          /* always 'VABp' */
-        long           ver;           /* VAB file version number */
-        long           id;            /* VAB id */
-        unsigned long  fsize;         /* VAB file size */
-        unsigned short reserved0;     /* system reserved */
-        unsigned short ps;            /* # of the programs in this bank */
-        unsigned short ts;            /* # of the tones in this bank */
-        unsigned short vs;            /* # of the vags in this bank */
-        unsigned char  mvol;          /* master volume for this bank */
-        unsigned char  pan;           /* master panning for this bank */
-        unsigned char  attr1;         /* bank attributes1 */
-        unsigned char  attr2;         /* bank attributes2 */
-        unsigned long  reserved1;     /* system reserved */
-
+        s32 form;          /* always 'VABp' */
+        s32 ver;           /* VAB file version number */
+        s32 id;            /* VAB id */
+        u32 fsize;         /* VAB file size */
+        u16 reserved0;     /* system reserved */
+        u16 ps;            /* # of the programs in this bank */
+        u16 ts;            /* # of the tones in this bank */
+        u16 vs;            /* # of the vags in this bank */
+        u8  mvol;          /* master volume for this bank */
+        u8  pan;           /* master panning for this bank */
+        u8  attr1;         /* bank attributes1 */
+        u8  attr2;         /* bank attributes2 */
+        u32 reserved1;     /* system reserved */
     } VabHdr;			/* 32 byte */
 
 
     typedef struct ProgAtr {        /* Program Headdings */
-
-        unsigned char tones;          /* # of tones */
-        unsigned char mvol;           /* program volume */
-        unsigned char prior;          /* program priority */
-        unsigned char mode;           /* program mode */
-        unsigned char mpan;           /* program pan */
-        char          reserved0;      /* system reserved */
-        short         attr;           /* program attribute */
-        unsigned long reserved1;      // "fake" program index (skips empties)
-        unsigned short reserved2;     // even vag spu ptr
-        unsigned short reserved3;     // odd vag spu ptr
+        u8  tones;          /* # of tones */
+        u8  mvol;           /* program volume */
+        u8  prior;          /* program priority */
+        u8  mode;           /* program mode */
+        u8  mpan;           /* program pan */
+        s8  reserved0;      /* system reserved */
+        s16 attr;           /* program attribute */
+        u32 reserved1;      // "fake" program index (skips empties)
+        u16 reserved2;      // even vag spu ptr
+        u16 reserved3;      // odd vag spu ptr
     } ProgAtr;			/* 16 byte */
 
     typedef void(*SndSsMarkCallbackProc)(short seq_no, short sep_no, short data);
@@ -202,6 +202,85 @@ extern "C"
     extern short _snd_seq_s_max;
     extern short _snd_seq_t_max;
 
+    struct RegBufStruct
+    {
+        short field_0_vol_left;
+        short field_2_vol_right;
+        short field_4_pitch;
+        unsigned short field_6_vagAddr;
+        unsigned short field_8_adsr1;
+        unsigned short field_A_adsr2;
+        short field_0xc;
+        short field_0xe;
+    };
+
+    
+    struct SpuVoice
+    {
+        short field_0_vag_idx;
+        short field_0x2;
+        short field_4_pitch;
+        short field_6_keyStat;
+        short field_8_voll;
+        char field_0xa;
+        char pad5;
+        short field_C_channel_idx;
+        short field_E_note;
+        short field_10_seq_sep_no;
+        short field_12_fake_program;
+        short field_14_program;
+        short field_16_vag_num; // TODO: char
+        short field_18_vabId;
+        short field_1A_priority;
+
+        char pad8;
+        char field_0x1d;
+
+        short field_1E_bAutoVol;
+        short field_20_autoVolAmount;
+        short field_22_autoVol_dt1;
+        short field_24_autoVol_dt2;
+        short field_26_autoVol_Start;
+        short field_28_autoVol_End;
+        short field_2A_bAutoPan;
+
+        short field_0x2c; // amount ?
+        short field_0x2e; // dt1?
+        short field_0x30; // dt2?
+        short field_0x32; // start ?
+        short pad1;       // end ?
+
+        short field_36_voll;
+    };
+
+
+    struct struct_svm
+    {
+        char field_0_sep_sep_no_tonecount;
+        char field_1_vabId;
+        char field_2_note;
+        char field_0x3;
+        char field_4_voll;
+        char field_0x5;
+        char field_6_program;
+        char field_7_fake_program;
+        char field_8_unknown;
+        char field_0x9;
+        char field_A_mvol;
+        char field_B_mpan;
+        char field_C_vag_idx;
+        char field_D_vol;
+        char field_E_pan;
+        char field_F_prior;
+        char field_10_centre;
+        unsigned char field_11_shift;
+        char field_12_mode;
+        char field_0x13;
+        short field_14_seq_sep_no;
+        short field_16_vag_idx;
+        short field_18_voice_idx;
+        int field_0x1a;
+    }; // 26 bytes, can't be bigger than 28 ?
 
     void SsStart(void);
     void SsInit(void);
