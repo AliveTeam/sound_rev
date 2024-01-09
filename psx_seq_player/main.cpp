@@ -101,7 +101,7 @@ static void my_audio_callback(void *userdata, Uint8 *stream, int len)
 int main(int argc, char* argv[])
 {
 #ifndef PSX
-    if(argc > 0)
+    if(argc > 1)
     {
         std::string arg = argv[1];
         if(arg == "test")
